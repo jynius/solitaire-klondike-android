@@ -1,0 +1,139 @@
+openapi: 3.0.3
+info:
+  title: Solitaire Klondike Sync API
+  version: 0.1.0
+servers:
+  - url: https://api.example.com
+paths:
+  /v1/solves:
+    post:
+      summary: Upload a solve result
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SolveUploadRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolveUploadResponse'
+  /v1/daily:
+    get:
+      summary: Get daily deal
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyResponse'
+  /v1/leaderboards/{dealId}:
+    get:
+      summary: Get leaderboard for a deal
+      parameters:
+        - in: path
+          name: dealId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaderboardResponse'
+components:
+  schemas:
+    Ruleset:
+      type: object
+      properties:
+        draw:
+          type: integer
+        redeals:
+          type: integer
+        recycle:
+          type: string
+          enum: [keep, reverse]
+        allowFoundationToTableau:
+          type: boolean
+    SolveUploadRequest:
+      type: object
+      required: [dealId, userId, ruleset, durationMs, moveCount, startedAt]
+      properties:
+        dealId:
+          type: string
+        userId:
+          type: string
+        ruleset:
+          $ref: '#/components/schemas/Ruleset'
+        durationMs:
+          type: integer
+          format: int64
+        moveCount:
+          type: integer
+        startedAt:
+          type: integer
+          format: int64
+        finishedAt:
+          type: integer
+          format: int64
+          nullable: true
+        clientVersion:
+          type: string
+          nullable: true
+        platform:
+          type: string
+          nullable: true
+        moveTraceHash:
+          type: string
+          nullable: true
+    SolveUploadResponse:
+      type: object
+      properties:
+        accepted:
+          type: boolean
+        rank:
+          type: integer
+          nullable: true
+        personalBest:
+          type: boolean
+          nullable: true
+    DailyResponse:
+      type: object
+      properties:
+        dealId:
+          type: string
+        seed:
+          type: string
+        ruleset:
+          $ref: '#/components/schemas/Ruleset'
+        validFrom:
+          type: string
+          nullable: true
+        validTo:
+          type: string
+          nullable: true
+    LeaderboardEntry:
+      type: object
+      properties:
+        userId:
+          type: string
+        durationMs:
+          type: integer
+          format: int64
+        moveCount:
+          type: integer
+    LeaderboardResponse:
+      type: object
+      properties:
+        dealId:
+          type: string
+        top:
+          type: array
+          items:
+            $ref: '#/components/schemas/LeaderboardEntry'

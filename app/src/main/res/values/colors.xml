@@ -1,0 +1,11 @@
+<resources>
+    <!-- Legacy Material color set for theme references -->
+    <color name="colorPrimary">#6200EE</color>
+    <color name="colorPrimaryDark">#3700B3</color>
+    <color name="colorAccent">#03DAC5</color>
+    <color name="background_color">#FFFFFF</color>
+    <color name="card_color">#FFCC00</color>
+    <color name="pile_color">#FF9900</color>
+    <color name="text_color">#000000</color>
+    <color name="highlight_color">#FF5733</color>
+</resources>

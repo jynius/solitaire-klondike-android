@@ -1,0 +1,13 @@
+<resources>
+    <backup-rule>
+        <name>Default Backup</name>
+        <description>Backup rules for the Klondike Solitaire game.</description>
+        <include>
+            <file>game_state.json</file>
+            <file>player_progress.json</file>
+        </include>
+        <exclude>
+            <file>temp_files/*</file>
+        </exclude>
+    </backup-rule>
+</resources>

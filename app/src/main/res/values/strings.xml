@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Solitaire Klondike</string>
+    <string name="welcome_message">Welcome to Solitaire Klondike!</string>
+    <string name="instructions">Try to move all cards to the foundation piles.</string>
+    <string name="undo">Undo</string>
+    <string name="restart">Restart Game</string>
+    <string name="exit">Exit</string>
+    <string name="game_over">Game Over!</string>
+    <string name="you_win">You Win!</string>
+</resources>

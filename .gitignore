@@ -1,0 +1,30 @@
+# Gradle
+.gradle/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Local SDK/props
+local.properties
+
+# IDE
+.idea/
+*.iml
+
+# NDK/Native
+.externalNativeBuild/
+.cxx/
+
+# Captures/Reports
+captures/
+**/reports/
+**/test-results/
+
+# Keystore/Secrets
+*.jks
+*.keystore
+*.keystore.properties
+*.pem
+
+# OS/Editor
+.DS_Store
+*.log
