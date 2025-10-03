@@ -1,11 +1,10 @@
 package us.jyni.game.klondike.ui
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import us.jyni.game.klondike.engine.GameEngine
 import us.jyni.game.klondike.model.GameState
 import us.jyni.game.klondike.util.sync.Ruleset
@@ -16,20 +15,21 @@ class GameViewModel : ViewModel() {
     private val _state = MutableStateFlow(GameState())
     val state: StateFlow<GameState> = _state.asStateFlow()
 
-    init {
-        startGame()
-    }
+    // Note: Game is started explicitly from GameActivity after checking for seeds/saves
 
     fun startGame(seed: ULong = 0xCAFEBABE_uL, rules: Ruleset = Ruleset()) {
+        Log.d("GameViewModel", "Starting game with seed: $seed")
         engine.startGame(seed, rules)
         _state.value = engine.getGameState()
+        Log.d("GameViewModel", "Game started - Stock: ${_state.value.stock.size}, Waste: ${_state.value.waste.size}")
     }
 
     fun draw() {
-        viewModelScope.launch {
-            engine.draw()
-            _state.value = engine.getGameState()
-        }
+        // Make draw synchronous so Espresso waits for UI state to settle
+        android.util.Log.d("GameViewModel", "draw() called")
+        val drawn = engine.draw()
+        android.util.Log.d("GameViewModel", "draw() returned: $drawn, waste size: ${engine.getGameState().waste.size}")
+        _state.value = engine.getGameState()
     }
 
     fun undo() {
@@ -50,6 +50,12 @@ class GameViewModel : ViewModel() {
 
     fun moveTableauToTableau(fromCol: Int, toCol: Int): Boolean {
         val moved = engine.moveTableauToTableau(fromCol, toCol)
+        if (moved) _state.value = engine.getGameState()
+        return moved
+    }
+    
+    fun moveTableauToTableauFromIndex(fromCol: Int, cardIndex: Int, toCol: Int): Boolean {
+        val moved = engine.moveTableauToTableauFromIndex(fromCol, cardIndex, toCol)
         if (moved) _state.value = engine.getGameState()
         return moved
     }
@@ -96,4 +102,8 @@ class GameViewModel : ViewModel() {
     fun dealId(): String = engine.getDealId()
 
     fun getRules(): Ruleset = engine.getRules()
+
+    // Undo/Redo availability for UI enablement
+    fun canUndo(): Boolean = engine.canUndo()
+    fun canRedo(): Boolean = engine.canRedo()
 }

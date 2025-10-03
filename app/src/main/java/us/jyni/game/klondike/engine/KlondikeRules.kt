@@ -11,10 +11,10 @@ class KlondikeRules {
     // --- Helpers ---
     private fun isRed(suit: Suit) = suit == Suit.HEARTS || suit == Suit.DIAMONDS
     private fun isBlack(suit: Suit) = suit == Suit.SPADES || suit == Suit.CLUBS
-    private fun oppositeColor(a: Card, b: Card): Boolean =
+    fun oppositeColor(a: Card, b: Card): Boolean =
         (isRed(a.suit) && isBlack(b.suit)) || (isBlack(a.suit) && isRed(b.suit))
 
-    private fun oneRankLower(a: Card, b: Card): Boolean =
+    fun oneRankLower(a: Card, b: Card): Boolean =
         a.rank.value + 1 == b.rank.value
 
     // --- Tableau to Tableau ---
@@ -54,6 +54,49 @@ class KlondikeRules {
         if (target.isEmpty()) {
             return moving.rank == Rank.KING
         }
+        val top = target.last()
+        return oppositeColor(moving, top) && oneRankLower(moving, top)
+    }
+
+    // Find consecutive face-up cards that can be moved together
+    fun getMovableSequence(source: List<Card>): List<Card> {
+        if (source.isEmpty()) return emptyList()
+        
+        val movable = mutableListOf<Card>()
+        var i = source.size - 1
+        
+        // Start from the last card and work backwards
+        while (i >= 0) {
+            val card = source[i]
+            if (!card.isFaceUp) break
+            
+            movable.add(0, card) // Add to front to maintain order
+            
+            // Check if we can continue the sequence
+            if (i > 0) {
+                val nextCard = source[i - 1]
+                if (!nextCard.isFaceUp) break
+                
+                // Must be alternating colors and descending ranks
+                if (!oppositeColor(nextCard, card) || nextCard.rank.value != card.rank.value + 1) {
+                    break
+                }
+            }
+            i--
+        }
+        
+        return movable
+    }
+    
+    // Check if a sequence can be moved to target
+    fun canMoveSequenceToTableau(sequence: List<Card>, target: List<Card>): Boolean {
+        if (sequence.isEmpty()) return false
+        val moving = sequence.first() // The top card of the sequence
+        
+        if (target.isEmpty()) {
+            return moving.rank == Rank.KING
+        }
+        
         val top = target.last()
         return oppositeColor(moving, top) && oneRankLower(moving, top)
     }

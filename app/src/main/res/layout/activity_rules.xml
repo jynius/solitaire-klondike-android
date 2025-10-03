@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="@color/background_color">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Draw Rules -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="카드 뽑기"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_color"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="스톡에서 한 번에 뽑을 카드 수를 설정합니다."
+            android:textSize="14sp"
+            android:textColor="@color/text_color"
+            android:layout_marginBottom="12dp" />
+
+        <RadioGroup
+            android:id="@+id/draw_radio_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="24dp">
+
+            <RadioButton
+                android:id="@+id/draw_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1장씩"
+                android:textColor="@color/text_color"
+                android:layout_marginEnd="24dp" />
+
+            <RadioButton
+                android:id="@+id/draw_3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="3장씩"
+                android:textColor="@color/text_color"
+                android:checked="true" />
+
+        </RadioGroup>
+
+        <!-- Recycle Rules -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="재순환 방식"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_color"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="스톡이 다 떨어졌을 때 웨이스트 더미를 재순환하는 방식입니다."
+            android:textSize="14sp"
+            android:textColor="@color/text_color"
+            android:layout_marginBottom="12dp" />
+
+        <RadioGroup
+            android:id="@+id/recycle_radio_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="24dp">
+
+            <RadioButton
+                android:id="@+id/recycle_keep"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="순서 유지"
+                android:textColor="@color/text_color"
+                android:layout_marginEnd="24dp"
+                android:checked="true" />
+
+            <RadioButton
+                android:id="@+id/recycle_reverse"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="순서 뒤집기"
+                android:textColor="@color/text_color" />
+
+        </RadioGroup>
+
+        <!-- Redeals -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="재분배 횟수"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_color"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="스톡을 다시 분배할 수 있는 횟수입니다."
+            android:textSize="14sp"
+            android:textColor="@color/text_color"
+            android:layout_marginBottom="12dp" />
+
+        <RadioGroup
+            android:id="@+id/redeals_radio_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="24dp">
+
+            <RadioButton
+                android:id="@+id/redeals_unlimited"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="무제한"
+                android:textColor="@color/text_color"
+                android:layout_marginEnd="16dp"
+                android:checked="true" />
+
+            <RadioButton
+                android:id="@+id/redeals_0"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0회"
+                android:textColor="@color/text_color"
+                android:layout_marginEnd="16dp" />
+
+            <RadioButton
+                android:id="@+id/redeals_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1회"
+                android:textColor="@color/text_color"
+                android:layout_marginEnd="16dp" />
+
+            <RadioButton
+                android:id="@+id/redeals_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2회"
+                android:textColor="@color/text_color" />
+
+        </RadioGroup>
+
+        <!-- Foundation to Tableau -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="파운데이션→테이블로"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_color"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="파운데이션에서 테이블로로 카드를 이동할 수 있도록 허용합니다."
+            android:textSize="14sp"
+            android:textColor="@color/text_color"
+            android:layout_marginBottom="12dp" />
+
+        <Switch
+            android:id="@+id/foundation_to_tableau_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="허용"
+            android:textColor="@color/text_color"
+            android:checked="true"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Save Button -->
+        <Button
+            android:id="@+id/save_rules_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="규칙 저장"
+            android:textColor="@android:color/white"
+            android:background="@drawable/button_style"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp" />
+
+    </LinearLayout>
+
+</ScrollView>

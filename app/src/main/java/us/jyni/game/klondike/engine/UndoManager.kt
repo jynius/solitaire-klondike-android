@@ -36,4 +36,7 @@ class UndoManager {
         history.clear()
         currentStateIndex = -1
     }
+
+    fun hasUndo(): Boolean = currentStateIndex > 0
+    fun hasRedo(): Boolean = currentStateIndex in 0 until (history.size - 1)
 }

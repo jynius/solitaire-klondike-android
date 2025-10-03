@@ -11,6 +11,12 @@ import android.widget.TextView
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
+import android.util.Log
+import android.view.DragEvent
+import android.view.MotionEvent
+import android.view.View.DragShadowBuilder
+import android.graphics.Color
 import us.jyni.BuildConfig
 import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.core.view.ViewCompat
@@ -28,9 +34,30 @@ import us.jyni.game.klondike.ui.components.CardView
 class GameActivity : AppCompatActivity() {
 
     private val viewModel: GameViewModel by viewModels()
+    
+    // 선택 상태 관리 변수들
+    private var selectedTableau: Int? = null
+    private var selectedCardIndex: Int? = null  // 선택된 카드의 인덱스
+    private var selectedFromWaste: Boolean = false
+    private var selectedFoundation: Int? = null
+    private val tableauViews = arrayOfNulls<View>(7)
+    
+    // 드래그 앤 드롭 관련 변수들
+    private var isDragging = false
+    private var dragSourceType: DragSourceType? = null
+    private var dragSourceIndex: Int? = null
+    private var dragCardIndex: Int? = null
+    
+    enum class DragSourceType {
+        TABLEAU, WASTE, FOUNDATION
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Hide action bar for fullscreen game experience
+        supportActionBar?.hide()
+        
         setContentView(R.layout.activity_game)
 
         // Initialize UI components and observe ViewModel data
@@ -66,116 +93,11 @@ class GameActivity : AppCompatActivity() {
         val debugShowDeal = findViewById<android.widget.CheckBox>(R.id.debug_show_deal)
         val debugCopyDeal = findViewById<Button>(R.id.debug_copy_deal)
         val debugHighlights = findViewById<android.widget.CheckBox>(R.id.debug_highlights)
-        val rulesBar = findViewById<View>(R.id.rules_bar)
-        val drawSpinner = findViewById<android.widget.Spinner>(R.id.rules_draw_spinner)
-        val recycleSpinner = findViewById<android.widget.Spinner>(R.id.rules_recycle_spinner)
-        val redealsSpinner = findViewById<android.widget.Spinner>(R.id.rules_redeals_spinner)
-        val allowF2T = findViewById<android.widget.CheckBox>(R.id.rules_allow_f2t)
 
         // Hide debug bar on non-debug builds
         if (!BuildConfig.DEBUG) {
             findViewById<View>(R.id.debug_bar).visibility = View.GONE
-            rulesBar.visibility = View.GONE
         }
-
-        // Populate rule spinners (debug only)
-        if (BuildConfig.DEBUG) {
-            var rulesInit = true
-            drawSpinner.adapter = android.widget.ArrayAdapter(
-                this,
-                android.R.layout.simple_spinner_dropdown_item,
-                listOf(getString(R.string.rules_draw_1), getString(R.string.rules_draw_3))
-            )
-            recycleSpinner.adapter = android.widget.ArrayAdapter(
-                this,
-                android.R.layout.simple_spinner_dropdown_item,
-                listOf(getString(R.string.rules_recycle_keep), getString(R.string.rules_recycle_reverse))
-            )
-            redealsSpinner.adapter = android.widget.ArrayAdapter(
-                this,
-                android.R.layout.simple_spinner_dropdown_item,
-                listOf(
-                    getString(R.string.rules_redeals_unlimited),
-                    getString(R.string.rules_redeals_0),
-                    getString(R.string.rules_redeals_1),
-                    getString(R.string.rules_redeals_2)
-                )
-            )
-
-            // Initialize selection from current rules
-            val current = viewModel.getRules()
-            drawSpinner.setSelection(if (current.draw == 1) 0 else 1)
-            recycleSpinner.setSelection(if (current.recycle.name == "KEEP") 0 else 1)
-            redealsSpinner.setSelection(
-                when (current.redeals) {
-                    -1 -> 0
-                    0 -> 1
-                    1 -> 2
-                    else -> 3
-                }
-            )
-            allowF2T.isChecked = current.allowFoundationToTableau
-
-            fun applyRules() {
-                if (rulesInit) return
-                val draw = if (drawSpinner.selectedItemPosition == 0) 1 else 3
-                val recycle = if (recycleSpinner.selectedItemPosition == 0)
-                    us.jyni.game.klondike.util.sync.RecycleOrder.KEEP
-                else us.jyni.game.klondike.util.sync.RecycleOrder.REVERSE
-
-                val seed = intent?.getLongExtra(EXTRA_SEED, Long.MIN_VALUE)
-                val useSeed = seed?.takeIf { it != Long.MIN_VALUE }?.toULong() ?: 0xCAFEBABE_uL
-
-                // Redeals and allow F->T from UI
-                val redeals = when (redealsSpinner.selectedItemPosition) {
-                    0 -> -1
-                    1 -> 0
-                    2 -> 1
-                    else -> 2
-                }
-                val allow = allowF2T.isChecked
-
-                // Restart game with same seed and updated rules
-                viewModel.startGame(
-                    useSeed,
-                    us.jyni.game.klondike.util.sync.Ruleset(
-                        draw = draw,
-                        recycle = recycle,
-                        redeals = redeals,
-                        allowFoundationToTableau = allow
-                    )
-                )
-                // Persist new state
-                val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                prefs.edit().putString(KEY_PERSISTED_GAME, viewModel.saveStateString()).apply()
-            }
-
-            drawSpinner.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: android.widget.AdapterView<*>, view: View?, position: Int, id: Long
-                ) { applyRules() }
-                override fun onNothingSelected(parent: android.widget.AdapterView<*>) {}
-            }
-            recycleSpinner.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: android.widget.AdapterView<*>, view: View?, position: Int, id: Long
-                ) { applyRules() }
-                override fun onNothingSelected(parent: android.widget.AdapterView<*>) {}
-            }
-            redealsSpinner.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: android.widget.AdapterView<*>, view: View?, position: Int, id: Long
-                ) { applyRules() }
-                override fun onNothingSelected(parent: android.widget.AdapterView<*>) {}
-            }
-            allowF2T.setOnCheckedChangeListener { _, _ -> applyRules() }
-            // End init guard after setting selections and listeners
-            rulesInit = false
-        }
-    var selectedTableau: Int? = null
-    var selectedFromWaste: Boolean = false
-    var selectedFoundation: Int? = null
-    val tableauViews = arrayOfNulls<View>(7)
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -219,26 +141,41 @@ class GameActivity : AppCompatActivity() {
                     fun makeTableau(col: Int, pileCards: List<us.jyni.game.klondike.model.Card>) : View {
                         val pileContainer = LinearLayout(this@GameActivity).apply {
                             orientation = LinearLayout.VERTICAL
-                            setPadding(dp(4), dp(4), dp(4), dp(4))
+                            setPadding(dp(2), dp(2), dp(2), dp(2))  // reduced from dp(4)
                             isClickable = true
                             isFocusable = true
+                            // 빈 열도 클릭 가능하도록 최소 높이 설정
+                            minimumHeight = dp(80)
                             if (selectedTableau == col) {
                                 background = getDrawable(R.drawable.bg_selected)
                             } else {
                                 background = null
                             }
                             contentDescription = "tableau_col_$col"
+                            
+                            // 드롭 리스너 추가
+                            setOnDragListener { view, event ->
+                                handleTableauDrop(view, event, col)
+                            }
                             setOnClickListener { v ->
                                 val prev = selectedTableau
                                 if (prev == null && !selectedFromWaste && selectedFoundation == null) {
-                                    selectedTableau = col
-                                    v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-                                    // explicit selected background
-                                    (tableauViews[col] ?: v).background = getDrawable(R.drawable.bg_selected)
+                                    // 개별 카드가 이미 선택되지 않은 경우에만 전체 컬럼 선택
+                                    if (selectedCardIndex == null) {
+                                        selectedTableau = col
+                                        v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                                        // explicit selected background
+                                        (tableauViews[col] ?: v).background = getDrawable(R.drawable.bg_selected)
+                                    }
                                 } else {
                                     var moved = false
                                     if (prev != null && prev != col) {
-                                        moved = viewModel.moveTableauToTableau(prev, col)
+                                        // 특정 카드가 선택된 경우 해당 인덱스부터 이동
+                                        moved = if (selectedCardIndex != null) {
+                                            viewModel.moveTableauToTableauFromIndex(prev, selectedCardIndex!!, col)
+                                        } else {
+                                            viewModel.moveTableauToTableau(prev, col)
+                                        }
                                     } else if (selectedFromWaste) {
                                         moved = viewModel.moveWasteToTableau(col)
                                     } else if (selectedFoundation != null) {
@@ -267,29 +204,78 @@ class GameActivity : AppCompatActivity() {
                                             }
                                             .start()
                                     }
-                                    // clear previous highlight
-                                    if (prev != null) tableauViews[prev]?.background = null
-                                    // ensure current is not highlighted if no selection remains
-                                    (tableauViews[col] ?: v).background = null
-                                    selectedTableau = null
-                                    selectedFromWaste = false
-                                    selectedFoundation = null
+                                    // 모든 선택 상태 해제
+                                    clearAllSelections()
                                 }
                             }
                         }
                         tableauViews[col] = pileContainer
 
-                        pileCards.forEach { card ->
+                        // 빈 열인 경우 빈 카드 자리 표시
+                        if (pileCards.isEmpty()) {
+                            val emptyCard = CardView(this@GameActivity)
+                            emptyCard.setEmpty()
+                            pileContainer.addView(emptyCard)
+                        }
+
+                        pileCards.forEachIndexed { index, card ->
                             val cv = CardView(this@GameActivity)
                             val lp = LinearLayout.LayoutParams(
                                 LinearLayout.LayoutParams.MATCH_PARENT,
-                                if (card.isFaceUp) dp(36) else dp(24)
+                                LinearLayout.LayoutParams.WRAP_CONTENT
                             )
-                            lp.bottomMargin = if (card.isFaceUp) dp(12) else dp(4)
+                            
+                            // 첫 번째 카드가 아니라면 겹치게 표시
+                            if (index > 0) {
+                                val prevCard = pileCards[index - 1]
+                                // 이전 카드가 뒤집어져 있으면 뒤집어진 카드의 간격 사용
+                                lp.topMargin = if (!prevCard.isFaceUp) -dp(64) else -dp(58) // 80dp 정사각형에 맞게 조정
+                            }
+                            
                             cv.layoutParams = lp
                             cv.setCard(card)
                             cv.contentDescription = "card_${card.rank}_${card.suit}_${if (card.isFaceUp) "up" else "down"}"
+                            
+                            // 개별 카드에 드래그 기능 추가 (face-up 카드만)
+                            if (card.isFaceUp) {
+                                cv.setOnTouchListener { view, event ->
+                                    when (event.action) {
+                                        MotionEvent.ACTION_DOWN -> {
+                                            // 드래그 시작 준비
+                                            val dragData = ClipData.newPlainText("card_drag", "tableau_${col}_$index")
+                                            val shadowBuilder = DragShadowBuilder(view)
+                                            
+                                            // 드래그 상태 설정
+                                            isDragging = true
+                                            dragSourceType = DragSourceType.TABLEAU
+                                            dragSourceIndex = col
+                                            dragCardIndex = index
+                                            
+                                            // 드래그 시작
+                                            view.startDragAndDrop(dragData, shadowBuilder, view, 0)
+                                            
+                                            // 시각적 피드백
+                                            view.alpha = 0.5f
+                                            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                                            
+                                            true
+                                        }
+                                        else -> false
+                                    }
+                                }
+                            }
+                            
                             pileContainer.addView(cv)
+                        }
+                        
+                        // 클릭 가능한 빈 공간을 위해 하단에 패딩 추가
+                        if (pileCards.isNotEmpty()) {
+                            val spacer = View(this@GameActivity)
+                            spacer.layoutParams = LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.MATCH_PARENT,
+                                dp(40) // 40dp 높이의 클릭 가능한 공간
+                            )
+                            pileContainer.addView(spacer)
                         }
                         return pileContainer
                     }
@@ -297,9 +283,14 @@ class GameActivity : AppCompatActivity() {
                     fun makeFoundationSlot(index: Int, cards: List<us.jyni.game.klondike.model.Card>): View {
                         val container = LinearLayout(this@GameActivity).apply {
                             orientation = LinearLayout.VERTICAL
-                            setPadding(dp(6), dp(6), dp(6), dp(6))
+                            setPadding(dp(2), dp(2), dp(2), dp(2))  // reduced from dp(6)
                             isClickable = true
                             contentDescription = "foundation_$index"
+                            
+                            // Foundation에 드롭 리스너 추가
+                            setOnDragListener { view, event ->
+                                handleFoundationDrop(view, event, index)
+                            }
                             setOnClickListener { v ->
                                 val from = selectedTableau
                                 if (from != null) {
@@ -354,9 +345,36 @@ class GameActivity : AppCompatActivity() {
                         val cv = CardView(this@GameActivity)
                         cv.layoutParams = LinearLayout.LayoutParams(
                             LinearLayout.LayoutParams.MATCH_PARENT,
-                            dp(28)
+                            LinearLayout.LayoutParams.WRAP_CONTENT
                         )
-                        top?.let { cv.setCard(it) }
+                        top?.let { 
+                            cv.setCard(it) 
+                            cv.contentDescription = "foundation_card_${it.rank}_${it.suit}"
+                            
+                            // Foundation 카드에 드래그 기능 추가 (Foundation to Tableau 규칙이 활성화된 경우)
+                            if (viewModel.getRules().allowFoundationToTableau) {
+                                cv.setOnTouchListener { view, event ->
+                                    when (event.action) {
+                                        MotionEvent.ACTION_DOWN -> {
+                                            val dragData = ClipData.newPlainText("card_drag", "foundation_$index")
+                                            val shadowBuilder = DragShadowBuilder(view)
+                                            
+                                            isDragging = true
+                                            dragSourceType = DragSourceType.FOUNDATION
+                                            dragSourceIndex = index
+                                            dragCardIndex = null
+                                            
+                                            view.startDragAndDrop(dragData, shadowBuilder, view, 0)
+                                            view.alpha = 0.5f
+                                            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                                            
+                                            true
+                                        }
+                                        else -> false
+                                    }
+                                }
+                            }
+                        }
                         container.addView(cv)
                         return container
                     }
@@ -364,7 +382,7 @@ class GameActivity : AppCompatActivity() {
                     fun makeStockSlot(): View {
                         val container = LinearLayout(this@GameActivity).apply {
                             orientation = LinearLayout.VERTICAL
-                            setPadding(dp(6), dp(6), dp(6), dp(6))
+                            setPadding(dp(2), dp(2), dp(2), dp(2))  // reduced from dp(6)
                             isClickable = true
                             contentDescription = "stock"
                             setOnClickListener {
@@ -375,7 +393,7 @@ class GameActivity : AppCompatActivity() {
                         val cv = CardView(this@GameActivity)
                         cv.layoutParams = LinearLayout.LayoutParams(
                             LinearLayout.LayoutParams.MATCH_PARENT,
-                            dp(28)
+                            LinearLayout.LayoutParams.WRAP_CONTENT
                         )
                         top?.let { cv.setCard(it) }
                         container.addView(cv)
@@ -385,10 +403,13 @@ class GameActivity : AppCompatActivity() {
                     fun makeWasteSlot(): View {
                         val container = LinearLayout(this@GameActivity).apply {
                             orientation = LinearLayout.VERTICAL
-                            setPadding(dp(6), dp(6), dp(6), dp(6))
+                            setPadding(dp(2), dp(2), dp(2), dp(2))  // reduced from dp(6)
                             contentDescription = "waste"
                             isClickable = true
                             setOnClickListener { v ->
+                                // 이전 선택 해제
+                                clearAllSelections()
+                                
                                 selectedFromWaste = true
                                 v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
                                 background = getDrawable(R.drawable.bg_selected)
@@ -398,7 +419,7 @@ class GameActivity : AppCompatActivity() {
                         val cv = CardView(this@GameActivity)
                         cv.layoutParams = LinearLayout.LayoutParams(
                             LinearLayout.LayoutParams.MATCH_PARENT,
-                            dp(28)
+                            LinearLayout.LayoutParams.WRAP_CONTENT
                         )
                         top?.let { 
                             cv.setCard(it)
@@ -406,12 +427,34 @@ class GameActivity : AppCompatActivity() {
                             // subtle fade-in on new waste top
                             cv.alpha = 0f
                             cv.animate().alpha(1f).setDuration(150).setInterpolator(AccelerateDecelerateInterpolator()).start()
+                            
+                            // Waste 카드에 드래그 기능 추가
+                            cv.setOnTouchListener { view, event ->
+                                when (event.action) {
+                                    MotionEvent.ACTION_DOWN -> {
+                                        val dragData = ClipData.newPlainText("card_drag", "waste")
+                                        val shadowBuilder = DragShadowBuilder(view)
+                                        
+                                        isDragging = true
+                                        dragSourceType = DragSourceType.WASTE
+                                        dragSourceIndex = null
+                                        dragCardIndex = null
+                                        
+                                        view.startDragAndDrop(dragData, shadowBuilder, view, 0)
+                                        view.alpha = 0.5f
+                                        view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                                        
+                                        true
+                                    }
+                                    else -> false
+                                }
+                            }
                         }
                         container.addView(cv)
                         return container
                     }
 
-                    // Row 0: foundations (0..3), spacer at 4, stock at 5, waste at 6
+                    // Row 0: foundations (0..3), spacer at 4, waste at 5, stock at 6
                     repeat(4) { idx ->
                         val v = makeFoundationSlot(idx, s.foundation[idx])
                         // rules-based highlight for foundation targets
@@ -448,16 +491,16 @@ class GameActivity : AppCompatActivity() {
                     }
                     run {
                         val stockV = makeStockSlot()
-                        val p = GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(5))
+                        val p = GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(6))
                         p.width = 0
-                        p.columnSpec = GridLayout.spec(5, 1f)
+                        p.columnSpec = GridLayout.spec(6, 1f)
                         board.addView(stockV, p)
                     }
                     run {
                         val wasteV = makeWasteSlot()
-                        val p = GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(6))
+                        val p = GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(5))
                         p.width = 0
-                        p.columnSpec = GridLayout.spec(6, 1f)
+                        p.columnSpec = GridLayout.spec(5, 1f)
                         board.addView(wasteV, p)
                     }
 
@@ -515,6 +558,225 @@ class GameActivity : AppCompatActivity() {
         findViewById<Button>(R.id.undo_button).setOnClickListener { viewModel.undo(); persist() }
         findViewById<Button>(R.id.redo_button).setOnClickListener { viewModel.redo(); persist() }
         findViewById<Button>(R.id.reset_button).setOnClickListener { viewModel.reset(); persist() }
+        
+        // 디버그 토글 버튼
+        findViewById<Button>(R.id.debug_toggle_button).setOnClickListener {
+            val debugBar = findViewById<LinearLayout>(R.id.debug_bar)
+            debugBar.visibility = if (debugBar.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+        }
+        
+        // 규칙 설정 버튼
+        findViewById<Button>(R.id.rules_button).setOnClickListener {
+            val intent = Intent(this, RulesActivity::class.java)
+            startActivityForResult(intent, REQUEST_CODE_RULES)
+        }
+    }
+    
+    private fun clearAllSelections() {
+        // 모든 카드 선택 상태 해제
+        for (i in 0..6) {
+            tableauViews[i]?.let { view ->
+                if (view is LinearLayout) {
+                    for (j in 0 until view.childCount) {
+                        val child = view.getChildAt(j)
+                        if (child is CardView) {
+                            child.setCardSelected(false)
+                        }
+                    }
+                }
+                view.background = null
+            }
+        }
+        selectedTableau = null
+        selectedCardIndex = null
+        selectedFromWaste = false
+        selectedFoundation = null
+    }
+    
+    private fun handleTableauDrop(view: View, event: DragEvent, targetCol: Int): Boolean {
+        return when (event.action) {
+            DragEvent.ACTION_DRAG_STARTED -> {
+                // 드래그가 시작되었을 때 - 이 뷰가 드롭을 받을 수 있는지 확인
+                isDragging
+            }
+            
+            DragEvent.ACTION_DRAG_ENTERED -> {
+                // 드래그가 뷰 위에 진입했을 때 - 시각적 피드백
+                if (isDragging && canDropOnTableau(targetCol)) {
+                    view.setBackgroundColor(Color.parseColor("#4CAF50")) // 녹색으로 하이라이트
+                    view.alpha = 0.8f
+                }
+                true
+            }
+            
+            DragEvent.ACTION_DRAG_EXITED -> {
+                // 드래그가 뷰를 벗어났을 때 - 시각적 피드백 제거
+                view.background = null
+                view.alpha = 1f
+                true
+            }
+            
+            DragEvent.ACTION_DROP -> {
+                // 드롭이 발생했을 때 - 실제 카드 이동 수행
+                view.background = null
+                view.alpha = 1f
+                
+                if (isDragging && canDropOnTableau(targetCol)) {
+                    val moved = when (dragSourceType) {
+                        DragSourceType.TABLEAU -> {
+                            if (dragSourceIndex != null && dragCardIndex != null) {
+                                viewModel.moveTableauToTableauFromIndex(dragSourceIndex!!, dragCardIndex!!, targetCol)
+                            } else false
+                        }
+                        DragSourceType.WASTE -> {
+                            viewModel.moveWasteToTableau(targetCol)
+                        }
+                        DragSourceType.FOUNDATION -> {
+                            if (dragSourceIndex != null) {
+                                viewModel.moveFoundationToTableau(dragSourceIndex!!, targetCol)
+                            } else false
+                        }
+                        null -> false
+                    }
+                    
+                    if (moved) {
+                        view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+                    } else {
+                        view.performHapticFeedback(HapticFeedbackConstants.REJECT)
+                        Toast.makeText(this, "Invalid move", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                
+                // 드래그 상태 초기화
+                resetDragState()
+                true
+            }
+            
+            DragEvent.ACTION_DRAG_ENDED -> {
+                // 드래그가 끝났을 때 - 상태 초기화
+                view.background = null
+                view.alpha = 1f
+                resetDragState()
+                true
+            }
+            
+            else -> false
+        }
+    }
+    
+    private fun handleFoundationDrop(view: View, event: DragEvent, targetFoundation: Int): Boolean {
+        return when (event.action) {
+            DragEvent.ACTION_DRAG_STARTED -> {
+                isDragging
+            }
+            
+            DragEvent.ACTION_DRAG_ENTERED -> {
+                if (isDragging && canDropOnFoundation(targetFoundation)) {
+                    view.setBackgroundColor(Color.parseColor("#2196F3")) // 파란색으로 하이라이트
+                    view.alpha = 0.8f
+                }
+                true
+            }
+            
+            DragEvent.ACTION_DRAG_EXITED -> {
+                view.background = null
+                view.alpha = 1f
+                true
+            }
+            
+            DragEvent.ACTION_DROP -> {
+                view.background = null
+                view.alpha = 1f
+                
+                if (isDragging && canDropOnFoundation(targetFoundation)) {
+                    val moved = when (dragSourceType) {
+                        DragSourceType.TABLEAU -> {
+                            if (dragSourceIndex != null) {
+                                viewModel.moveTableauToFoundation(dragSourceIndex!!, targetFoundation)
+                            } else false
+                        }
+                        DragSourceType.WASTE -> {
+                            viewModel.moveWasteToFoundation(targetFoundation)
+                        }
+                        DragSourceType.FOUNDATION -> false // Foundation to Foundation은 불가능
+                        null -> false
+                    }
+                    
+                    if (moved) {
+                        view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+                    } else {
+                        view.performHapticFeedback(HapticFeedbackConstants.REJECT)
+                        Toast.makeText(this, "Invalid move", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                
+                resetDragState()
+                true
+            }
+            
+            DragEvent.ACTION_DRAG_ENDED -> {
+                view.background = null
+                view.alpha = 1f
+                resetDragState()
+                true
+            }
+            
+            else -> false
+        }
+    }
+    
+    private fun canDropOnTableau(targetCol: Int): Boolean {
+        return when (dragSourceType) {
+            DragSourceType.TABLEAU -> {
+                if (dragSourceIndex != null && dragSourceIndex != targetCol) {
+                    viewModel.canMoveTableauToTableau(dragSourceIndex!!, targetCol)
+                } else false
+            }
+            DragSourceType.WASTE -> {
+                viewModel.canMoveWasteToTableau(targetCol)
+            }
+            DragSourceType.FOUNDATION -> {
+                if (dragSourceIndex != null) {
+                    viewModel.canMoveFoundationToTableau(dragSourceIndex!!, targetCol)
+                } else false
+            }
+            null -> false
+        }
+    }
+    
+    private fun canDropOnFoundation(targetFoundation: Int): Boolean {
+        return when (dragSourceType) {
+            DragSourceType.TABLEAU -> {
+                if (dragSourceIndex != null) {
+                    viewModel.canMoveTableauToFoundation(dragSourceIndex!!, targetFoundation)
+                } else false
+            }
+            DragSourceType.WASTE -> {
+                viewModel.canMoveWasteToFoundation(targetFoundation)
+            }
+            DragSourceType.FOUNDATION -> false // Foundation to Foundation은 불가능
+            null -> false
+        }
+    }
+    
+    private fun resetDragState() {
+        isDragging = false
+        dragSourceType = null
+        dragSourceIndex = null
+        dragCardIndex = null
+        
+        // 모든 뷰의 알파값 복원
+        // (드래그 시작 시 알파를 0.5로 설정했던 것을 복원)
+        // 이는 다음 UI 업데이트에서 자동으로 처리됩니다.
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_CODE_RULES && resultCode == RESULT_OK) {
+            Log.d("GameActivity", "Rules activity completed")
+            // 간단한 토스트 메시지만 표시
+            Toast.makeText(this, "규칙이 업데이트되었습니다", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -531,5 +793,7 @@ class GameActivity : AppCompatActivity() {
         private const val PREFS_NAME = "klondike_prefs"
         private const val KEY_PERSISTED_GAME = "persisted_game_sv1"
         const val EXTRA_SEED = "extra_seed"
+        private const val REQUEST_CODE_RULES = 1001
+        const val EXTRA_RULES = "extra_rules"
     }
 }

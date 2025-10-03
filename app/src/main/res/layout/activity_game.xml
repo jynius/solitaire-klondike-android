@@ -1,55 +1,93 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@color/background_color">
 
-    <TextView
-        android:id="@+id/title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Klondike Solitaire"
-        android:textSize="24sp"
-        android:layout_gravity="center"
-        android:padding="16dp"/>
-
-    <!-- Status row (deal/rules/moves etc.) -->
-    <TextView
-        android:id="@+id/status_text"
+    <!-- Top Header with Status and Control Buttons -->
+    <RelativeLayout
+        android:id="@+id/header_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="12sp"
-        android:textColor="@android:color/darker_gray"
-        android:fontFamily="monospace"
+        android:layout_alignParentTop="true"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        android:paddingBottom="8dp"
-        android:text=""/>
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
 
-    <!-- Debug Bar: toggles for display and debug aids -->
+        <!-- Status Text on the left -->
+        <TextView
+            android:id="@+id/status_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:textSize="12sp"
+            android:textColor="@color/text_color"
+            android:fontFamily="monospace"
+            android:text="" />
+
+        <!-- Control buttons on the right -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/debug_toggle_button"
+                android:layout_width="80dp"
+                android:layout_height="40dp"
+                android:text="@string/debug_toggle"
+                android:textSize="10sp"
+                android:textColor="@android:color/white"
+                android:background="@drawable/button_style"
+                android:layout_marginEnd="8dp" />
+
+            <Button
+                android:id="@+id/rules_button"
+                android:layout_width="80dp"
+                android:layout_height="40dp"
+                android:text="@string/rules_button"
+                android:textSize="10sp"
+                android:textColor="@android:color/white"
+                android:background="@drawable/button_style" />
+
+        </LinearLayout>
+    </RelativeLayout>
+
+    <!-- Debug Bar as overlay layer -->
     <LinearLayout
         android:id="@+id/debug_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@id/header_layout"
         android:orientation="horizontal"
         android:gravity="start|center_vertical"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        android:paddingBottom="4dp">
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:background="#88000000"
+        android:visibility="gone">
 
         <CheckBox
             android:id="@+id/debug_show_deal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/debug_show_deal"
+            android:textColor="@android:color/white"
             android:checked="true"/>
 
         <Button
             android:id="@+id/debug_copy_deal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="100dp"
+            android:layout_height="36dp"
             android:text="@string/debug_copy_deal"
+            android:textSize="10sp"
+            android:textColor="@android:color/white"
+            android:background="@drawable/button_style"
             android:layout_marginStart="12dp"/>
 
         <CheckBox
@@ -57,95 +95,84 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/debug_highlights"
+            android:textColor="@android:color/white"
             android:layout_marginStart="12dp"
             android:checked="true"/>
     </LinearLayout>
 
-    <!-- Rules row (in debug only) -->
+    <!-- Game Board Area -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/header_layout"
+        android:layout_above="@id/bottom_controls">
+
+        <GridLayout
+            android:id="@+id/game_board"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:rowCount="7"
+            android:columnCount="7"
+            android:padding="8dp"/>
+
+    </ScrollView>
+
+    <!-- Bottom Controls - Fixed at bottom -->
     <LinearLayout
-        android:id="@+id/rules_bar"
+        android:id="@+id/bottom_controls"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="start|center_vertical"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="4dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/debug_rules"/>
-
-        <Spinner
-            android:id="@+id/rules_draw_spinner"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"/>
-
-        <Spinner
-            android:id="@+id/rules_recycle_spinner"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"/>
-
-        <Spinner
-            android:id="@+id/rules_redeals_spinner"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"/>
-
-        <CheckBox
-            android:id="@+id/rules_allow_f2t"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/rules_allow_f2t"
-            android:layout_marginStart="8dp"/>
-    </LinearLayout>
-
-    <GridLayout
-        android:id="@+id/game_board"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:rowCount="7"
-        android:columnCount="7"
-        android:padding="8dp"/>
-
-    <!-- Controls -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
         android:orientation="horizontal"
         android:gravity="center"
-        android:padding="8dp">
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:background="#cc000000">
 
         <Button
             android:id="@+id/draw_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Draw"/>
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:text="@string/draw_button"
+            android:textSize="10sp"
+            android:textColor="@android:color/white"
+            android:background="@drawable/button_style"
+            android:layout_marginEnd="8dp"/>
 
         <Button
             android:id="@+id/undo_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Undo"
-            android:layout_marginStart="12dp"/>
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:text="@string/undo"
+            android:textSize="10sp"
+            android:textColor="@android:color/white"
+            android:background="@drawable/button_style"
+            android:layout_marginEnd="8dp"/>
 
         <Button
             android:id="@+id/redo_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Redo"
-            android:layout_marginStart="12dp"/>
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:text="@string/redo"
+            android:textSize="10sp"
+            android:textColor="@android:color/white"
+            android:background="@drawable/button_style"
+            android:layout_marginEnd="8dp"/>
 
         <Button
             android:id="@+id/reset_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Reset"
-            android:layout_marginStart="12dp"/>
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:text="@string/restart"
+            android:textSize="10sp"
+            android:textColor="@android:color/white"
+            android:background="@drawable/button_style"/>
     </LinearLayout>
 
-</LinearLayout>
+</RelativeLayout>

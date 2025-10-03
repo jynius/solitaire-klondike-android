@@ -20,6 +20,10 @@
         <activity
             android:name="us.jyni.game.klondike.ui.screens.GameActivity"
             android:exported="false" />
+        <activity
+            android:name="us.jyni.game.klondike.ui.screens.RulesActivity"
+            android:exported="false"
+            android:label="@string/rules_title" />
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />

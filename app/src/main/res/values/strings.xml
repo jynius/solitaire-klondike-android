@@ -2,15 +2,18 @@
     <string name="app_name">Solitaire Klondike</string>
     <string name="welcome_message">Welcome to Solitaire Klondike!</string>
     <string name="instructions">Try to move all cards to the foundation piles.</string>
-    <string name="undo">Undo</string>
-    <string name="restart">Restart Game</string>
-    <string name="exit">Exit</string>
-    <string name="game_over">Game Over!</string>
-    <string name="you_win">You Win!</string>
-    <string name="deal_copied">Deal ID copied</string>
-    <string name="debug_show_deal">Show Deal</string>
-    <string name="debug_copy_deal">Copy Deal</string>
-    <string name="debug_highlights">Highlights</string>
+    <string name="undo">실행취소</string>
+    <string name="redo">다시실행</string>
+    <string name="restart">새게임</string>
+    <string name="exit">종료</string>
+    <string name="game_over">게임 종료!</string>
+    <string name="you_win">승리!</string>
+    <string name="deal_copied">Deal ID 복사됨</string>
+    <string name="debug_show_deal">딜 정보 보기</string>
+    <string name="debug_copy_deal">딜 복사</string>
+    <string name="debug_highlights">하이라이트</string>
+    <string name="debug_toggle">디버그</string>
+    <string name="rules_button">규칙 설정</string>
     <string name="debug_rules">Rules:</string>
     <string name="rules_draw">Draw</string>
     <string name="rules_recycle">Recycle</string>
@@ -24,4 +27,18 @@
     <string name="rules_redeals_0">0</string>
     <string name="rules_redeals_1">1</string>
     <string name="rules_redeals_2">2</string>
+    
+    <!-- 룰 설정 화면 -->
+    <string name="rules_title">게임 규칙 설정</string>
+    <string name="rules_draw_title">뽑기 매수</string>
+    <string name="rules_draw_desc">한 번에 뽑을 카드 수를 선택합니다</string>
+    <string name="rules_recycle_title">재활용 순서</string>
+    <string name="rules_recycle_desc">폐기 더미를 다시 스톡으로 돌릴 때의 순서</string>
+    <string name="rules_redeals_title">재뽑기 횟수</string>
+    <string name="rules_redeals_desc">스톡을 다시 사용할 수 있는 횟수</string>
+    <string name="rules_foundation_title">파운데이션→테이블로</string>
+    <string name="rules_foundation_desc">완성된 카드를 다시 테이블로 이동 허용</string>
+    <string name="rules_apply">적용</string>
+    <string name="rules_cancel">취소</string>
+    <string name="draw_button">뽑기</string>
 </resources>

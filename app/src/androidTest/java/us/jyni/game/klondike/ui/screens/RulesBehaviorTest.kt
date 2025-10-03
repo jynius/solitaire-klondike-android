@@ -119,7 +119,7 @@ class RulesBehaviorTest {
             var foundTarget = false
             var foundDim = false
             for (i in 0..3) {
-                onView(withContentDescription("foundation_${'$'}i")).check { v, _ ->
+                onView(withContentDescription("foundation_" + i)).check { v, _ ->
                     val st = v.background?.constantState
                     if (st == targetState) foundTarget = true
                     if (st == dimState) foundDim = true

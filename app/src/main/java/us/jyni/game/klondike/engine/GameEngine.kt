@@ -45,6 +45,7 @@ class GameEngine {
      */
     fun startGame(seed: ULong = 0xCAFEBABE_uL, rules: Ruleset = Ruleset())
     {
+        android.util.Log.d("GameEngine", "startGame called with seed: $seed")
         this.rules = rules
         this.redealsRemaining = rules.redeals
         this.currentSeed = seed
@@ -109,7 +110,7 @@ class GameEngine {
         // TODO: wire with UndoManager
     }
 
-    fun getGameState(): GameState = gameState
+    fun getGameState(): GameState = cloneState(gameState)
     fun getRules(): Ruleset = rules
     fun getRedealsRemaining(): Int = redealsRemaining
 
@@ -160,10 +161,88 @@ class GameEngine {
         if (fromCol !in 0..6 || toCol !in 0..6 || fromCol == toCol) return false
         val src = gameState.tableau[fromCol]
         val dst = gameState.tableau[toCol]
-        if (!rulesEngine.canMoveTableauToTableau(src, dst)) return false
+        
+        // Get the movable sequence of cards
+        val movableSequence = rulesEngine.getMovableSequence(src)
+        if (movableSequence.isEmpty()) return false
+        
+        // Check if the sequence can be moved to the target
+        if (!rulesEngine.canMoveSequenceToTableau(movableSequence, dst)) return false
 
-        val moving = src.removeAt(src.lastIndex)
-        dst.add(moving)
+        // Move all cards in the sequence
+        val cardsToMove = movableSequence.size
+        val movingCards = mutableListOf<Card>()
+        
+        // Remove cards from source (from the end)
+        repeat(cardsToMove) {
+            movingCards.add(0, src.removeAt(src.lastIndex))
+        }
+        
+        // Add cards to destination
+        dst.addAll(movingCards)
+        
+        // flip rule: reveal new top if facedown
+        if (src.isNotEmpty()) {
+            val top = src.last()
+            if (!top.isFaceUp) top.isFaceUp = true
+        }
+        undo.saveState(snapshot())
+        moveCount += 1
+        return true
+    }
+    
+    // 선택된 카드 인덱스부터 끝까지 이동하는 메서드
+    fun moveTableauToTableauFromIndex(fromCol: Int, cardIndex: Int, toCol: Int): Boolean {
+        if (fromCol !in 0..6 || toCol !in 0..6 || fromCol == toCol) return false
+        val src = gameState.tableau[fromCol]
+        val dst = gameState.tableau[toCol]
+        
+        if (cardIndex < 0 || cardIndex >= src.size) {
+            android.util.Log.d("GameEngine", "moveTableauToTableauFromIndex: Invalid cardIndex=$cardIndex, src.size=${src.size}")
+            return false
+        }
+        
+        // 선택된 인덱스부터 끝까지의 카드들을 부분 리스트로 생성
+        val partialPile = src.subList(cardIndex, src.size)
+        android.util.Log.d("GameEngine", "moveTableauToTableauFromIndex: from=$fromCol, cardIndex=$cardIndex, to=$toCol")
+        android.util.Log.d("GameEngine", "partialPile size: ${partialPile.size}, cards: ${partialPile.map { "${it.rank}${it.suit}" }}")
+        
+        val movableSequence = rulesEngine.getMovableSequence(partialPile)
+        android.util.Log.d("GameEngine", "movableSequence size: ${movableSequence.size}, cards: ${movableSequence.map { "${it.rank}${it.suit}" }}")
+        
+        if (movableSequence.isEmpty()) {
+            android.util.Log.d("GameEngine", "moveTableauToTableauFromIndex: No movable sequence")
+            return false
+        }
+        
+        // Check if the sequence can be moved to the target
+        if (dst.isNotEmpty()) {
+            android.util.Log.d("GameEngine", "Target top card: ${dst.last().rank} ${dst.last().suit}")
+        } else {
+            android.util.Log.d("GameEngine", "Target is empty")
+        }
+        
+        val canMove = rulesEngine.canMoveSequenceToTableau(movableSequence, dst)
+        android.util.Log.d("GameEngine", "canMoveSequenceToTableau: $canMove, dst.size=${dst.size}")
+        if (!canMove) {
+            android.util.Log.d("GameEngine", "moveTableauToTableauFromIndex: Move not allowed")
+            return false
+        }
+
+        // Move cards from the selected index to the end
+        val cardsToMove = movableSequence.size
+        val movingCards = mutableListOf<Card>()
+        
+        // Remove cards from source (from the end, but only the movable sequence)
+        repeat(cardsToMove) {
+            movingCards.add(0, src.removeAt(src.lastIndex))
+        }
+        
+        // Add cards to destination
+        dst.addAll(movingCards)
+        
+        android.util.Log.d("GameEngine", "moveTableauToTableauFromIndex: Move successful! Moved ${cardsToMove} cards")
+        
         // flip rule: reveal new top if facedown
         if (src.isNotEmpty()) {
             val top = src.last()
@@ -215,9 +294,22 @@ class GameEngine {
     fun moveWasteToTableau(toCol: Int): Boolean {
         if (toCol !in 0..6) return false
         val src = gameState.waste
-        if (src.isEmpty()) return false
+        if (src.isEmpty()) {
+            android.util.Log.d("GameEngine", "moveWasteToTableau: waste is empty")
+            return false
+        }
         val dst = gameState.tableau[toCol]
-        if (!rulesEngine.canMoveTableauToTableau(src, dst)) return false
+        
+        android.util.Log.d("GameEngine", "moveWasteToTableau: to=$toCol, waste card: ${src.last().rank} ${src.last().suit}, dst.size=${dst.size}")
+        if (dst.isNotEmpty()) {
+            android.util.Log.d("GameEngine", "Target top card: ${dst.last().rank} ${dst.last().suit}")
+        } else {
+            android.util.Log.d("GameEngine", "Target is empty")
+        }
+        
+        val canMove = rulesEngine.canMoveTableauToTableau(src, dst)
+        android.util.Log.d("GameEngine", "moveWasteToTableau canMove: $canMove")
+        if (!canMove) return false
 
         val moving = src.removeAt(src.lastIndex)
         dst.add(moving)
@@ -258,12 +350,42 @@ class GameEngine {
         return true
     }
 
+    fun canUndo(): Boolean = undo.hasUndo()
+    fun canRedo(): Boolean = undo.hasRedo()
+
     fun getDealId(): String = currentDealId
 
     // --- Preview helpers for UI (no state change) ---
     fun canMoveTableauToTableau(fromCol: Int, toCol: Int): Boolean {
         if (fromCol !in 0..6 || toCol !in 0..6 || fromCol == toCol) return false
-        return rulesEngine.canMoveTableauToTableau(gameState.tableau[fromCol], gameState.tableau[toCol])
+        val src = gameState.tableau[fromCol]
+        val dst = gameState.tableau[toCol]
+        
+        // Get the movable sequence and check if it can be moved
+        val movableSequence = rulesEngine.getMovableSequence(src)
+        val canMove = movableSequence.isNotEmpty() && rulesEngine.canMoveSequenceToTableau(movableSequence, dst)
+        
+        android.util.Log.d("GameEngine", "canMoveTableauToTableau: from=$fromCol to=$toCol, src.size=${src.size}, dst.size=${dst.size}, movableSequence.size=${movableSequence.size}, canMove=$canMove")
+        
+        if (movableSequence.isNotEmpty()) {
+            android.util.Log.d("GameEngine", "First movable card: ${movableSequence.first().rank} ${movableSequence.first().suit}")
+            
+            // 자세한 규칙 검사 로그
+            if (dst.isEmpty()) {
+                android.util.Log.d("GameEngine", "Target is empty, need KING: ${movableSequence.first().rank == Rank.KING}")
+            } else {
+                val targetCard = dst.last()
+                android.util.Log.d("GameEngine", "Target top card: ${targetCard.rank} ${targetCard.suit}")
+                val movingCard = movableSequence.first()
+                val oppositeColor = rulesEngine.oppositeColor(movingCard, targetCard)
+                val oneRankLower = rulesEngine.oneRankLower(movingCard, targetCard)
+                android.util.Log.d("GameEngine", "Rule check - oppositeColor: $oppositeColor, oneRankLower: $oneRankLower")
+            }
+        } else {
+            android.util.Log.d("GameEngine", "No movable sequence found")
+        }
+        
+        return canMove
     }
 
     fun canMoveTableauToFoundation(fromCol: Int, foundationIndex: Int): Boolean {

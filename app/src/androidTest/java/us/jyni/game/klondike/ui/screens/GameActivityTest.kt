@@ -162,21 +162,27 @@ class GameActivityTest {
                 }
                 return count
             }
-
-            for (i in 0..6) {
-                for (j in 0..6) {
-                    if (i == j) continue
-                    val before = childCount("tableau_col_$j")
-                    // Try move i -> j
-                    onView(withContentDescription("tableau_col_$i")).perform(click())
-                    onView(withContentDescription("tableau_col_$j")).perform(click())
-                    val after = childCount("tableau_col_$j")
-                    if (after > before) {
-                        // Found a valid move
-                        return
+            fun tryPairsOnce(): Boolean {
+                for (i in 0..6) {
+                    for (j in 0..6) {
+                        if (i == j) continue
+                        val before = childCount("tableau_col_$j")
+                        // Try move i -> j
+                        onView(withContentDescription("tableau_col_$i")).perform(click())
+                        onView(withContentDescription("tableau_col_$j")).perform(click())
+                        val after = childCount("tableau_col_$j")
+                        if (after > before) {
+                            return true
+                        }
                     }
                 }
+                return false
             }
+
+            if (tryPairsOnce()) return
+            // If no move found initially, draw once to expose more face-up options and retry
+            onView(withId(R.id.draw_button)).perform(click())
+            if (tryPairsOnce()) return
             fail("No valid tableau-to-tableau move found among pairs")
         }
     }
