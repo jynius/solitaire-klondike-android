@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/background_color" />
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@color/background_color">
 
     <TextView
         android:id="@+id/title"
@@ -17,6 +14,95 @@
         android:layout_gravity="center"
         android:padding="16dp"/>
 
+    <!-- Status row (deal/rules/moves etc.) -->
+    <TextView
+        android:id="@+id/status_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:textColor="@android:color/darker_gray"
+        android:fontFamily="monospace"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp"
+        android:text=""/>
+
+    <!-- Debug Bar: toggles for display and debug aids -->
+    <LinearLayout
+        android:id="@+id/debug_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="start|center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="4dp">
+
+        <CheckBox
+            android:id="@+id/debug_show_deal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/debug_show_deal"
+            android:checked="true"/>
+
+        <Button
+            android:id="@+id/debug_copy_deal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/debug_copy_deal"
+            android:layout_marginStart="12dp"/>
+
+        <CheckBox
+            android:id="@+id/debug_highlights"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/debug_highlights"
+            android:layout_marginStart="12dp"
+            android:checked="true"/>
+    </LinearLayout>
+
+    <!-- Rules row (in debug only) -->
+    <LinearLayout
+        android:id="@+id/rules_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="start|center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="4dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/debug_rules"/>
+
+        <Spinner
+            android:id="@+id/rules_draw_spinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"/>
+
+        <Spinner
+            android:id="@+id/rules_recycle_spinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"/>
+
+        <Spinner
+            android:id="@+id/rules_redeals_spinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"/>
+
+        <CheckBox
+            android:id="@+id/rules_allow_f2t"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/rules_allow_f2t"
+            android:layout_marginStart="8dp"/>
+    </LinearLayout>
+
     <GridLayout
         android:id="@+id/game_board"
         android:layout_width="match_parent"
@@ -26,12 +112,40 @@
         android:columnCount="7"
         android:padding="8dp"/>
 
-    <Button
-        android:id="@+id/reset_button"
-        android:layout_width="wrap_content"
+    <!-- Controls -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Reset Game"
-        android:layout_gravity="center"
-        android:padding="16dp"/>
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="8dp">
+
+        <Button
+            android:id="@+id/draw_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Draw"/>
+
+        <Button
+            android:id="@+id/undo_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Undo"
+            android:layout_marginStart="12dp"/>
+
+        <Button
+            android:id="@+id/redo_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Redo"
+            android:layout_marginStart="12dp"/>
+
+        <Button
+            android:id="@+id/reset_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reset"
+            android:layout_marginStart="12dp"/>
+    </LinearLayout>
 
 </LinearLayout>

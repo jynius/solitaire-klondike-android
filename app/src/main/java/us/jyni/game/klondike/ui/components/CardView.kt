@@ -16,10 +16,24 @@ class CardView @JvmOverloads constructor(
 
     private val paint = Paint()
     private var card: Card? = null
+    private var lastFaceUp: Boolean? = null
 
     fun setCard(card: Card) {
+        val prevFace = lastFaceUp
+        val nextFace = card.isFaceUp
         this.card = card
-        invalidate() // Redraw the view
+        if (prevFace != null && prevFace != nextFace) {
+            // flip animation around Y axis
+            animate().rotationY(90f).setDuration(90).withEndAction {
+                // halfway: update face, then complete
+                invalidate()
+                rotationY = -90f
+                animate().rotationY(0f).setDuration(90).start()
+            }.start()
+        } else {
+            invalidate()
+        }
+        lastFaceUp = nextFace
     }
 
     override fun onDraw(canvas: Canvas) {

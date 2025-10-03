@@ -212,6 +212,40 @@ class GameEngine {
         return true
     }
 
+    fun moveWasteToTableau(toCol: Int): Boolean {
+        if (toCol !in 0..6) return false
+        val src = gameState.waste
+        if (src.isEmpty()) return false
+        val dst = gameState.tableau[toCol]
+        if (!rulesEngine.canMoveTableauToTableau(src, dst)) return false
+
+        val moving = src.removeAt(src.lastIndex)
+        dst.add(moving)
+        undo.saveState(snapshot())
+        moveCount += 1
+        return true
+    }
+
+    fun moveWasteToFoundation(foundationIndex: Int): Boolean {
+        if (foundationIndex !in 0..3) return false
+        val src = gameState.waste
+        if (src.isEmpty()) return false
+        val fnd = gameState.foundation[foundationIndex]
+        if (!rulesEngine.canMoveTableauToFoundation(src, fnd)) return false
+
+        val moving = src.removeAt(src.lastIndex)
+        fnd.add(moving)
+        // check win condition
+        gameState.isGameOver = rulesEngine.isGameWon(gameState)
+        undo.saveState(snapshot())
+        moveCount += 1
+        if (gameState.isGameOver) {
+            outcome = "win"
+            finishedAt = System.currentTimeMillis()
+        }
+        return true
+    }
+
     fun undo(): Boolean {
         val prev = undo.undo() ?: return false
         gameState = cloneState(prev)
@@ -222,6 +256,34 @@ class GameEngine {
         val next = undo.redo() ?: return false
         gameState = cloneState(next)
         return true
+    }
+
+    fun getDealId(): String = currentDealId
+
+    // --- Preview helpers for UI (no state change) ---
+    fun canMoveTableauToTableau(fromCol: Int, toCol: Int): Boolean {
+        if (fromCol !in 0..6 || toCol !in 0..6 || fromCol == toCol) return false
+        return rulesEngine.canMoveTableauToTableau(gameState.tableau[fromCol], gameState.tableau[toCol])
+    }
+
+    fun canMoveTableauToFoundation(fromCol: Int, foundationIndex: Int): Boolean {
+        if (fromCol !in 0..6 || foundationIndex !in 0..3) return false
+        return rulesEngine.canMoveTableauToFoundation(gameState.tableau[fromCol], gameState.foundation[foundationIndex])
+    }
+
+    fun canMoveWasteToFoundation(foundationIndex: Int): Boolean {
+        if (foundationIndex !in 0..3) return false
+        return rulesEngine.canMoveTableauToFoundation(gameState.waste, gameState.foundation[foundationIndex])
+    }
+
+    fun canMoveWasteToTableau(toCol: Int): Boolean {
+        if (toCol !in 0..6) return false
+        return rulesEngine.canMoveTableauToTableau(gameState.waste, gameState.tableau[toCol])
+    }
+
+    fun canMoveFoundationToTableau(foundationIndex: Int, toCol: Int): Boolean {
+        if (foundationIndex !in 0..3 || toCol !in 0..6) return false
+        return rulesEngine.canMoveFoundationToTableau(gameState.foundation[foundationIndex], gameState.tableau[toCol])
     }
 
     // --- Snapshot helpers ---
@@ -237,7 +299,7 @@ class GameEngine {
     }
 
     // --- Save/Restore ---
-    fun saveStateString(): String = SaveCodec.encode(gameState, rules, redealsRemaining)
+    fun saveStateString(): String = SaveCodec.encode(gameState, rules, redealsRemaining, dealId = currentDealId)
 
     fun restoreStateString(data: String): Boolean {
         return try {
@@ -245,7 +307,7 @@ class GameEngine {
             this.gameState = decoded.state
             this.rules = decoded.rules
             this.redealsRemaining = decoded.redealsRemaining
-            this.currentDealId = computeLayoutIdForState(gameState) // placeholder linkage
+            this.currentDealId = decoded.dealId ?: computeLayoutIdForState(gameState)
             this.currentSeed = 0u
             this.startedAt = System.currentTimeMillis()
             this.finishedAt = null

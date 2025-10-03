@@ -17,6 +17,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="us.jyni.game.klondike.ui.screens.GameActivity"
+            android:exported="false" />
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />

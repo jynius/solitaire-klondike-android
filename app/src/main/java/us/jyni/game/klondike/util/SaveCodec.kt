@@ -16,9 +16,12 @@ import us.jyni.game.klondike.util.sync.Ruleset
 object SaveCodec {
     private const val PREFIX = "GS1;"
 
-    fun encode(state: GameState, rules: Ruleset, redealsRemaining: Int): String {
+    fun encode(state: GameState, rules: Ruleset, redealsRemaining: Int, dealId: String? = null): String {
         val sb = StringBuilder()
         sb.append(PREFIX)
+        if (dealId != null) {
+            sb.append("did=").append(dealId).append(';')
+        }
         sb.append("draw=").append(rules.draw).append(';')
         sb.append("redeals=").append(rules.redeals).append(';')
         sb.append("recycle=").append(if (rules.recycle == RecycleOrder.REVERSE) "reverse" else "keep").append(';')
@@ -32,7 +35,7 @@ object SaveCodec {
         return sb.toString()
     }
 
-    data class Decoded(val state: GameState, val rules: Ruleset, val redealsRemaining: Int)
+    data class Decoded(val state: GameState, val rules: Ruleset, val redealsRemaining: Int, val dealId: String?)
 
     fun decode(data: String): Decoded {
         require(data.startsWith(PREFIX)) { "Unsupported save format" }
@@ -42,6 +45,7 @@ object SaveCodec {
             val idx = p.indexOf('=')
             if (idx > 0) map[p.substring(0, idx)] = p.substring(idx + 1)
         }
+        val dealId = map["did"]
         val draw = map["draw"]!!.toInt()
         val redeals = map["redeals"]!!.toInt()
         val recycle = when (map["recycle"]) { "keep" -> RecycleOrder.KEEP else -> RecycleOrder.REVERSE }
@@ -54,7 +58,7 @@ object SaveCodec {
         val waste = decodePile(map["was"].orEmpty())
         val rules = Ruleset(draw, redeals, recycle, f2t)
         val state = GameState(tableau, foundation, stock, waste, go)
-        return Decoded(state, rules, rr)
+        return Decoded(state, rules, rr, dealId)
     }
 
     private fun encodeColumns(cols: List<MutableList<Card>>): String =

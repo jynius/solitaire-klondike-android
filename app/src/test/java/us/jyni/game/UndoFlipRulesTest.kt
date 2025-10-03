@@ -90,4 +90,28 @@ class UndoFlipRulesTest {
         val f = s.foundation.joinToString(",") { it.size.toString() }
         return listOf(t, f, s.stock.size, s.waste.size, s.isGameOver).joinToString("#")
     }
+
+    @Test
+    fun redeal_zero_blocks_recycle_edge_case() {
+        val e = GameEngine()
+        e.startGame(seed = 12uL, rules = Ruleset(draw = 1, redeals = 0))
+        // exhaust stock fully
+        repeat(60) { e.draw() }
+        val s1 = e.getGameState()
+        // further draw should not change stock/waste sizes
+        e.draw()
+        val s2 = e.getGameState()
+        assertEquals(s1.stock.size, s2.stock.size)
+        assertEquals(s1.waste.size, s2.waste.size)
+    }
+
+    @Test
+    fun dealId_changes_when_rules_change_with_same_seed() {
+        val e = GameEngine()
+        e.startGame(seed = 13uL, rules = Ruleset(draw = 1))
+        val id1 = e.getDealId()
+        e.startGame(seed = 13uL, rules = Ruleset(draw = 3))
+        val id3 = e.getDealId()
+        assertNotEquals(id1, id3)
+    }
 }
