@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:background="@color/background_color">
 
-    <!-- Top Header with Status and Control Buttons -->
+    <!-- Top Header with Control Buttons only -->
     <RelativeLayout
         android:id="@+id/header_layout"
         android:layout_width="match_parent"
@@ -14,18 +14,6 @@
         android:paddingEnd="16dp"
         android:paddingTop="8dp"
         android:paddingBottom="8dp">
-
-        <!-- Status Text on the left -->
-        <TextView
-            android:id="@+id/status_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
-            android:textSize="12sp"
-            android:textColor="@color/text_color"
-            android:fontFamily="monospace"
-            android:text="" />
 
         <!-- Control buttons on the right -->
         <LinearLayout
@@ -57,47 +45,92 @@
         </LinearLayout>
     </RelativeLayout>
 
-    <!-- Debug Bar as overlay layer -->
+    <!-- Floating Debug Panel -->
     <LinearLayout
-        android:id="@+id/debug_bar"
+        android:id="@+id/floating_debug_panel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/header_layout"
-        android:orientation="horizontal"
-        android:gravity="start|center_vertical"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
-        android:background="#88000000"
-        android:visibility="gone">
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="60dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:orientation="vertical"
+        android:background="#CC000000"
+        android:padding="12dp"
+        android:visibility="gone"
+        android:elevation="8dp">
 
-        <CheckBox
-            android:id="@+id/debug_show_deal"
-            android:layout_width="wrap_content"
+        <!-- Rules Info -->
+        <TextView
+            android:id="@+id/rules_text"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/debug_show_deal"
-            android:textColor="@android:color/white"
-            android:checked="true"/>
+            android:textSize="11sp"
+            android:textColor="@color/text_color"
+            android:fontFamily="monospace"
+            android:text=""
+            android:layout_marginBottom="4dp" />
 
-        <Button
-            android:id="@+id/debug_copy_deal"
-            android:layout_width="100dp"
-            android:layout_height="36dp"
-            android:text="@string/debug_copy_deal"
-            android:textSize="10sp"
-            android:textColor="@android:color/white"
-            android:background="@drawable/button_style"
-            android:layout_marginStart="12dp"/>
-
-        <CheckBox
-            android:id="@+id/debug_highlights"
-            android:layout_width="wrap_content"
+        <!-- Card Counts -->
+        <TextView
+            android:id="@+id/status_text"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/debug_highlights"
-            android:textColor="@android:color/white"
-            android:layout_marginStart="12dp"
-            android:checked="true"/>
+            android:textSize="11sp"
+            android:textColor="@color/text_color"
+            android:fontFamily="monospace"
+            android:text=""
+            android:layout_marginBottom="4dp" />
+
+        <!-- Layout Info -->
+        <TextView
+            android:id="@+id/layout_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="11sp"
+            android:textColor="@color/text_color"
+            android:fontFamily="monospace"
+            android:text=""
+            android:layout_marginBottom="8dp" />
+
+        <!-- Debug Controls -->
+        <LinearLayout
+            android:id="@+id/debug_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="start|center_vertical">
+
+            <Button
+                android:id="@+id/debug_copy_deal"
+                android:layout_width="80dp"
+                android:layout_height="32dp"
+                android:text="Deal복사"
+                android:textSize="9sp"
+                android:textColor="@android:color/white"
+                android:background="@drawable/button_style"
+                android:layout_marginEnd="8dp"/>
+
+            <Button
+                android:id="@+id/debug_copy_layout"
+                android:layout_width="80dp"
+                android:layout_height="32dp"
+                android:text="JSON복사"
+                android:textSize="9sp"
+                android:textColor="@android:color/white"
+                android:background="@drawable/button_style"
+                android:layout_marginEnd="8dp"/>
+
+            <CheckBox
+                android:id="@+id/debug_highlights"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/debug_highlights"
+                android:textColor="@android:color/white"
+                android:textSize="9sp"
+                android:checked="true"/>
+
+        </LinearLayout>
     </LinearLayout>
 
     <!-- Game Board Area -->
@@ -132,22 +165,22 @@
         android:background="#cc000000">
 
         <Button
-            android:id="@+id/draw_button"
+            android:id="@+id/restart_button"
             android:layout_width="0dp"
             android:layout_height="40dp"
             android:layout_weight="1"
-            android:text="@string/draw_button"
+            android:text="새로시작"
             android:textSize="10sp"
             android:textColor="@android:color/white"
             android:background="@drawable/button_style"
             android:layout_marginEnd="8dp"/>
 
         <Button
-            android:id="@+id/undo_button"
+            android:id="@+id/reset_button"
             android:layout_width="0dp"
             android:layout_height="40dp"
             android:layout_weight="1"
-            android:text="@string/undo"
+            android:text="@string/restart"
             android:textSize="10sp"
             android:textColor="@android:color/white"
             android:background="@drawable/button_style"
@@ -165,14 +198,26 @@
             android:layout_marginEnd="8dp"/>
 
         <Button
-            android:id="@+id/reset_button"
+            android:id="@+id/undo_button"
             android:layout_width="0dp"
             android:layout_height="40dp"
             android:layout_weight="1"
-            android:text="@string/restart"
+            android:text="@string/undo"
             android:textSize="10sp"
             android:textColor="@android:color/white"
             android:background="@drawable/button_style"/>
+
+        <Button
+            android:id="@+id/draw_button"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:text="@string/draw_button"
+            android:textSize="10sp"
+            android:textColor="@android:color/white"
+            android:background="@drawable/button_style"
+            android:visibility="gone"
+            android:layout_marginEnd="8dp"/>
     </LinearLayout>
 
 </RelativeLayout>

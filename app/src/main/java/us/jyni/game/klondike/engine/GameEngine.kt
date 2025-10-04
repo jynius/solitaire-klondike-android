@@ -18,7 +18,7 @@ import us.jyni.game.klondike.util.sync.LayoutId
 class GameEngine {
     private var rules: Ruleset = Ruleset()
     private var redealsRemaining: Int = rules.redeals
-    private val rulesEngine = KlondikeRules()
+    val rulesEngine = KlondikeRules()
     private val undo = UndoManager()
     private var currentSeed: ULong = 0u
     private var currentDealId: String = ""
@@ -479,4 +479,73 @@ class GameEngine {
     }
 
     fun encodeSolveStats(outcomeOverride: String? = null): String = SolveCodec.encode(getSolveStatsSnapshot(outcomeOverride))
+    
+    fun getSeed(): ULong = currentSeed
+    
+    fun getLayoutId(): String = computeLayoutIdForState(gameState)
+    
+    fun getGameStateJson(): String {
+        val sb = StringBuilder()
+        sb.append("{\n")
+        
+        // Tableau (7 columns)
+        sb.append("  \"tableau\": [\n")
+        gameState.tableau.forEachIndexed { idx, pile ->
+            sb.append("    [")
+            pile.forEachIndexed { cardIdx, card ->
+                val rankStr = when (card.rank.ordinal + 1) {
+                    1 -> "A"
+                    in 2..10 -> (card.rank.ordinal + 1).toString()
+                    11 -> "J"
+                    12 -> "Q" 
+                    13 -> "K"
+                    else -> "?"
+                }
+                val cardStr = "$rankStr${suitSymbol(card.suit)}${if (card.isFaceUp) "↑" else "↓"}"
+                sb.append("\"$cardStr\"")
+                if (cardIdx < pile.size - 1) sb.append(", ")
+            }
+            sb.append("]")
+            if (idx < 6) sb.append(",")
+            sb.append("\n")
+        }
+        sb.append("  ],\n")
+        
+        // Foundation (4 suits)
+        sb.append("  \"foundation\": [")
+        gameState.foundation.forEachIndexed { idx, pile ->
+            sb.append(pile.size)
+            if (idx < 3) sb.append(", ")
+        }
+        sb.append("],\n")
+        
+        // Stock and Waste
+        sb.append("  \"stock\": ${gameState.stock.size},\n")
+        sb.append("  \"waste\": ")
+        if (gameState.waste.isNotEmpty()) {
+            val topCard = gameState.waste.last()
+            val rankStr = when (topCard.rank.ordinal + 1) {
+                1 -> "A"
+                in 2..10 -> (topCard.rank.ordinal + 1).toString()
+                11 -> "J"
+                12 -> "Q"
+                13 -> "K"
+                else -> "?"
+            }
+            sb.append("\"$rankStr${suitSymbol(topCard.suit)}\"")
+        } else {
+            sb.append("null")
+        }
+        sb.append("\n")
+        
+        sb.append("}")
+        return sb.toString()
+    }
+    
+    private fun suitSymbol(suit: us.jyni.game.klondike.model.Suit): String = when (suit) {
+        us.jyni.game.klondike.model.Suit.SPADES -> "♠"
+        us.jyni.game.klondike.model.Suit.HEARTS -> "♥"
+        us.jyni.game.klondike.model.Suit.DIAMONDS -> "♦"
+        us.jyni.game.klondike.model.Suit.CLUBS -> "♣"
+    }
 }

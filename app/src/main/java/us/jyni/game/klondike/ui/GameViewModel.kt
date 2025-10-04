@@ -48,6 +48,16 @@ class GameViewModel : ViewModel() {
         startGame()
     }
 
+    fun restartGame() {
+        // 현재 게임의 시드와 규칙을 유지하면서 다시 시작
+        val currentSeed = engine.getSeed() // 현재 시드 가져오기
+        val currentRules = engine.getRules() // 현재 규칙 가져오기
+        Log.d("GameViewModel", "Restarting game with same seed: $currentSeed")
+        engine.startGame(currentSeed, currentRules)
+        _state.value = engine.getGameState()
+        Log.d("GameViewModel", "Game restarted - Stock: ${_state.value.stock.size}, Waste: ${_state.value.waste.size}")
+    }
+
     fun moveTableauToTableau(fromCol: Int, toCol: Int): Boolean {
         val moved = engine.moveTableauToTableau(fromCol, toCol)
         if (moved) _state.value = engine.getGameState()
@@ -94,6 +104,27 @@ class GameViewModel : ViewModel() {
 
     // Preview helpers for UI highlighting
     fun canMoveTableauToTableau(fromCol: Int, toCol: Int) = engine.canMoveTableauToTableau(fromCol, toCol)
+    fun canMoveTableauToTableauFromIndex(fromCol: Int, cardIndex: Int, toCol: Int): Boolean {
+        // 개별 카드 인덱스부터 이동 가능성 체크를 위한 임시 메서드
+        android.util.Log.d("GameEngine", "canMoveTableauToTableauFromIndex: from=$fromCol, cardIndex=$cardIndex, to=$toCol")
+        if (fromCol !in 0..6 || toCol !in 0..6 || fromCol == toCol) return false
+        val src = engine.getGameState().tableau[fromCol]
+        val dst = engine.getGameState().tableau[toCol]
+        
+        if (cardIndex < 0 || cardIndex >= src.size) return false
+        
+        // 선택된 인덱스부터 끝까지의 카드들을 부분 리스트로 생성
+        val partialPile = src.subList(cardIndex, src.size)
+        android.util.Log.d("GameEngine", "partialPile size: ${partialPile.size}, cards: ${partialPile.map { "${it.rank}${it.suit}" }}")
+        val movableSequence = engine.rulesEngine.getMovableSequence(partialPile)
+        android.util.Log.d("GameEngine", "movableSequence size: ${movableSequence.size}, cards: ${movableSequence.map { "${it.rank}${it.suit}" }}")
+        
+        if (movableSequence.isEmpty()) return false
+        
+        val canMove = engine.rulesEngine.canMoveSequenceToTableau(movableSequence, dst)
+        android.util.Log.d("GameEngine", "canMoveSequenceToTableau result: $canMove")
+        return canMove
+    }
     fun canMoveTableauToFoundation(fromCol: Int, f: Int) = engine.canMoveTableauToFoundation(fromCol, f)
     fun canMoveWasteToFoundation(f: Int) = engine.canMoveWasteToFoundation(f)
     fun canMoveWasteToTableau(toCol: Int) = engine.canMoveWasteToTableau(toCol)
@@ -102,6 +133,12 @@ class GameViewModel : ViewModel() {
     fun dealId(): String = engine.getDealId()
 
     fun getRules(): Ruleset = engine.getRules()
+    
+    fun getSeed(): ULong = engine.getSeed()
+    
+    fun layoutId(): String = engine.getLayoutId()
+    
+    fun getGameStateJson(): String = engine.getGameStateJson()
 
     // Undo/Redo availability for UI enablement
     fun canUndo(): Boolean = engine.canUndo()
