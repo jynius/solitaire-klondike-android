@@ -5,7 +5,8 @@ data class GameState(
     var foundation: List<MutableList<Card>> = List(4) { mutableListOf() },
     var stock: MutableList<Card> = mutableListOf(),
     var waste: MutableList<Card> = mutableListOf(),
-    var isGameOver: Boolean = false
+    var isGameOver: Boolean = false,
+    var score: Int = 0
 ) {
     fun reset() {
         tableau = List(7) { mutableListOf() }
@@ -13,5 +14,6 @@ data class GameState(
         stock = mutableListOf()
         waste = mutableListOf()
         isGameOver = false
+        score = 0
     }
 }

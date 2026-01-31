@@ -1,5 +1,7 @@
 # Gradle
 .gradle/
+.history/
+.vscode/
 **/build/
 !gradle/wrapper/gradle-wrapper.jar
 

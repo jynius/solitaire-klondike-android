@@ -11,9 +11,9 @@
     <string name="deal_copied">Deal ID 복사됨</string>
     <string name="debug_show_deal">딜 정보 보기</string>
     <string name="debug_copy_deal">딜 복사</string>
-    <string name="debug_highlights">하이라이트</string>
+
     <string name="debug_toggle">디버그</string>
-    <string name="rules_button">규칙 설정</string>
+    <string name="rules_button">설정</string>
     <string name="debug_rules">Rules:</string>
     <string name="rules_draw">Draw</string>
     <string name="rules_recycle">Recycle</string>

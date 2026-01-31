@@ -26,12 +26,18 @@ class GameEngine {
     private var finishedAt: Long? = null
     private var moveCount: Int = 0
     private var outcome: String? = null
+    
+    // Timer and pause tracking
+    private var pausedAt: Long? = null
+    private var totalPausedMs: Long = 0L
+    
     private var gameState: GameState = GameState(
         tableau = List(7) { mutableListOf() },
         foundation = List(4) { mutableListOf() },
         stock = mutableListOf(),
         waste = mutableListOf(),
-        isGameOver = false
+        isGameOver = false,
+        score = 0
     )
     private var deck: Deck = Deck()
     private var piles: List<Pile> = listOf()
@@ -53,6 +59,12 @@ class GameEngine {
         this.finishedAt = null
         this.moveCount = 0
         this.outcome = null
+        this.pausedAt = null
+        this.totalPausedMs = 0L
+        
+        // Clear history when starting a new game
+        undo.clearHistory()
+        
         // 준비: 덱을 셔플
         val list: MutableList<Card> = deck.asMutableList()
         fisherYatesShuffle(list, seed)
@@ -95,7 +107,8 @@ class GameEngine {
             foundation = foundation,
             stock = stock,
             waste = waste,
-            isGameOver = false
+            isGameOver = false,
+            score = 0
         )
         // 초기 스냅샷 저장
         undo.clearHistory()
@@ -261,6 +274,7 @@ class GameEngine {
 
         val moving = src.removeAt(src.lastIndex)
         fnd.add(moving)
+        addScore(10)  // Tableau → Foundation: +10
         // flip rule
         if (src.isNotEmpty()) {
             val top = src.last()
@@ -286,6 +300,7 @@ class GameEngine {
 
         val moving = fnd.removeAt(fnd.lastIndex)
         dst.add(moving)
+        addScore(-15)  // Foundation → Tableau: -15
         undo.saveState(snapshot())
         moveCount += 1
         return true
@@ -313,6 +328,7 @@ class GameEngine {
 
         val moving = src.removeAt(src.lastIndex)
         dst.add(moving)
+        addScore(5)  // Waste → Tableau: +5
         undo.saveState(snapshot())
         moveCount += 1
         return true
@@ -327,6 +343,7 @@ class GameEngine {
 
         val moving = src.removeAt(src.lastIndex)
         fnd.add(moving)
+        addScore(10)  // Waste → Foundation: +10
         // check win condition
         gameState.isGameOver = rulesEngine.isGameWon(gameState)
         undo.saveState(snapshot())
@@ -421,7 +438,17 @@ class GameEngine {
     }
 
     // --- Save/Restore ---
-    fun saveStateString(): String = SaveCodec.encode(gameState, rules, redealsRemaining, dealId = currentDealId)
+    fun saveStateString(): String = SaveCodec.encode(
+        state = gameState,
+        rules = rules,
+        redealsRemaining = redealsRemaining,
+        dealId = currentDealId,
+        score = gameState.score,
+        moveCount = moveCount,
+        startedAt = startedAt,
+        totalPausedMs = totalPausedMs,
+        seed = currentSeed
+    )
 
     fun restoreStateString(data: String): Boolean {
         return try {
@@ -430,15 +457,22 @@ class GameEngine {
             this.rules = decoded.rules
             this.redealsRemaining = decoded.redealsRemaining
             this.currentDealId = decoded.dealId ?: computeLayoutIdForState(gameState)
-            this.currentSeed = 0u
-            this.startedAt = System.currentTimeMillis()
+            this.currentSeed = decoded.seed  // Restore seed
+            
+            // Restore timer and score data
+            this.startedAt = decoded.startedAt
+            this.totalPausedMs = decoded.totalPausedMs
+            this.moveCount = decoded.moveCount
+            this.pausedAt = null  // Resume on restore
+            
             this.finishedAt = null
-            this.moveCount = 0
             this.outcome = null
-            undo.clearHistory()
+            // Keep history when restoring - don't clear it
+            // undo.clearHistory()  // Commented out to preserve history
             undo.saveState(snapshot())
             true
         } catch (e: Exception) {
+            android.util.Log.e("GameEngine", "Failed to restore state", e)
             false
         }
     }
@@ -548,4 +582,36 @@ class GameEngine {
         us.jyni.game.klondike.model.Suit.DIAMONDS -> "♦"
         us.jyni.game.klondike.model.Suit.CLUBS -> "♣"
     }
+    
+    // --- Scoring ---
+    private fun addScore(points: Int) {
+        gameState.score = maxOf(0, gameState.score + points)
+    }
+    
+    fun getScore(): Int = gameState.score
+    
+    // --- Timer and Pause ---
+    fun pause() {
+        if (pausedAt == null && outcome == null) {
+            pausedAt = System.currentTimeMillis()
+        }
+    }
+    
+    fun resume() {
+        pausedAt?.let {
+            totalPausedMs += System.currentTimeMillis() - it
+            pausedAt = null
+        }
+    }
+    
+    fun isPaused(): Boolean = pausedAt != null
+    
+    fun getElapsedTimeMs(): Long {
+        val now = System.currentTimeMillis()
+        val endTime = finishedAt ?: pausedAt ?: now
+        val elapsed = endTime - startedAt - totalPausedMs
+        return maxOf(0, elapsed)
+    }
+    
+    fun getMoveCount(): Int = moveCount
 }

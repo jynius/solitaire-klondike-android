@@ -16,6 +16,7 @@ import android.util.Log
 import android.view.DragEvent
 import android.view.MotionEvent
 import android.view.View.DragShadowBuilder
+import android.view.ViewGroup
 import android.graphics.Color
 import us.jyni.BuildConfig
 import android.view.animation.AccelerateDecelerateInterpolator
@@ -100,7 +101,6 @@ class GameActivity : AppCompatActivity() {
         val board = findViewById<GridLayout>(R.id.game_board)
         val debugCopyDeal = findViewById<Button>(R.id.debug_copy_deal)
         val debugCopyLayout = findViewById<Button>(R.id.debug_copy_layout)
-        val debugHighlights = findViewById<android.widget.CheckBox>(R.id.debug_highlights)
         
         // Layout Message 폰트 크기를 작게 설정
         layoutText.textSize = 10f
@@ -108,6 +108,19 @@ class GameActivity : AppCompatActivity() {
         // Hide debug toggle button on non-debug builds
         if (!BuildConfig.DEBUG) {
             findViewById<View>(R.id.debug_toggle_button).visibility = View.GONE
+        }
+        
+        // Timer coroutine - updates every second
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                while (true) {
+                    kotlinx.coroutines.delay(1000)
+                    if (!viewModel.isPaused()) {
+                        // Force state refresh to update timer display
+                        updateTimerAndScore()
+                    }
+                }
+            }
         }
 
         lifecycleScope.launch {
@@ -157,8 +170,20 @@ class GameActivity : AppCompatActivity() {
                     val rulesStr = "Rules: D${r.draw} R:${r.recycle.name.take(3)} Redeals:$redealsTxt F→T:${if (r.allowFoundationToTableau) "on" else "off"}"
                     rulesText.text = rulesStr
                     
-                    // Line 2: Card counts
-                    val countsStr = "Cards: Stock:$stock  Waste:$waste  Foundation:$fnd  Tableau:${52 - stock - waste - fnd}"
+                    // Update Timer and Score in header (if available)
+                    val elapsed = viewModel.getElapsedTimeMs()
+                    val minutes = (elapsed / 60000).toInt()
+                    val seconds = ((elapsed % 60000) / 1000).toInt()
+                    val score = viewModel.getScore()
+                    val moves = viewModel.getMoveCount()
+                    val timeStr = String.format("%d:%02d", minutes, seconds)
+                    
+                    findViewById<TextView>(R.id.timer_text)?.text = "⏱ $timeStr"
+                    findViewById<TextView>(R.id.score_text)?.text = "⭐ $score"
+                    findViewById<TextView>(R.id.moves_text)?.text = "🔄 $moves"
+                    
+                    // Line 2: Card counts (simplified)
+                    val countsStr = "Stock:$stock  Waste:$waste  Foundation:$fnd  Tableau:${52 - stock - waste - fnd}"
                     statusText.text = countsStr
                     
                     // Line 3: Game State JSON
@@ -167,7 +192,6 @@ class GameActivity : AppCompatActivity() {
                     
                     // Update button states
                     findViewById<Button>(R.id.undo_button).isEnabled = viewModel.canUndo()
-                    findViewById<Button>(R.id.redo_button).isEnabled = viewModel.canRedo()
 
                     // Render board
                     board.removeAllViews()
@@ -222,25 +246,6 @@ class GameActivity : AppCompatActivity() {
                                     if (!moved) {
                                         v.performHapticFeedback(HapticFeedbackConstants.REJECT)
                                         Toast.makeText(this@GameActivity, "Invalid move", Toast.LENGTH_SHORT).show()
-                                    } else {
-                                        // success pulse + subtle scale animation
-                                        val targetView = (tableauViews[col] ?: v)
-                                        targetView.animate()
-                                            .alpha(0.6f)
-                                            .scaleX(1.03f)
-                                            .scaleY(1.03f)
-                                            .setInterpolator(AccelerateDecelerateInterpolator())
-                                            .setDuration(140)
-                                            .withEndAction {
-                                                targetView.animate()
-                                                    .alpha(1f)
-                                                    .scaleX(1f)
-                                                    .scaleY(1f)
-                                                    .setDuration(140)
-                                                    .setInterpolator(AccelerateDecelerateInterpolator())
-                                                    .start()
-                                            }
-                                            .start()
                                     }
                                     // 모든 선택 상태 해제
                                     clearAllSelections()
@@ -349,19 +354,6 @@ class GameActivity : AppCompatActivity() {
                                     if (!moved) {
                                         v.performHapticFeedback(HapticFeedbackConstants.REJECT)
                                         Toast.makeText(this@GameActivity, "Invalid move", Toast.LENGTH_SHORT).show()
-                                    } else {
-                                        v.animate()
-                                            .alpha(0.6f)
-                                            .scaleX(1.04f)
-                                            .scaleY(1.04f)
-                                            .setDuration(140)
-                                            .setInterpolator(AccelerateDecelerateInterpolator())
-                                            .withEndAction {
-                                                v.animate().alpha(1f).scaleX(1f).scaleY(1f)
-                                                    .setDuration(140)
-                                                    .setInterpolator(AccelerateDecelerateInterpolator())
-                                                    .start()
-                                            }.start()
                                     }
                                     selectedTableau = null
                                 } else if (selectedFoundation == null) {
@@ -374,20 +366,8 @@ class GameActivity : AppCompatActivity() {
                                     if (!moved) {
                                         v.performHapticFeedback(HapticFeedbackConstants.REJECT)
                                         Toast.makeText(this@GameActivity, "Invalid move", Toast.LENGTH_SHORT).show()
-                                    } else {
-                                        v.animate()
-                                            .alpha(0.6f)
-                                            .scaleX(1.04f)
-                                            .scaleY(1.04f)
-                                            .setDuration(140)
-                                            .setInterpolator(AccelerateDecelerateInterpolator())
-                                            .withEndAction {
-                                                v.animate().alpha(1f).scaleX(1f).scaleY(1f)
-                                                    .setDuration(140)
-                                                    .setInterpolator(AccelerateDecelerateInterpolator())
-                                                    .start()
-                                            }.start()
                                     }
+                                    selectedFromWaste = false
                                 }
                             }
                         }
@@ -480,9 +460,6 @@ class GameActivity : AppCompatActivity() {
                             )
                             cv.setCard(card)
                             cv.contentDescription = "card_${card.rank}_${card.suit}_up"
-                            // subtle fade-in on new waste top
-                            cv.alpha = 0f
-                            cv.animate().alpha(1f).setDuration(150).setInterpolator(AccelerateDecelerateInterpolator()).start()
                             
                             // Waste 카드에 드래그 기능 추가
                             var startTime = 0L
@@ -528,27 +505,9 @@ class GameActivity : AppCompatActivity() {
                     // Row 0: foundations (0..3), spacer at 4, waste at 5, stock at 6
                     repeat(4) { idx ->
                         val v = makeFoundationSlot(idx, s.foundation[idx])
-                        // rules-based highlight for foundation targets
                         if (selectedFoundation == idx) {
                             v.background = getDrawable(R.drawable.bg_selected)
                             ViewCompat.setStateDescription(v, "selected")
-                            v.alpha = 1f
-                        } else if (debugHighlights.isChecked) {
-                            val target = when {
-                                selectedTableau != null -> viewModel.canMoveTableauToFoundation(selectedTableau!!, idx)
-                                selectedFromWaste -> viewModel.canMoveWasteToFoundation(idx)
-                                else -> null
-                            }
-                            v.background = when (target) {
-                                true -> getDrawable(R.drawable.bg_highlight_target)
-                                false -> getDrawable(R.drawable.bg_highlight_dim)
-                                null -> null
-                            }
-                            ViewCompat.setStateDescription(v, when (target) {
-                                true -> "target"
-                                false -> "not target"
-                                null -> null
-                            })
                             v.alpha = 1f
                         } else {
                             v.background = null
@@ -578,28 +537,9 @@ class GameActivity : AppCompatActivity() {
                     // Row 1: tableau 0..6
                     s.tableau.forEachIndexed { col, pile ->
                         val pileContainer = makeTableau(col, pile)
-                        // rules-based target highlight for tableau
                         if (selectedTableau == col) {
                             pileContainer.background = getDrawable(R.drawable.bg_selected)
                             ViewCompat.setStateDescription(pileContainer, "selected")
-                            pileContainer.alpha = 1f
-                        } else if (debugHighlights.isChecked) {
-                            val target = when {
-                                selectedTableau != null -> viewModel.canMoveTableauToTableau(selectedTableau!!, col)
-                                selectedFromWaste -> viewModel.canMoveWasteToTableau(col)
-                                selectedFoundation != null -> viewModel.canMoveFoundationToTableau(selectedFoundation!!, col)
-                                else -> null
-                            }
-                            pileContainer.background = when (target) {
-                                true -> getDrawable(R.drawable.bg_highlight_target)
-                                false -> getDrawable(R.drawable.bg_highlight_dim)
-                                null -> null
-                            }
-                            ViewCompat.setStateDescription(pileContainer, when (target) {
-                                true -> "target"
-                                false -> "not target"
-                                null -> null
-                            })
                             pileContainer.alpha = 1f
                         } else {
                             pileContainer.background = null
@@ -633,8 +573,23 @@ class GameActivity : AppCompatActivity() {
             persist() 
         }
         findViewById<Button>(R.id.reset_button).setOnClickListener { viewModel.reset(); persist() }
-        findViewById<Button>(R.id.redo_button).setOnClickListener { viewModel.redo(); persist() }
         findViewById<Button>(R.id.undo_button).setOnClickListener { viewModel.undo(); persist() }
+        
+        // 일시정지 버튼 추가 예정 (현재는 주석 처리)
+        // TODO: pause_button을 레이아웃에 추가하고 활성화
+        /*
+        findViewById<Button>(R.id.pause_button)?.setOnClickListener {
+            if (viewModel.isPaused()) {
+                viewModel.resume()
+                (it as Button).text = "Pause"
+                Toast.makeText(this@GameActivity, "게임 재개", Toast.LENGTH_SHORT).show()
+            } else {
+                viewModel.pause()
+                (it as Button).text = "Resume"
+                Toast.makeText(this@GameActivity, "일시정지", Toast.LENGTH_SHORT).show()
+            }
+        }
+        */
         
         // 디버그 토글 버튼 - floating debug panel 토글
         findViewById<Button>(R.id.debug_toggle_button).setOnClickListener {
@@ -679,11 +634,7 @@ class GameActivity : AppCompatActivity() {
             }
             
             DragEvent.ACTION_DRAG_ENTERED -> {
-                // 드래그가 뷰 위에 진입했을 때 - 시각적 피드백
-                if (isDragging && canDropOnTableau(targetCol)) {
-                    view.setBackgroundColor(Color.parseColor("#4CAF50")) // 녹색으로 하이라이트
-                    view.alpha = 0.8f
-                }
+                // 드래그가 뷰 위에 진입했을 때 - 배경색 제거
                 true
             }
             
@@ -697,7 +648,6 @@ class GameActivity : AppCompatActivity() {
             DragEvent.ACTION_DROP -> {
                 // 드롭이 발생했을 때 - 실제 카드 이동 수행
                 view.background = null
-                view.alpha = 1f
                 
                 if (isDragging && canDropOnTableau(targetCol)) {
                     val moved = when (dragSourceType) {
@@ -723,6 +673,8 @@ class GameActivity : AppCompatActivity() {
                         view.performHapticFeedback(HapticFeedbackConstants.REJECT)
                         Toast.makeText(this, "Invalid move", Toast.LENGTH_SHORT).show()
                     }
+                } else {
+                    view.alpha = 1f
                 }
                 
                 // 드래그 상태 초기화
@@ -749,10 +701,7 @@ class GameActivity : AppCompatActivity() {
             }
             
             DragEvent.ACTION_DRAG_ENTERED -> {
-                if (isDragging && canDropOnFoundation(targetFoundation)) {
-                    view.setBackgroundColor(Color.parseColor("#2196F3")) // 파란색으로 하이라이트
-                    view.alpha = 0.8f
-                }
+                // 드래그가 뷰 위에 진입했을 때 - 배경색 제거
                 true
             }
             
@@ -764,7 +713,6 @@ class GameActivity : AppCompatActivity() {
             
             DragEvent.ACTION_DROP -> {
                 view.background = null
-                view.alpha = 1f
                 
                 if (isDragging && canDropOnFoundation(targetFoundation)) {
                     val moved = when (dragSourceType) {
@@ -786,6 +734,8 @@ class GameActivity : AppCompatActivity() {
                         view.performHapticFeedback(HapticFeedbackConstants.REJECT)
                         Toast.makeText(this, "Invalid move", Toast.LENGTH_SHORT).show()
                     }
+                } else {
+                    view.alpha = 1f
                 }
                 
                 resetDragState()
@@ -876,8 +826,10 @@ class GameActivity : AppCompatActivity() {
             victoryShown = false
             viewModel.reset()
         }
-        builder.setNegativeButton("계속 보기") { _, _ ->
+        builder.setNegativeButton("새로 시작") { _, _ ->
             victoryShown = false
+            // 같은 시드로 재시작
+            viewModel.restartGame()
         }
         builder.setCancelable(false)
         builder.show()
@@ -909,6 +861,84 @@ class GameActivity : AppCompatActivity() {
                 // Foundation에서는 자동 이동하지 않음
             }
         }
+    }
+    
+    private fun animateCardToFoundation(sourceIndex: Int, foundationIndex: Int, sourceType: DragSourceType) {
+        // 소스와 목적지 뷰의 위치 계산
+        val rootView = findViewById<ViewGroup>(android.R.id.content)
+        val boardView = findViewById<GridLayout>(R.id.game_board)
+        val state = viewModel.state.value
+        
+        // 소스 카드와 뷰 찾기
+        var sourceViewLocal: View? = null
+        var sourceCard: us.jyni.game.klondike.model.Card? = null
+        
+        when (sourceType) {
+            DragSourceType.TABLEAU -> {
+                tableauViews[sourceIndex]?.let { pileView ->
+                    if (pileView is LinearLayout && pileView.childCount > 0) {
+                        sourceViewLocal = pileView.getChildAt(pileView.childCount - 1)
+                        sourceCard = state.tableau[sourceIndex].lastOrNull()
+                    }
+                }
+            }
+            DragSourceType.WASTE -> {
+                // Waste 영역은 game_board의 5번째 자식 (stock 다음)
+                if (boardView != null && boardView.childCount > 4) {
+                    val wasteContainer = boardView.getChildAt(4)
+                    if (wasteContainer is LinearLayout && wasteContainer.childCount > 0) {
+                        sourceViewLocal = wasteContainer.getChildAt(wasteContainer.childCount - 1)
+                        sourceCard = state.waste.lastOrNull()
+                    }
+                }
+            }
+            else -> {}
+        }
+        
+        // Foundation 뷰 찾기 (boardView의 첫 4개 자식)
+        val foundationView = if (boardView != null && foundationIndex < 4) {
+            boardView.getChildAt(foundationIndex)
+        } else null
+        
+        val sourceView = sourceViewLocal ?: return
+        val card = sourceCard ?: return
+        if (foundationView == null) {
+            return
+        }
+        
+        // 소스와 목적지의 화면 좌표 얻기
+        val sourceLocation = IntArray(2)
+        val destLocation = IntArray(2)
+        val sourceWidth = sourceView.width
+        val sourceHeight = sourceView.height
+        sourceView.getLocationOnScreen(sourceLocation)
+        foundationView.getLocationOnScreen(destLocation)
+        
+        // 트레일 효과를 위한 임시 카드 뷰 생성
+        val trailView = CardView(this).apply {
+            setCard(card)
+            layoutParams = ViewGroup.LayoutParams(sourceWidth, sourceHeight)
+        }
+        
+        // 루트 뷰에 추가
+        (rootView as? android.widget.FrameLayout)?.addView(trailView)
+        
+        // 시작 위치로 이동
+        trailView.x = sourceLocation[0].toFloat()
+        trailView.y = sourceLocation[1].toFloat()
+        
+        // 목적지로 애니메이션
+        trailView.animate()
+            .x(destLocation[0].toFloat())
+            .y(destLocation[1].toFloat())
+            .alpha(0.7f)
+            .setDuration(600)
+            .setInterpolator(AccelerateDecelerateInterpolator())
+            .withEndAction {
+                // 애니메이션 종료 후 트레일 뷰 제거
+                (rootView as? android.widget.FrameLayout)?.removeView(trailView)
+            }
+            .start()
     }
     
     private fun handleDoubleClick(column: Int, cardIndex: Int) {
@@ -968,6 +998,29 @@ class GameActivity : AppCompatActivity() {
         }
         return false
     }
+    
+    private fun updateTimerAndScore() {
+        val statusText = findViewById<TextView>(R.id.status_text)
+        val s = viewModel.state.value
+        val stock = s.stock.size
+        val waste = s.waste.size
+        val fnd = s.foundation.sumOf { it.size }
+        val elapsed = viewModel.getElapsedTimeMs()
+        val minutes = (elapsed / 60000).toInt()
+        val seconds = ((elapsed % 60000) / 1000).toInt()
+        val score = viewModel.getScore()
+        val moves = viewModel.getMoveCount()
+        val timeStr = String.format("%d:%02d", minutes, seconds)
+        
+        // Update header timer, score, and moves
+        findViewById<TextView>(R.id.timer_text)?.text = "⏱ $timeStr"
+        findViewById<TextView>(R.id.score_text)?.text = "⭐ $score"
+        findViewById<TextView>(R.id.moves_text)?.text = "🔄 $moves"
+        
+        // Update status text (card counts only)
+        val countsStr = "Stock:$stock  Waste:$waste  Foundation:$fnd  Tableau:${52 - stock - waste - fnd}"
+        statusText.text = countsStr
+    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -982,13 +1035,28 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        // 앱이 백그라운드로 가거나 종료될 때 게임 상태를 저장
+        saveGameState()
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         val saved = viewModel.saveStateString()
         outState.putString(KEY_SAVED_GAME, saved)
         // Also persist to SharedPreferences for process-death restore
-        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putString(KEY_PERSISTED_GAME, saved).apply()
+        saveGameState()
+    }
+
+    private fun saveGameState() {
+        try {
+            val saved = viewModel.saveStateString()
+            val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit().putString(KEY_PERSISTED_GAME, saved).apply()
+        } catch (e: Exception) {
+            android.util.Log.e("GameActivity", "Failed to save game state", e)
+        }
     }
 
     companion object {

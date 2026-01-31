@@ -45,7 +45,10 @@ class GameViewModel : ViewModel() {
     }
 
     fun reset() {
-        startGame()
+        // Generate a truly random seed using current time and random
+        val randomSeed = (System.currentTimeMillis() xor kotlin.random.Random.nextLong()).toULong()
+        Log.d("GameViewModel", "Starting new random game with seed: $randomSeed")
+        startGame(randomSeed)
     }
 
     fun restartGame() {
@@ -143,4 +146,12 @@ class GameViewModel : ViewModel() {
     // Undo/Redo availability for UI enablement
     fun canUndo(): Boolean = engine.canUndo()
     fun canRedo(): Boolean = engine.canRedo()
+    
+    // Timer and Score
+    fun getElapsedTimeMs(): Long = engine.getElapsedTimeMs()
+    fun getScore(): Int = engine.getScore()
+    fun getMoveCount(): Int = engine.getMoveCount()
+    fun pause() = engine.pause()
+    fun resume() = engine.resume()
+    fun isPaused(): Boolean = engine.isPaused()
 }

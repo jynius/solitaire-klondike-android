@@ -45,13 +45,8 @@ class CardView @JvmOverloads constructor(
         updateBackground()
         
         if (prevFace != null && prevFace != nextFace) {
-            // Flip animation around Y axis
-            animate().rotationY(90f).setDuration(90).withEndAction {
-                // Halfway: update face, then complete
-                invalidate()
-                rotationY = -90f
-                animate().rotationY(0f).setDuration(90).start()
-            }.start()
+            // Instant flip without animation
+            invalidate()
         } else {
             invalidate()
         }
