@@ -54,17 +54,35 @@
   - [ ] 이동 수 통계
 
 ### 🔧 낮은 우선순위 (Low Priority)
+- [ ] **UI/디자인 개선 (Design Enhancement)** 🎨
+  - [ ] Material Design 3 적용
+    - [ ] 색상 팔레트 정의 (Primary, Secondary, Surface, Background)
+    - [ ] Dynamic Color 지원 (Android 12+)
+    - [ ] 다크/라이트 테마 전환
+  - [ ] 카드 디자인 개선
+    - [ ] CardView로 전환 (elevation, rounded corners)
+    - [ ] 카드 간격 및 크기 최적화
+    - [ ] 드래그 시 시각적 피드백 강화
+    - [ ] 커스텀 카드 뒷면 디자인 (선택 사항)
+  - [ ] 버튼 아이콘화
+    - [ ] Material Icons 적용 (undo, restart, settings 등)
+    - [ ] IconButton으로 전환
+    - [ ] Tooltip 추가 (접근성)
+    - [ ] 터치 영역 최적화 (48dp minimum)
+  - [ ] 타이포그래피 개선
+    - [ ] Material Typography 스케일 적용
+    - [ ] 폰트 크기 및 간격 조정
+    - [ ] 가독성 향상
+  - [ ] 레이아웃 최적화
+    - [ ] ConstraintLayout 활용
+    - [ ] 간격/패딩 일관성 유지
+    - [ ] 다양한 화면 크기 대응
+
 - [ ] **다국어 지원 (Internationalization)**
   - [ ] strings.xml 리소스 분리
   - [ ] 영어(en), 한국어(ko) 지원
   - [ ] 시스템 언어에 따른 자동 전환
   - [ ] 언어 설정 옵션 추가
-
-- [ ] **버튼 아이콘화**
-  - [ ] 텍스트 버튼 → 아이콘 버튼으로 변경
-  - [ ] Material Icons 적용 (실행취소, 새로시작, 새게임, 설정 등)
-  - [ ] 접근성 고려 (contentDescription)
-  - [ ] 아이콘 크기 및 배치 최적화
 
 - [ ] **테마 시스템**
   - [ ] 다크 모드

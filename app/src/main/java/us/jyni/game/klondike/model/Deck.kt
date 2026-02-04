@@ -15,7 +15,7 @@ class Deck {
         }
     }
 
-    fun asMutableList(): MutableList<Card> = cards
+    fun asMutableList(): MutableList<Card> = cards.toMutableList() // 복사본 반환
 
     fun drawCard(): Card? = if (cards.isNotEmpty()) cards.removeAt(cards.lastIndex) else null
 

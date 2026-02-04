@@ -3,8 +3,11 @@ package us.jyni.game.klondike.ui.screens
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
 import android.view.View
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import android.widget.Toast
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.GridLayout
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -65,6 +68,12 @@ class GameActivity : AppCompatActivity() {
         // Hide action bar for fullscreen game experience
         supportActionBar?.hide()
         
+        // Hide system navigation bar
+        window.insetsController?.let { controller ->
+            controller.hide(WindowInsets.Type.systemBars())
+            controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+        
         setContentView(R.layout.activity_game)
 
         // Initialize UI components and observe ViewModel data
@@ -104,11 +113,6 @@ class GameActivity : AppCompatActivity() {
         
         // Layout Message 폰트 크기를 작게 설정
         layoutText.textSize = 10f
-
-        // Hide debug toggle button on non-debug builds
-        if (!BuildConfig.DEBUG) {
-            findViewById<View>(R.id.debug_toggle_button).visibility = View.GONE
-        }
         
         // Timer coroutine - updates every second
         lifecycleScope.launch {
@@ -176,11 +180,11 @@ class GameActivity : AppCompatActivity() {
                     val seconds = ((elapsed % 60000) / 1000).toInt()
                     val score = viewModel.getScore()
                     val moves = viewModel.getMoveCount()
-                    val timeStr = String.format("%d:%02d", minutes, seconds)
+                    val timeStr = String.format("%02d:%02d", minutes, seconds)
                     
-                    findViewById<TextView>(R.id.timer_text)?.text = "⏱ $timeStr"
-                    findViewById<TextView>(R.id.score_text)?.text = "⭐ $score"
-                    findViewById<TextView>(R.id.moves_text)?.text = "🔄 $moves"
+                    findViewById<TextView>(R.id.timer_text)?.text = timeStr
+                    findViewById<TextView>(R.id.score_text)?.text = String.format("%,d", score)
+                    findViewById<TextView>(R.id.moves_text)?.text = moves.toString()
                     
                     // Line 2: Card counts (simplified)
                     val countsStr = "Stock:$stock  Waste:$waste  Foundation:$fnd  Tableau:${52 - stock - waste - fnd}"
@@ -191,7 +195,7 @@ class GameActivity : AppCompatActivity() {
                     layoutText.text = gameStateJson
                     
                     // Update button states
-                    findViewById<Button>(R.id.undo_button).isEnabled = viewModel.canUndo()
+                    findViewById<ImageButton>(R.id.undo_button).isEnabled = viewModel.canUndo()
 
                     // Render board
                     board.removeAllViews()
@@ -208,11 +212,6 @@ class GameActivity : AppCompatActivity() {
                             isFocusable = true
                             // 빈 열도 클릭 가능하도록 최소 높이 설정
                             minimumHeight = dp(80)
-                            if (selectedTableau == col) {
-                                background = getDrawable(R.drawable.bg_selected)
-                            } else {
-                                background = null
-                            }
                             contentDescription = "tableau_col_$col"
                             
                             // 드롭 리스너 추가
@@ -226,8 +225,6 @@ class GameActivity : AppCompatActivity() {
                                     if (selectedCardIndex == null) {
                                         selectedTableau = col
                                         v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-                                        // explicit selected background
-                                        (tableauViews[col] ?: v).background = getDrawable(R.drawable.bg_selected)
                                     }
                                 } else {
                                     var moved = false
@@ -355,7 +352,7 @@ class GameActivity : AppCompatActivity() {
                                         v.performHapticFeedback(HapticFeedbackConstants.REJECT)
                                         Toast.makeText(this@GameActivity, "Invalid move", Toast.LENGTH_SHORT).show()
                                     }
-                                    selectedTableau = null
+                                    clearAllSelections()
                                 } else if (selectedFoundation == null) {
                                     // select foundation for F->T
                                     selectedFoundation = index
@@ -448,7 +445,6 @@ class GameActivity : AppCompatActivity() {
                                 
                                 selectedFromWaste = true
                                 v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-                                background = getDrawable(R.drawable.bg_selected)
                             }
                         }
                         val top = s.waste.lastOrNull()
@@ -505,15 +501,6 @@ class GameActivity : AppCompatActivity() {
                     // Row 0: foundations (0..3), spacer at 4, waste at 5, stock at 6
                     repeat(4) { idx ->
                         val v = makeFoundationSlot(idx, s.foundation[idx])
-                        if (selectedFoundation == idx) {
-                            v.background = getDrawable(R.drawable.bg_selected)
-                            ViewCompat.setStateDescription(v, "selected")
-                            v.alpha = 1f
-                        } else {
-                            v.background = null
-                            ViewCompat.setStateDescription(v, null)
-                            v.alpha = 1f
-                        }
                         val p = GridLayout.LayoutParams(GridLayout.spec(0), GridLayout.spec(idx))
                         p.width = 0
                         p.columnSpec = GridLayout.spec(idx, 1f)
@@ -537,15 +524,6 @@ class GameActivity : AppCompatActivity() {
                     // Row 1: tableau 0..6
                     s.tableau.forEachIndexed { col, pile ->
                         val pileContainer = makeTableau(col, pile)
-                        if (selectedTableau == col) {
-                            pileContainer.background = getDrawable(R.drawable.bg_selected)
-                            ViewCompat.setStateDescription(pileContainer, "selected")
-                            pileContainer.alpha = 1f
-                        } else {
-                            pileContainer.background = null
-                            ViewCompat.setStateDescription(pileContainer, null)
-                            pileContainer.alpha = 1f
-                        }
                         val params = GridLayout.LayoutParams(
                             GridLayout.spec(1),
                             GridLayout.spec(col)
@@ -566,14 +544,30 @@ class GameActivity : AppCompatActivity() {
             prefs.edit().putString(KEY_PERSISTED_GAME, viewModel.saveStateString()).apply()
         }
         // 하단 컨트롤 버튼들
-        findViewById<Button>(R.id.restart_button).setOnClickListener { 
+        findViewById<ImageButton>(R.id.restart_button).setOnClickListener {
             viewModel.restartGame()
-            Toast.makeText(this@GameActivity, "새로시작!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@GameActivity, "같은 배치로 다시 시작합니다", Toast.LENGTH_SHORT).show()
             victoryShown = false  // 승리 상태 초기화
             persist() 
         }
-        findViewById<Button>(R.id.reset_button).setOnClickListener { viewModel.reset(); persist() }
-        findViewById<Button>(R.id.undo_button).setOnClickListener { viewModel.undo(); persist() }
+        findViewById<ImageButton>(R.id.reset_button).setOnClickListener { viewModel.reset(); persist() }
+        findViewById<ImageButton>(R.id.undo_button).setOnClickListener { viewModel.undo(); persist() }
+        
+        // Hint button (준비중)
+        findViewById<ImageButton>(R.id.hint_button).setOnClickListener {
+            Toast.makeText(this, "힌트 기능은 준비 중입니다", Toast.LENGTH_SHORT).show()
+        }
+        
+        // Auto button - 자동 완료
+        findViewById<ImageButton>(R.id.auto_button).setOnClickListener {
+            val moveCount = viewModel.autoComplete()
+            if (moveCount > 0) {
+                Toast.makeText(this, "$moveCount 장의 카드를 자동으로 이동했습니다", Toast.LENGTH_SHORT).show()
+                persist()
+            } else {
+                Toast.makeText(this, "더 이상 자동으로 이동할 카드가 없습니다", Toast.LENGTH_SHORT).show()
+            }
+        }
         
         // 일시정지 버튼 추가 예정 (현재는 주석 처리)
         // TODO: pause_button을 레이아웃에 추가하고 활성화
@@ -591,14 +585,19 @@ class GameActivity : AppCompatActivity() {
         }
         */
         
-        // 디버그 토글 버튼 - floating debug panel 토글
-        findViewById<Button>(R.id.debug_toggle_button).setOnClickListener {
-            val floatingDebugPanel = findViewById<LinearLayout>(R.id.floating_debug_panel)
-            floatingDebugPanel.visibility = if (floatingDebugPanel.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+        // Back button
+        findViewById<ImageButton>(R.id.back_button)?.setOnClickListener {
+            finish()
+        }
+        
+        // Statistics button
+        findViewById<ImageButton>(R.id.statistics_button)?.setOnClickListener {
+            // TODO: Show statistics screen
+            android.widget.Toast.makeText(this, "통계 기능은 준비 중입니다", android.widget.Toast.LENGTH_SHORT).show()
         }
         
         // 규칙 설정 버튼
-        findViewById<Button>(R.id.rules_button).setOnClickListener {
+        findViewById<ImageButton>(R.id.rules_button).setOnClickListener {
             val intent = Intent(this, RulesActivity::class.java)
             intent.putExtra(EXTRA_RULES, viewModel.getRules())
             startActivityForResult(intent, REQUEST_CODE_RULES)
@@ -608,17 +607,7 @@ class GameActivity : AppCompatActivity() {
     private fun clearAllSelections() {
         // 모든 카드 선택 상태 해제
         for (i in 0..6) {
-            tableauViews[i]?.let { view ->
-                if (view is LinearLayout) {
-                    for (j in 0 until view.childCount) {
-                        val child = view.getChildAt(j)
-                        if (child is CardView) {
-                            child.setCardSelected(false)
-                        }
-                    }
-                }
-                view.background = null
-            }
+            tableauViews[i]?.background = null
         }
         selectedTableau = null
         selectedCardIndex = null
@@ -826,7 +815,7 @@ class GameActivity : AppCompatActivity() {
             victoryShown = false
             viewModel.reset()
         }
-        builder.setNegativeButton("새로 시작") { _, _ ->
+        builder.setNegativeButton("다시 시작") { _, _ ->
             victoryShown = false
             // 같은 시드로 재시작
             viewModel.restartGame()
@@ -1010,12 +999,12 @@ class GameActivity : AppCompatActivity() {
         val seconds = ((elapsed % 60000) / 1000).toInt()
         val score = viewModel.getScore()
         val moves = viewModel.getMoveCount()
-        val timeStr = String.format("%d:%02d", minutes, seconds)
+        val timeStr = String.format("%02d:%02d", minutes, seconds)
         
         // Update header timer, score, and moves
-        findViewById<TextView>(R.id.timer_text)?.text = "⏱ $timeStr"
-        findViewById<TextView>(R.id.score_text)?.text = "⭐ $score"
-        findViewById<TextView>(R.id.moves_text)?.text = "🔄 $moves"
+        findViewById<TextView>(R.id.timer_text)?.text = timeStr
+        findViewById<TextView>(R.id.score_text)?.text = String.format("%,d", score)
+        findViewById<TextView>(R.id.moves_text)?.text = moves.toString()
         
         // Update status text (card counts only)
         val countsStr = "Stock:$stock  Waste:$waste  Foundation:$fnd  Tableau:${52 - stock - waste - fnd}"

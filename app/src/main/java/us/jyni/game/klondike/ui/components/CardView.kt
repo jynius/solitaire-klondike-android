@@ -31,6 +31,11 @@ class CardView @JvmOverloads constructor(
         minimumWidth = cardSize
         minimumHeight = cardSize
         
+        // Material Design 3 elevation
+        elevation = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP, 3f, context.resources.displayMetrics
+        )
+        
         // Default empty state
         setEmpty()
     }

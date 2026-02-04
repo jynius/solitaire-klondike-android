@@ -1,66 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_color">
 
-    <!-- Top Header with Timer, Score, and Control Buttons -->
+    <!-- 1. Header - Title Bar -->
     <RelativeLayout
         android:id="@+id/header_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
+        android:background="#DD000000"
+        android:elevation="4dp"
         android:paddingTop="8dp"
-        android:paddingBottom="8dp">
+        android:paddingBottom="8dp"
+        android:paddingStart="@dimen/spacing_xs"
+        android:paddingEnd="@dimen/spacing_xs">
 
-        <!-- Timer and Score on the left -->
-        <LinearLayout
-            android:id="@+id/timer_score_layout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <!-- Back button -->
+        <ImageButton
+            android:id="@+id/back_button"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
-            android:orientation="vertical">
+            android:src="@drawable/ic_back"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="뒤로가기" />
+
+        <!-- Title (center) -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:orientation="vertical"
+            android:gravity="center">
 
             <TextView
-                android:id="@+id/timer_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="⏱ 0:00"
+                android:text="SOLITAIRE"
                 android:textSize="16sp"
-                android:textColor="@color/text_color"
-                android:fontFamily="monospace"
-                android:textStyle="bold" />
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:letterSpacing="0.1" />
 
-            <LinearLayout
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/score_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="⭐ 0"
-                    android:textSize="14sp"
-                    android:textColor="@color/text_color"
-                    android:fontFamily="monospace"
-                    android:layout_marginEnd="12dp" />
-
-                <TextView
-                    android:id="@+id/moves_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="🔄 0"
-                    android:textSize="14sp"
-                    android:textColor="@color/text_color"
-                    android:fontFamily="monospace" />
-            </LinearLayout>
+                android:text="FOREST EDITION"
+                android:textSize="10sp"
+                android:textColor="#A5D6A7"
+                android:letterSpacing="0.2" />
         </LinearLayout>
 
-        <!-- Control buttons on the right -->
+        <!-- Right buttons -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -68,17 +63,122 @@
             android:layout_centerVertical="true"
             android:orientation="horizontal">
 
-            <Button
-                android:id="@+id/debug_toggle_button"
-                android:layout_width="80dp"
+            <!-- Statistics button -->
+            <ImageButton
+                android:id="@+id/statistics_button"
+                android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:text="@string/debug_toggle"
-                android:textSize="10sp"
-                android:textColor="@android:color/white"
-                android:background="@drawable/button_style" />
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="통계"
+                android:src="@drawable/ic_statistics" />
 
+            <!-- Settings button -->
+            <ImageButton
+                android:id="@+id/rules_button"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/rules_button"
+                android:src="@drawable/ic_settings" />
         </LinearLayout>
     </RelativeLayout>
+
+    <!-- 2. Stats Bar - Score | Timer | Moves -->
+    <LinearLayout
+        android:id="@+id/stats_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/header_layout"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:paddingTop="10dp"
+        android:paddingBottom="8dp"
+        android:paddingStart="@dimen/padding_medium"
+        android:paddingEnd="@dimen/padding_medium"
+        android:background="@drawable/stats_bar_background"
+        android:elevation="2dp">
+
+        <!-- Score -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SCORE"
+                android:textSize="10sp"
+                android:textColor="#A5D6A7"
+                android:letterSpacing="0.1" />
+
+            <TextView
+                android:id="@+id/score_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2,450"
+                android:textSize="18sp"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:fontFamily="monospace" />
+        </LinearLayout>
+
+        <!-- Timer -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TIME"
+                android:textSize="10sp"
+                android:textColor="#A5D6A7"
+                android:letterSpacing="0.1" />
+
+            <TextView
+                android:id="@+id/timer_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="04:12"
+                android:textSize="18sp"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:fontFamily="monospace" />
+        </LinearLayout>
+
+        <!-- Moves -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MOVES"
+                android:textSize="10sp"
+                android:textColor="#A5D6A7"
+                android:letterSpacing="0.1" />
+
+            <TextView
+                android:id="@+id/moves_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="42"
+                android:textSize="18sp"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:fontFamily="monospace" />
+        </LinearLayout>
+    </LinearLayout>
 
     <!-- Floating Debug Panel -->
     <LinearLayout
@@ -100,33 +200,33 @@
             android:id="@+id/rules_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="11sp"
+            android:textSize="@dimen/text_size_small"
             android:textColor="@color/text_color"
             android:fontFamily="monospace"
             android:text=""
-            android:layout_marginBottom="4dp" />
+            android:layout_marginBottom="@dimen/spacing_xs" />
 
         <!-- Card Counts -->
         <TextView
             android:id="@+id/status_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="11sp"
+            android:textSize="@dimen/text_size_small"
             android:textColor="@color/text_color"
             android:fontFamily="monospace"
             android:text=""
-            android:layout_marginBottom="4dp" />
+            android:layout_marginBottom="@dimen/spacing_xs" />
 
         <!-- Layout Info -->
         <TextView
             android:id="@+id/layout_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="11sp"
+            android:textSize="@dimen/text_size_small"
             android:textColor="@color/text_color"
             android:fontFamily="monospace"
             android:text=""
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="@dimen/spacing_small" />
 
         <!-- Debug Controls -->
         <LinearLayout
@@ -138,32 +238,38 @@
 
             <Button
                 android:id="@+id/debug_copy_deal"
-                android:layout_width="80dp"
-                android:layout_height="32dp"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
                 android:text="Deal복사"
                 android:textSize="9sp"
-                android:textColor="@android:color/white"
-                android:background="@drawable/button_style"
-                android:layout_marginEnd="8dp"/>
+                android:textColor="#424242"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:minWidth="0dp"
+                android:background="@drawable/chip_debug_style"
+                android:layout_marginEnd="@dimen/spacing_small"/>
 
             <Button
                 android:id="@+id/debug_copy_layout"
-                android:layout_width="80dp"
-                android:layout_height="32dp"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
                 android:text="JSON복사"
                 android:textSize="9sp"
-                android:textColor="@android:color/white"
-                android:background="@drawable/button_style"
-                android:layout_marginEnd="8dp"/>
+                android:textColor="#424242"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:minWidth="0dp"
+                android:background="@drawable/chip_debug_style"
+                android:layout_marginEnd="@dimen/spacing_small"/>
 
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Game Board Area -->
+    <!-- 3. Game Board Area - Table -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/header_layout"
+        android:layout_below="@id/stats_bar"
         android:layout_above="@id/bottom_controls">
 
         <GridLayout
@@ -172,78 +278,80 @@
             android:layout_height="wrap_content"
             android:rowCount="7"
             android:columnCount="7"
-            android:padding="8dp"/>
+            android:padding="4dp"/>
 
     </ScrollView>
 
-    <!-- Bottom Controls - Fixed at bottom -->
+    <!-- 4. Bottom Controls - Fixed at bottom -->
     <LinearLayout
         android:id="@+id/bottom_controls"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:orientation="horizontal"
-        android:gravity="center"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="12dp"
-        android:paddingBottom="12dp"
-        android:background="#cc000000">
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/padding_large"
+        android:paddingEnd="@dimen/padding_large"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:background="@drawable/bottom_bar_elevated"
+        android:elevation="8dp"
+        android:weightSum="5">
 
-        <Button
+        <!-- Undo -->
+        <ImageButton
             android:id="@+id/undo_button"
             android:layout_width="0dp"
             android:layout_height="40dp"
             android:layout_weight="1"
-            android:text="@string/undo"
-            android:textSize="10sp"
-            android:textColor="@android:color/white"
-            android:background="@drawable/button_style"
-            android:layout_marginEnd="8dp"/>
+            android:layout_gravity="center"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/undo"
+            android:src="@drawable/ic_undo" />
 
-        <Button
+        <!-- Restart -->
+        <ImageButton
             android:id="@+id/restart_button"
             android:layout_width="0dp"
             android:layout_height="40dp"
             android:layout_weight="1"
-            android:text="새로시작"
-            android:textSize="10sp"
-            android:textColor="@android:color/white"
-            android:background="@drawable/button_style"
-            android:layout_marginEnd="8dp"/>
+            android:layout_gravity="center"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="다시시작"
+            android:src="@drawable/ic_restart" />
 
-        <Button
+        <!-- New Game -->
+        <ImageButton
             android:id="@+id/reset_button"
             android:layout_width="0dp"
             android:layout_height="40dp"
             android:layout_weight="1"
-            android:text="@string/restart"
-            android:textSize="10sp"
-            android:textColor="@android:color/white"
-            android:background="@drawable/button_style"
-            android:layout_marginEnd="8dp"/>
+            android:layout_gravity="center"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/restart"
+            android:src="@drawable/ic_new_game_plus" />
 
-        <Button
-            android:id="@+id/rules_button"
+        <!-- Hint -->
+        <ImageButton
+            android:id="@+id/hint_button"
             android:layout_width="0dp"
             android:layout_height="40dp"
             android:layout_weight="1"
-            android:text="@string/rules_button"
-            android:textSize="10sp"
-            android:textColor="@android:color/white"
-            android:background="@drawable/button_style"/>
+            android:layout_gravity="center"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="힌트"
+            android:src="@drawable/ic_hint" />
 
-        <Button
-            android:id="@+id/draw_button"
+        <!-- Auto -->
+        <ImageButton
+            android:id="@+id/auto_button"
             android:layout_width="0dp"
             android:layout_height="40dp"
             android:layout_weight="1"
-            android:text="@string/draw_button"
-            android:textSize="10sp"
-            android:textColor="@android:color/white"
-            android:background="@drawable/button_style"
-            android:visibility="gone"
-            android:layout_marginEnd="8dp"/>
+            android:layout_gravity="center"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="자동"
+            android:src="@drawable/ic_auto_play" />
     </LinearLayout>
 
 </RelativeLayout>

@@ -2,17 +2,10 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     
-    <!-- Empty slot background -->
-    <solid android:color="#f0f0f0" />
-    
-    <!-- Dashed border for empty slots -->
-    <stroke
-        android:width="2dp"
-        android:color="#cccccc"
-        android:dashWidth="8dp"
-        android:dashGap="4dp" />
+    <!-- Empty slot background - darker green matching table -->
+    <solid android:color="#154d35" />
     
     <!-- Rounded corners -->
-    <corners android:radius="8dp" />
+    <corners android:radius="6dp" />
     
 </shape>

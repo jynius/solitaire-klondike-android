@@ -1,11 +1,75 @@
 <resources>
-    <!-- Legacy Material color set for theme references -->
-    <color name="colorPrimary">#6200EE</color>
-    <color name="colorPrimaryDark">#3700B3</color>
-    <color name="colorAccent">#03DAC5</color>
-    <color name="background_color">#0f7b0f</color> <!-- Traditional green felt -->
+    <!-- Material Design 3 Light Theme -->
+    <color name="md_theme_light_primary">#1B5E20</color>
+    <color name="md_theme_light_onPrimary">#FFFFFF</color>
+    <color name="md_theme_light_primaryContainer">#A5D6A7</color>
+    <color name="md_theme_light_onPrimaryContainer">#002106</color>
+    
+    <color name="md_theme_light_secondary">#C62828</color>
+    <color name="md_theme_light_onSecondary">#FFFFFF</color>
+    <color name="md_theme_light_secondaryContainer">#FFCDD2</color>
+    <color name="md_theme_light_onSecondaryContainer">#3E0000</color>
+    
+    <color name="md_theme_light_tertiary">#F9A825</color>
+    <color name="md_theme_light_onTertiary">#FFFFFF</color>
+    <color name="md_theme_light_tertiaryContainer">#FFECB3</color>
+    <color name="md_theme_light_onTertiaryContainer">#2E1500</color>
+    
+    <color name="md_theme_light_background">#0d3d2b</color>
+    <color name="md_theme_light_onBackground">#E8F5E9</color>
+    <color name="md_theme_light_surface">#FAFAFA</color>
+    <color name="md_theme_light_onSurface">#1C1B1F</color>
+    <color name="md_theme_light_surfaceVariant">#E0E0E0</color>
+    <color name="md_theme_light_onSurfaceVariant">#424242</color>
+    <color name="md_theme_light_outline">#757575</color>
+    <color name="md_theme_light_error">#BA1A1A</color>
+    <color name="md_theme_light_onError">#FFFFFF</color>
+    
+    <!-- Material Design 3 Dark Theme -->
+    <color name="md_theme_dark_primary">#81C784</color>
+    <color name="md_theme_dark_onPrimary">#003910</color>
+    <color name="md_theme_dark_primaryContainer">#00531A</color>
+    <color name="md_theme_dark_onPrimaryContainer">#A5D6A7</color>
+    
+    <color name="md_theme_dark_secondary">#EF9A9A</color>
+    <color name="md_theme_dark_onSecondary">#5F0000</color>
+    <color name="md_theme_dark_secondaryContainer">#8B0000</color>
+    <color name="md_theme_dark_onSecondaryContainer">#FFCDD2</color>
+    
+    <color name="md_theme_dark_tertiary">#FFD54F</color>
+    <color name="md_theme_dark_onTertiary">#4A2800</color>
+    <color name="md_theme_dark_tertiaryContainer">#6A3C00</color>
+    <color name="md_theme_dark_onTertiaryContainer">#FFECB3</color>
+    
+    <color name="md_theme_dark_background">#1B5E20</color>
+    <color name="md_theme_dark_onBackground">#C8E6C9</color>
+    <color name="md_theme_dark_surface">#1C1B1F</color>
+    <color name="md_theme_dark_onSurface">#E6E1E5</color>
+    <color name="md_theme_dark_surfaceVariant">#424242</color>
+    <color name="md_theme_dark_onSurfaceVariant">#BDBDBD</color>
+    <color name="md_theme_dark_outline">#9E9E9E</color>
+    <color name="md_theme_dark_error">#FFB4AB</color>
+    <color name="md_theme_dark_onError">#690005</color>
+    
+    <!-- Legacy colors (호환성 유지) -->
+    <color name="colorPrimary">@color/md_theme_light_primary</color>
+    <color name="colorPrimaryDark">@color/md_theme_light_primaryContainer</color>
+    <color name="colorAccent">@color/md_theme_light_tertiary</color>
+    <color name="background_color">@color/md_theme_light_background</color>
+    <color name="text_color">#FFFFFF</color>
     <color name="card_color">#FFCC00</color>
     <color name="pile_color">#FF9900</color>
-    <color name="text_color">#FFFFFF</color>
     <color name="highlight_color">#FF5733</color>
+    
+    <!-- Card specific colors -->
+    <color name="card_red">#D32F2F</color>
+    <color name="card_black">#212121</color>
+    <color name="card_back">#1565C0</color>
+    <color name="card_background">#FFFFFF</color>
+    <color name="card_shadow">#40000000</color>
+    
+    <!-- UI Elements -->
+    <color name="button_primary">#2E7D32</color>
+    <color name="button_pressed">#1B5E20</color>
+    <color name="debug_panel_bg">#CC000000</color>
 </resources>
