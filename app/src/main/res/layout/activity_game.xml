@@ -298,39 +298,6 @@
         android:elevation="8dp"
         android:weightSum="5">
 
-        <!-- Undo -->
-        <ImageButton
-            android:id="@+id/undo_button"
-            android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_weight="1"
-            android:layout_gravity="center"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/undo"
-            android:src="@drawable/ic_undo" />
-
-        <!-- Restart -->
-        <ImageButton
-            android:id="@+id/restart_button"
-            android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_weight="1"
-            android:layout_gravity="center"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="다시시작"
-            android:src="@drawable/ic_restart" />
-
-        <!-- New Game -->
-        <ImageButton
-            android:id="@+id/reset_button"
-            android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_weight="1"
-            android:layout_gravity="center"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/restart"
-            android:src="@drawable/ic_new_game_plus" />
-
         <!-- Hint -->
         <ImageButton
             android:id="@+id/hint_button"
@@ -352,6 +319,39 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="자동"
             android:src="@drawable/ic_auto_play" />
+
+        <!-- New Game -->
+        <ImageButton
+            android:id="@+id/reset_button"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/restart"
+            android:src="@drawable/ic_new_game_plus" />
+
+        <!-- Restart -->
+        <ImageButton
+            android:id="@+id/restart_button"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="다시시작"
+            android:src="@drawable/ic_restart" />
+
+        <!-- Undo -->
+        <ImageButton
+            android:id="@+id/undo_button"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/undo"
+            android:src="@drawable/ic_undo" />
     </LinearLayout>
 
 </RelativeLayout>
