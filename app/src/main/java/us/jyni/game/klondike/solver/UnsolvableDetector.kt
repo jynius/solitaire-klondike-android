@@ -8,18 +8,13 @@ import us.jyni.game.klondike.engine.GameEngine
  * 
  * 전체 탐색 없이 특정 패턴을 감지하여 불가능한 게임을 조기에 걸러냅니다.
  */
-class UnsolvableDetector(private val engine: GameEngine?) {
+class UnsolvableDetector(private val engine: GameEngine) {
     
     /**
      * 게임이 unsolvable인지 판단
      * @return UnsolvableReason if unsolvable, null if solvable or unknown
      */
     fun check(state: GameState): UnsolvableReason? {
-        // engine이 없으면 간단한 체크만 수행
-        if (engine == null) {
-            return checkWithoutEngine(state)
-        }
-        
         // 빠른 순서대로 체크 (가장 쉬운 것부터)
         
         if (isDeadEnd(state)) {
@@ -39,24 +34,6 @@ class UnsolvableDetector(private val engine: GameEngine?) {
     }
     
     /**
-     * Engine 없이 기본적인 체크만 수행
-     */
-    private fun checkWithoutEngine(state: GameState): UnsolvableReason? {
-        // Stock과 Waste가 비고 Tableau도 모두 비면 이미 승리
-        if (state.isGameOver) return null
-        
-        // 아주 기본적인 데드락만 체크
-        if (state.stock.isEmpty() && 
-            state.waste.isEmpty() && 
-            state.tableau.all { it.isEmpty() } && 
-            !state.isGameOver) {
-            return UnsolvableReason.DeadEnd("카드가 없지만 게임이 완료되지 않음")
-        }
-        
-        return null
-    }
-    
-    /**
      * 1. 즉시 막힘 (Dead End)
      * Stock과 Waste가 비었고, 가능한 이동이 전혀 없음
      */
@@ -65,9 +42,6 @@ class UnsolvableDetector(private val engine: GameEngine?) {
         if (state.stock.isNotEmpty() || state.waste.isNotEmpty()) {
             return false
         }
-        
-        // engine이 있어야 canMove 체크 가능
-        if (engine == null) return false
         
         // Tableau에서 Foundation으로 이동 가능한 카드가 있는지
         for (col in 0..6) {

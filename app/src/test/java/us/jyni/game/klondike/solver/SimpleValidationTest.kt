@@ -6,6 +6,7 @@ import us.jyni.game.klondike.model.Card
 import us.jyni.game.klondike.model.GameState
 import us.jyni.game.klondike.model.Rank
 import us.jyni.game.klondike.model.Suit
+import us.jyni.game.klondike.engine.GameEngine
 
 /**
  * 가장 간단한 시나리오로 Solver 검증
@@ -37,7 +38,8 @@ class SimpleValidationTest {
     
     @Test
     fun solver_can_find_simple_move() {
-        val solver = AStarSolver()
+        val mockEngine = GameEngine()
+        val solver = AStarSolver(mockEngine)
         val state = GameState(
             tableau = List(7) { mutableListOf<Card>() },
             foundation = List(4) { mutableListOf<Card>() },

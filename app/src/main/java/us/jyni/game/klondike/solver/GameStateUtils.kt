@@ -64,9 +64,6 @@ object GameStateUtils {
         // 이동할 카드들
         val movingCards = src.subList(move.cardIndex, src.size).toList()
         
-        // 유효성 검사: 첫 카드가 목적지에 놓일 수 있는지
-        if (!canPlaceOnTableau(movingCards.first(), dst)) return null
-        
         // 이동
         src.removeAll(movingCards)
         dst.addAll(movingCards)
@@ -85,12 +82,7 @@ object GameStateUtils {
         
         if (src.isEmpty()) return null
         
-        val card = src.last()
-        
-        // 유효성 검사
-        if (!canPlaceOnFoundation(card, fnd)) return null
-        
-        src.removeAt(src.lastIndex)
+        val card = src.removeAt(src.lastIndex)
         fnd.add(card)
         
         // 뒤집기
@@ -109,14 +101,8 @@ object GameStateUtils {
     private fun applyWasteToTableau(state: GameState, move: Move.WasteToTableau): GameState? {
         if (state.waste.isEmpty()) return null
         
-        val card = state.waste.last()
-        val dst = state.tableau[move.toCol]
-        
-        // 유효성 검사
-        if (!canPlaceOnTableau(card, dst)) return null
-        
-        state.waste.removeAt(state.waste.lastIndex)
-        dst.add(card)
+        val card = state.waste.removeAt(state.waste.lastIndex)
+        state.tableau[move.toCol].add(card)
         
         return state
     }
@@ -124,14 +110,8 @@ object GameStateUtils {
     private fun applyWasteToFoundation(state: GameState, move: Move.WasteToFoundation): GameState? {
         if (state.waste.isEmpty()) return null
         
-        val card = state.waste.last()
-        val fnd = state.foundation[move.foundationIndex]
-        
-        // 유효성 검사
-        if (!canPlaceOnFoundation(card, fnd)) return null
-        
-        state.waste.removeAt(state.waste.lastIndex)
-        fnd.add(card)
+        val card = state.waste.removeAt(state.waste.lastIndex)
+        state.foundation[move.foundationIndex].add(card)
         
         // 승리 체크
         if (state.foundation.all { it.size == 13 }) {
@@ -145,14 +125,8 @@ object GameStateUtils {
         val fnd = state.foundation[move.foundationIndex]
         if (fnd.isEmpty()) return null
         
-        val card = fnd.last()
-        val dst = state.tableau[move.toCol]
-        
-        // 유효성 검사
-        if (!canPlaceOnTableau(card, dst)) return null
-        
-        fnd.removeAt(fnd.lastIndex)
-        dst.add(card)
+        val card = fnd.removeAt(fnd.lastIndex)
+        state.tableau[move.toCol].add(card)
         
         return state
     }
@@ -181,20 +155,19 @@ object GameStateUtils {
     
     /**
      * 상태의 해시값 계산 (중복 방지용)
-     * Solver는 모든 카드를 알고 있으므로 isFaceUp은 무시
      */
     fun stateHash(state: GameState): String {
         val sb = StringBuilder()
         
-        // Tableau (위치와 카드만 중요, isFaceUp 무시)
+        // Tableau
         for (pile in state.tableau) {
-            sb.append(pile.joinToString(",") { "${it.suit.ordinal}${it.rank.value}" })
+            sb.append(pile.joinToString(",") { "${it.suit.ordinal}${it.rank.value}${if(it.isFaceUp) 'U' else 'D'}" })
             sb.append("|")
         }
         
         sb.append("//")
         
-        // Foundation (크기만으로 충분)
+        // Foundation
         for (pile in state.foundation) {
             sb.append(pile.size)
             sb.append(",")
@@ -202,51 +175,17 @@ object GameStateUtils {
         
         sb.append("//")
         
-        // Stock (전체 내용 포함 - 순서 중요!)
-        sb.append(state.stock.joinToString(",") { "${it.suit.ordinal}${it.rank.value}" })
+        // Stock size (순서는 변하지 않으므로 크기만)
+        sb.append(state.stock.size)
         
         sb.append("//")
         
-        // Waste (전체 내용)
-        sb.append(state.waste.joinToString(",") { "${it.suit.ordinal}${it.rank.value}" })
+        // Waste
+        if (state.waste.isNotEmpty()) {
+            val top = state.waste.last()
+            sb.append("${top.suit.ordinal}${top.rank.value}")
+        }
         
         return sb.toString()
-    }
-    
-    /**
-     * 카드를 Tableau에 놓을 수 있는지 확인
-     */
-    private fun canPlaceOnTableau(card: Card, tableau: List<Card>): Boolean {
-        if (tableau.isEmpty()) {
-            // 빈 공간에는 King만 가능
-            return card.rank.value == 13
-        }
-        
-        // 마지막 앞면 카드 찾기 (뒷면 카드는 무시)
-        val target = tableau.lastOrNull { it.isFaceUp }
-        if (target == null) {
-            // 모두 뒷면이면 놓을 수 없음
-            return false
-        }
-        
-        // 반대 색상, 1 낮은 랭크
-        val oppositeColor = card.suit.isRed() != target.suit.isRed()
-        val oneRankLower = card.rank.value == target.rank.value - 1
-        
-        return oppositeColor && oneRankLower
-    }
-    
-    /**
-     * 카드를 Foundation에 놓을 수 있는지 확인
-     */
-    private fun canPlaceOnFoundation(card: Card, foundation: List<Card>): Boolean {
-        if (foundation.isEmpty()) {
-            // 빈 Foundation에는 Ace만
-            return card.rank.value == 1
-        }
-        
-        val top = foundation.last()
-        // 같은 무늬, 1 높은 랭크
-        return card.suit == top.suit && card.rank.value == top.rank.value + 1
     }
 }

@@ -6,6 +6,7 @@ import us.jyni.game.klondike.model.Card
 import us.jyni.game.klondike.model.GameState
 import us.jyni.game.klondike.model.Rank
 import us.jyni.game.klondike.model.Suit
+import us.jyni.game.klondike.engine.GameEngine
 
 /**
  * 자동실행(Solve) 기능 테스트
@@ -13,7 +14,7 @@ import us.jyni.game.klondike.model.Suit
  */
 class AutoPlayTest {
     
-    private val solver = AStarSolver()
+    private val solver = AStarSolver(GameEngine())
     
     @Test
     fun solve_simple_win_scenario() {

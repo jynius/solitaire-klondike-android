@@ -1,5 +1,6 @@
 package us.jyni.game.klondike.solver
 
+import us.jyni.game.klondike.engine.GameEngine
 import us.jyni.game.klondike.model.Card
 import us.jyni.game.klondike.model.GameState
 import us.jyni.game.klondike.model.Rank
@@ -9,7 +10,7 @@ import java.util.PriorityQueue
  * A* 알고리즘 기반 솔리테어 Solver
  * 제약 기반 휴리스틱을 사용하여 효율적으로 승리 경로 탐색
  */
-class AStarSolver {
+class AStarSolver(private val engine: GameEngine) {
     
     companion object {
         private const val MAX_DEPTH = 150
@@ -24,7 +25,7 @@ class AStarSolver {
         val startTime = System.currentTimeMillis()
         
         // Unsolvable 빠른 체크
-        val unsolvableDetector = UnsolvableDetector(null)
+        val unsolvableDetector = UnsolvableDetector(engine)
         val unsolvableReason = unsolvableDetector.check(initialState)
         if (unsolvableReason != null) {
             return SolverResult.Unsolvable(unsolvableReason.message)

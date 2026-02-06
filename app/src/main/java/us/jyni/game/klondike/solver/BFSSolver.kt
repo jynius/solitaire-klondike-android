@@ -12,6 +12,14 @@ import java.util.Queue
  */
 class BFSSolver(private val engine: GameEngine) {
     
+    /**
+     * BFS 전용 탐색 노드
+     */
+    private data class BFSNode(
+        val state: GameState,
+        val path: List<Move>
+    )
+    
     companion object {
         private const val MAX_DEPTH = 50
         private const val MAX_STATES = 10000
@@ -32,13 +40,11 @@ class BFSSolver(private val engine: GameEngine) {
             return SolverResult.Unsolvable(unsolvableReason.message)
         }
         
-        val queue: Queue<SearchNode> = LinkedList()
+        val queue: Queue<BFSNode> = LinkedList()
         val visited = mutableSetOf<String>()
         
-        val initialNode = SearchNode(
+        val initialNode = BFSNode(
             state = initialState,
-            gCost = 0,
-            hCost = 0,
             path = emptyList()
         )
         
@@ -84,10 +90,8 @@ class BFSSolver(private val engine: GameEngine) {
                 if (stateHash !in visited) {
                     visited.add(stateHash)
                     
-                    val newNode = SearchNode(
+                    val newNode = BFSNode(
                         state = newState,
-                        gCost = node.gCost + 1,
-                        hCost = 0,
                         path = node.path + move
                     )
                     

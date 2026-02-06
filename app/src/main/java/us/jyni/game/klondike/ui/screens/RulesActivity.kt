@@ -28,9 +28,10 @@ class RulesActivity : AppCompatActivity() {
     }
     
     private fun setupViews() {
-        // Set up toolbar
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = "게임 규칙 설정"
+        // Back button
+        findViewById<ImageButton>(R.id.back_button).setOnClickListener {
+            finish()
+        }
         
         // Find views
         drawRadioGroup = findViewById(R.id.draw_radio_group)

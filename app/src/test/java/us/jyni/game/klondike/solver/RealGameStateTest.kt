@@ -13,7 +13,7 @@ import us.jyni.game.klondike.model.Suit
  */
 class RealGameStateTest {
     
-    private val solver = AStarSolver()
+    private val solver = AStarSolver(GameEngine())
     
     @Test
     fun real_game_state_with_stock_and_hidden_ace() {

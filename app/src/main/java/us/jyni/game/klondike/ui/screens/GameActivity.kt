@@ -9,6 +9,7 @@ import android.widget.Toast
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.GridLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.content.ClipData
@@ -41,11 +42,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
+import us.jyni.game.klondike.sync.JsonlFileRepository
 
 class GameActivity : AppCompatActivity() {
 
     private val viewModel: GameViewModel by viewModels()
     private val solverScope = CoroutineScope(Dispatchers.Default + Job())
+    private lateinit var repository: JsonlFileRepository
     
     // 선택 상태 관리 변수들
     private var selectedTableau: Int? = null
@@ -65,12 +68,20 @@ class GameActivity : AppCompatActivity() {
     private var lastClickedCard: Pair<Int, Int>? = null // (column, cardIndex)
     private var victoryShown = false
     
+    // 게임 기록 관련 변수들
+    private var gameStartTime: Long = 0
+    private var moveCount: Int = 0
+    private var currentGameSeed: ULong = 0u
+    
     enum class DragSourceType {
         TABLEAU, WASTE, FOUNDATION
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Initialize repository
+        repository = JsonlFileRepository(this)
         
         // Hide action bar for fullscreen game experience
         supportActionBar?.hide()
@@ -102,11 +113,18 @@ class GameActivity : AppCompatActivity() {
         }
 
         if (!restored) {
-            intent?.getLongExtra(EXTRA_SEED, Long.MIN_VALUE)?.let { raw ->
-                if (raw != Long.MIN_VALUE) {
-                    viewModel.startGame(raw.toULong())
-                }
+            val seed = intent?.getLongExtra(EXTRA_SEED, Long.MIN_VALUE)
+            if (seed != null && seed != Long.MIN_VALUE) {
+                viewModel.startGame(seed.toULong())
+                startNewGame(seed.toULong())
+            } else {
+                // 저장된 상태도 없고 시드도 없으면 새 랜덤 게임 시작
+                viewModel.reset()
+                startNewGame(viewModel.getSeed())
             }
+        } else {
+            // 복원된 게임
+            startNewGame(viewModel.getSeed())
         }
     }
 
@@ -117,7 +135,6 @@ class GameActivity : AppCompatActivity() {
         val board = findViewById<GridLayout>(R.id.game_board)
         val debugCopyDeal = findViewById<Button>(R.id.debug_copy_deal)
         val debugCopyLayout = findViewById<Button>(R.id.debug_copy_layout)
-        val debugLogState = findViewById<Button>(R.id.debug_log_state)
         
         // Layout Message 폰트 크기를 작게 설정
         layoutText.textSize = 10f
@@ -161,10 +178,20 @@ class GameActivity : AppCompatActivity() {
                     Toast.makeText(this@GameActivity, "JSON 복사됨", Toast.LENGTH_SHORT).show()
                 }
                 
-                debugLogState.setOnClickListener {
-                    val readableState = viewModel.getReadableState()
-                    android.util.Log.d("GameState", "\n$readableState")
-                    Toast.makeText(this@GameActivity, "상태 로그 출력됨 (Logcat 확인)", Toast.LENGTH_SHORT).show()
+                // Check stats button
+                findViewById<Button>(R.id.debug_check_stats).setOnClickListener {
+                    val allStats = repository.readAllStats()
+                    android.util.Log.d("GameActivity", "=== Stats Check ===")
+                    android.util.Log.d("GameActivity", "Total games: ${allStats.size}")
+                    android.util.Log.d("GameActivity", "Current moveCount: $moveCount")
+                    android.util.Log.d("GameActivity", "Current seed: $currentGameSeed")
+                    android.util.Log.d("GameActivity", "Victory shown: $victoryShown")
+                    
+                    allStats.takeLast(5).forEach { stat ->
+                        android.util.Log.d("GameActivity", "  - ${stat.outcome}: seed=${stat.seed}, moves=${stat.moveCount}, time=${stat.durationMs}ms")
+                    }
+                    
+                    Toast.makeText(this@GameActivity, "기록: 총 ${allStats.size}개 (로그 확인)", Toast.LENGTH_LONG).show()
                 }
 
                 // Observe state and render
@@ -253,6 +280,9 @@ class GameActivity : AppCompatActivity() {
                                         moved = viewModel.moveWasteToTableau(col)
                                     } else if (selectedFoundation != null) {
                                         moved = viewModel.moveFoundationToTableau(selectedFoundation!!, col)
+                                    }
+                                    if (moved) {
+                                        incrementMoveCount()
                                     }
                                     if (!moved) {
                                         v.performHapticFeedback(HapticFeedbackConstants.REJECT)
@@ -362,6 +392,9 @@ class GameActivity : AppCompatActivity() {
                                 val from = selectedTableau
                                 if (from != null) {
                                     val moved = viewModel.moveTableauToFoundation(from, index)
+                                    if (moved) {
+                                        incrementMoveCount()
+                                    }
                                     if (!moved) {
                                         v.performHapticFeedback(HapticFeedbackConstants.REJECT)
                                         Toast.makeText(this@GameActivity, "Invalid move", Toast.LENGTH_SHORT).show()
@@ -374,6 +407,9 @@ class GameActivity : AppCompatActivity() {
                                 } else {
                                     // Try waste -> foundation
                                     val moved = viewModel.moveWasteToFoundation(index)
+                                    if (moved) {
+                                        incrementMoveCount()
+                                    }
                                     if (!moved) {
                                         v.performHapticFeedback(HapticFeedbackConstants.REJECT)
                                         Toast.makeText(this@GameActivity, "Invalid move", Toast.LENGTH_SHORT).show()
@@ -558,14 +594,47 @@ class GameActivity : AppCompatActivity() {
             prefs.edit().putString(KEY_PERSISTED_GAME, viewModel.saveStateString()).apply()
         }
         // 하단 컨트롤 버튼들
+        
+        // 즐겨찾기 상태 표시 업데이트
+        updateFavoriteIndicator()
+        
         findViewById<ImageButton>(R.id.restart_button).setOnClickListener {
+            android.util.Log.d("GameActivity", "Restart button clicked: moveCount=$moveCount, victoryShown=$victoryShown")
+            // 현재 게임을 포기로 기록
+            if (moveCount > 0 && !victoryShown) {
+                android.util.Log.d("GameActivity", "Saving current game as resign")
+                saveGameResult("resign")
+            } else {
+                android.util.Log.d("GameActivity", "Not saving: moveCount=$moveCount, victoryShown=$victoryShown")
+            }
+            
             viewModel.restartGame()
             Toast.makeText(this@GameActivity, "같은 배치로 다시 시작합니다", Toast.LENGTH_SHORT).show()
             victoryShown = false  // 승리 상태 초기화
-            persist() 
+            persist()
+            startNewGame(currentGameSeed)
+            updateFavoriteIndicator()
         }
-        findViewById<ImageButton>(R.id.reset_button).setOnClickListener { viewModel.reset(); persist() }
-        findViewById<ImageButton>(R.id.undo_button).setOnClickListener { viewModel.undo(); persist() }
+        findViewById<ImageButton>(R.id.reset_button).setOnClickListener {
+            android.util.Log.d("GameActivity", "Reset button clicked: moveCount=$moveCount, victoryShown=$victoryShown")
+            // 현재 게임을 포기로 기록
+            if (moveCount > 0 && !victoryShown) {
+                android.util.Log.d("GameActivity", "Saving current game as resign")
+                saveGameResult("resign")
+            } else {
+                android.util.Log.d("GameActivity", "Not saving: moveCount=$moveCount, victoryShown=$victoryShown")
+            }
+            
+            viewModel.reset()
+            persist()
+            startNewGame(viewModel.getSeed())
+            updateFavoriteIndicator()
+        }
+        findViewById<ImageButton>(R.id.undo_button).setOnClickListener {
+            viewModel.undo()
+            if (moveCount > 0) moveCount--
+            persist()
+        }
         
         // Hint button - Solver 기반 힌트
         findViewById<ImageButton>(R.id.hint_button).setOnClickListener {
@@ -575,17 +644,9 @@ class GameActivity : AppCompatActivity() {
                 
                 withContext(Dispatchers.Main) {
                     if (hint != null) {
-                        val message = when (hint) {
-                            is Move.Draw -> "💡 Stock에서 카드를 뽑으세요"
-                            is Move.TableauToFoundation -> "💡 Tableau ${hint.fromCol + 1}번에서 Foundation으로"
-                            is Move.WasteToFoundation -> "💡 Waste에서 Foundation으로"
-                            is Move.TableauToTableau -> "💡 Tableau ${hint.fromCol + 1}번 → ${hint.toCol + 1}번"
-                            is Move.WasteToTableau -> "💡 Waste → Tableau ${hint.toCol + 1}번"
-                            is Move.FoundationToTableau -> "💡 Foundation → Tableau ${hint.toCol + 1}번"
-                        }
                         Toast.makeText(
                             this@GameActivity, 
-                            message, 
+                            "힌트: ${hint}", 
                             Toast.LENGTH_LONG
                         ).show()
                     } else {
@@ -620,6 +681,11 @@ class GameActivity : AppCompatActivity() {
             }
         }
         
+        // Share button - 공유하기
+        findViewById<ImageButton>(R.id.share_button).setOnClickListener {
+            Toast.makeText(this, "공유 기능은 준비 중입니다", Toast.LENGTH_SHORT).show()
+        }
+        
         // 일시정지 버튼 추가 예정 (현재는 주석 처리)
         // TODO: pause_button을 레이아웃에 추가하고 활성화
         /*
@@ -643,8 +709,8 @@ class GameActivity : AppCompatActivity() {
         
         // Statistics button
         findViewById<ImageButton>(R.id.statistics_button)?.setOnClickListener {
-            // TODO: Show statistics screen
-            android.widget.Toast.makeText(this, "통계 기능은 준비 중입니다", android.widget.Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, StatisticsActivity::class.java)
+            startActivity(intent)
         }
         
         // 규칙 설정 버튼
@@ -769,6 +835,7 @@ class GameActivity : AppCompatActivity() {
                     }
                     
                     if (moved) {
+                        incrementMoveCount()
                         view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
                     } else {
                         view.performHapticFeedback(HapticFeedbackConstants.REJECT)
@@ -859,17 +926,22 @@ class GameActivity : AppCompatActivity() {
         if (victoryShown) return
         victoryShown = true
         
+        // 승리 기록 저장
+        saveGameResult("win")
+        
         val builder = androidx.appcompat.app.AlertDialog.Builder(this)
         builder.setTitle("🎉 축하합니다!")
         builder.setMessage("Klondike Solitaire를 완료했습니다!\n\n새 게임을 시작하시겠습니까?")
         builder.setPositiveButton("새 게임") { _, _ ->
             victoryShown = false
             viewModel.reset()
+            startNewGame(viewModel.getSeed())
         }
         builder.setNegativeButton("다시 시작") { _, _ ->
             victoryShown = false
             // 같은 시드로 재시작
             viewModel.restartGame()
+            startNewGame(currentGameSeed)
         }
         builder.setCancelable(false)
         builder.show()
@@ -882,6 +954,7 @@ class GameActivity : AppCompatActivity() {
                     for (foundationIndex in 0..3) {
                         if (viewModel.canMoveTableauToFoundation(sourceIndex, foundationIndex)) {
                             if (viewModel.moveTableauToFoundation(sourceIndex, foundationIndex)) {
+                                incrementMoveCount()
                                 return
                             }
                         }
@@ -892,6 +965,7 @@ class GameActivity : AppCompatActivity() {
                 for (foundationIndex in 0..3) {
                     if (viewModel.canMoveWasteToFoundation(foundationIndex)) {
                         if (viewModel.moveWasteToFoundation(foundationIndex)) {
+                            incrementMoveCount()
                             return
                         }
                     }
@@ -1026,9 +1100,11 @@ class GameActivity : AppCompatActivity() {
                 for (col in 0..6) {
                     for (foundationIndex in 0..3) {
                         if (viewModel.canMoveTableauToFoundation(col, foundationIndex)) {
-                            viewModel.moveTableauToFoundation(col, foundationIndex)
-                            moved = true
-                            break
+                            if (viewModel.moveTableauToFoundation(col, foundationIndex)) {
+                                incrementMoveCount()
+                                moved = true
+                                break
+                            }
                         }
                     }
                     if (moved) break
@@ -1097,6 +1173,68 @@ class GameActivity : AppCompatActivity() {
         } catch (e: Exception) {
             android.util.Log.e("GameActivity", "Failed to save game state", e)
         }
+    }
+    
+    private fun getCurrentGameStats(): us.jyni.game.klondike.util.stats.SolveStats? {
+        return try {
+            us.jyni.game.klondike.util.stats.SolveStats(
+                dealId = viewModel.dealId(),
+                seed = currentGameSeed,
+                rules = viewModel.getRules(),
+                startedAt = gameStartTime,
+                finishedAt = null,
+                durationMs = 0,
+                moveCount = moveCount,
+                outcome = null
+            )
+        } catch (e: Exception) {
+            android.util.Log.e("GameActivity", "Failed to get current game stats", e)
+            null
+        }
+    }
+    
+    private fun updateFavoriteIndicator() {
+        val indicator = findViewById<ImageView>(R.id.favorite_indicator)
+        
+        // 통계 목록에서 현재 seed와 동일한 게임들 확인
+        val allStats = repository.readAllStats()
+        val gamesWithSameSeed = allStats.filter { it.seed == currentGameSeed }
+        val hasFavorite = gamesWithSameSeed.any { repository.isFavorite(it) }
+        
+        indicator.setImageResource(
+            if (hasFavorite) R.drawable.ic_star_filled else R.drawable.ic_star_outline
+        )
+    }
+    
+    private fun startNewGame(seed: ULong) {
+        gameStartTime = System.currentTimeMillis()
+        moveCount = 0
+        currentGameSeed = seed
+    }
+    
+    private fun saveGameResult(outcome: String) {
+        try {
+            val finishTime = System.currentTimeMillis()
+            val stats = us.jyni.game.klondike.util.stats.SolveStats(
+                dealId = viewModel.dealId(),
+                seed = currentGameSeed,
+                rules = viewModel.getRules(),
+                startedAt = gameStartTime,
+                finishedAt = finishTime,
+                durationMs = finishTime - gameStartTime,
+                moveCount = moveCount,
+                outcome = outcome
+            )
+            repository.appendPending(stats)
+            android.util.Log.d("GameActivity", "Game result saved: outcome=$outcome, moves=$moveCount, duration=${finishTime - gameStartTime}ms")
+        } catch (e: Exception) {
+            android.util.Log.e("GameActivity", "Failed to save game result", e)
+        }
+    }
+    
+    private fun incrementMoveCount() {
+        moveCount++
+        android.util.Log.d("GameActivity", "Move count incremented: $moveCount")
     }
 
     companion object {

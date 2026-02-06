@@ -7,6 +7,7 @@ import us.jyni.game.klondike.model.Card
 import us.jyni.game.klondike.model.GameState
 import us.jyni.game.klondike.model.Rank
 import us.jyni.game.klondike.model.Suit
+import us.jyni.game.klondike.engine.GameEngine
 
 class AStarSolverTest {
     
@@ -14,7 +15,8 @@ class AStarSolverTest {
     
     @Before
     fun setup() {
-        solver = AStarSolver()
+        val mockEngine = GameEngine()
+        solver = AStarSolver(mockEngine)
     }
     
     @Test

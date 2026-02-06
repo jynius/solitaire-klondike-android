@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:background="#FFFFFF"
+        android:gravity="center_vertical">
+
+    <!-- Date -->
+    <TextView
+        android:id="@+id/date_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="2"
+        android:text="02-06 14:23"
+        android:textSize="13sp"
+        android:textColor="#000000"
+        android:ellipsize="end"
+        android:maxLines="1" />
+
+    <!-- Outcome Icon -->
+    <TextView
+        android:id="@+id/outcome_icon"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.6"
+        android:text="✅"
+        android:textSize="16sp"
+        android:gravity="center" />
+
+    <!-- Moves -->
+    <TextView
+        android:id="@+id/moves_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1.2"
+        android:text="102수"
+        android:textSize="13sp"
+        android:textColor="#000000"
+        android:gravity="end" />
+
+    <!-- Time -->
+    <TextView
+        android:id="@+id/time_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="4:23"
+        android:textSize="13sp"
+        android:textColor="#000000"
+        android:gravity="end" />
+
+    <!-- Rules -->
+    <TextView
+        android:id="@+id/rules_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.8"
+        android:text="D3"
+        android:textSize="13sp"
+        android:textColor="#000000"
+        android:gravity="center"
+        android:textStyle="bold" />
+
+    <!-- Favorite Button -->
+    <ImageButton
+        android:id="@+id/favorite_button"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_star_outline"
+        android:contentDescription="즐겨찾기" />
+
+    <!-- Replay Button -->
+    <ImageButton
+        android:id="@+id/replay_button"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="4dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@android:drawable/ic_media_play"
+        android:tint="#000000"
+        android:contentDescription="재도전" />
+
+    <!-- Hidden TextViews for compatibility -->
+    <TextView
+        android:id="@+id/outcome_text"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/seed_text"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
+
+    </LinearLayout>
+
+    <!-- 항목 구분선 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E0E0E0" />
+
+</LinearLayout>

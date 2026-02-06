@@ -13,12 +13,12 @@ import us.jyni.game.klondike.util.sync.Ruleset
 class BFSSolverTest {
     
     private lateinit var engine: GameEngine
-    private lateinit var solver: AStarSolver
+    private lateinit var solver: BFSSolver
     
     @Before
     fun setup() {
         engine = GameEngine()
-        solver = AStarSolver()
+        solver = BFSSolver(engine)
     }
     
     @Test

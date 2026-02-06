@@ -63,6 +63,15 @@
             android:layout_centerVertical="true"
             android:orientation="horizontal">
 
+            <!-- Share button -->
+            <ImageButton
+                android:id="@+id/share_button"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="공유하기"
+                android:src="@android:drawable/ic_menu_share" />
+
             <!-- Statistics button -->
             <ImageButton
                 android:id="@+id/statistics_button"
@@ -261,6 +270,19 @@
                 android:minWidth="0dp"
                 android:background="@drawable/chip_debug_style"
                 android:layout_marginEnd="@dimen/spacing_small"/>
+            
+            <Button
+                android:id="@+id/debug_check_stats"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
+                android:text="기록확인"
+                android:textSize="9sp"
+                android:textColor="#424242"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:minWidth="0dp"
+                android:background="@drawable/chip_debug_style"
+                android:layout_marginEnd="@dimen/spacing_small"/>
                 
             <Button
                 android:id="@+id/debug_log_state"
@@ -309,7 +331,7 @@
         android:paddingBottom="8dp"
         android:background="@drawable/bottom_bar_elevated"
         android:elevation="8dp"
-        android:weightSum="5">
+        android:weightSum="6">
 
         <!-- Hint -->
         <ImageButton
@@ -343,6 +365,18 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/restart"
             android:src="@drawable/ic_new_game_plus" />
+
+        <!-- Favorite Status Indicator (not clickable) -->
+        <ImageView
+            android:id="@+id/favorite_indicator"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:contentDescription="즐겨찾기 상태"
+            android:src="@drawable/ic_star_outline"
+            android:scaleType="centerInside"
+            android:padding="8dp" />
 
         <!-- Restart -->
         <ImageButton
