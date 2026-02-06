@@ -11,7 +11,9 @@ data class Card(
 }
 
 enum class Suit {
-    HEARTS, DIAMONDS, CLUBS, SPADES
+    HEARTS, DIAMONDS, CLUBS, SPADES;
+    
+    fun isRed(): Boolean = this == HEARTS || this == DIAMONDS
 }
 
 enum class Rank(val value: Int) {

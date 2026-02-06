@@ -35,10 +35,17 @@ import us.jyni.R
 import us.jyni.game.klondike.ui.GameViewModel
 import us.jyni.game.klondike.ui.components.CardView
 import us.jyni.game.klondike.util.sync.Ruleset
+import us.jyni.game.klondike.solver.SolverResult
+import us.jyni.game.klondike.solver.Move
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.withContext
 
 class GameActivity : AppCompatActivity() {
 
     private val viewModel: GameViewModel by viewModels()
+    private val solverScope = CoroutineScope(Dispatchers.Default + Job())
     
     // 선택 상태 관리 변수들
     private var selectedTableau: Int? = null
@@ -110,6 +117,7 @@ class GameActivity : AppCompatActivity() {
         val board = findViewById<GridLayout>(R.id.game_board)
         val debugCopyDeal = findViewById<Button>(R.id.debug_copy_deal)
         val debugCopyLayout = findViewById<Button>(R.id.debug_copy_layout)
+        val debugLogState = findViewById<Button>(R.id.debug_log_state)
         
         // Layout Message 폰트 크기를 작게 설정
         layoutText.textSize = 10f
@@ -151,6 +159,12 @@ class GameActivity : AppCompatActivity() {
                     val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                     cm.setPrimaryClip(ClipData.newPlainText("Game State JSON", gameStateJson))
                     Toast.makeText(this@GameActivity, "JSON 복사됨", Toast.LENGTH_SHORT).show()
+                }
+                
+                debugLogState.setOnClickListener {
+                    val readableState = viewModel.getReadableState()
+                    android.util.Log.d("GameState", "\n$readableState")
+                    Toast.makeText(this@GameActivity, "상태 로그 출력됨 (Logcat 확인)", Toast.LENGTH_SHORT).show()
                 }
 
                 // Observe state and render
@@ -553,9 +567,46 @@ class GameActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.reset_button).setOnClickListener { viewModel.reset(); persist() }
         findViewById<ImageButton>(R.id.undo_button).setOnClickListener { viewModel.undo(); persist() }
         
-        // Hint button (준비중)
+        // Hint button - Solver 기반 힌트
         findViewById<ImageButton>(R.id.hint_button).setOnClickListener {
-            Toast.makeText(this, "힌트 기능은 준비 중입니다", Toast.LENGTH_SHORT).show()
+            // 백그라운드에서 힌트 찾기
+            solverScope.launch {
+                val hint = viewModel.findHint()
+                
+                withContext(Dispatchers.Main) {
+                    if (hint != null) {
+                        val message = when (hint) {
+                            is Move.Draw -> "💡 Stock에서 카드를 뽑으세요"
+                            is Move.TableauToFoundation -> "💡 Tableau ${hint.fromCol + 1}번에서 Foundation으로"
+                            is Move.WasteToFoundation -> "💡 Waste에서 Foundation으로"
+                            is Move.TableauToTableau -> "💡 Tableau ${hint.fromCol + 1}번 → ${hint.toCol + 1}번"
+                            is Move.WasteToTableau -> "💡 Waste → Tableau ${hint.toCol + 1}번"
+                            is Move.FoundationToTableau -> "💡 Foundation → Tableau ${hint.toCol + 1}번"
+                        }
+                        Toast.makeText(
+                            this@GameActivity, 
+                            message, 
+                            Toast.LENGTH_LONG
+                        ).show()
+                    } else {
+                        // Unsolvable 체크
+                        val unsolvableReason = viewModel.checkUnsolvable()
+                        if (unsolvableReason != null) {
+                            Toast.makeText(
+                                this@GameActivity, 
+                                "게임 막힘: ${unsolvableReason.message}", 
+                                Toast.LENGTH_LONG
+                            ).show()
+                        } else {
+                            Toast.makeText(
+                                this@GameActivity, 
+                                "힌트를 찾을 수 없습니다", 
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                }
+            }
         }
         
         // Auto button - 자동 완료

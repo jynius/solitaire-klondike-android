@@ -261,6 +261,19 @@
                 android:minWidth="0dp"
                 android:background="@drawable/chip_debug_style"
                 android:layout_marginEnd="@dimen/spacing_small"/>
+                
+            <Button
+                android:id="@+id/debug_log_state"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
+                android:text="상태출력"
+                android:textSize="9sp"
+                android:textColor="#424242"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:minWidth="0dp"
+                android:background="@drawable/chip_debug_style"
+                android:layout_marginEnd="@dimen/spacing_small"/>
 
         </LinearLayout>
     </LinearLayout>
