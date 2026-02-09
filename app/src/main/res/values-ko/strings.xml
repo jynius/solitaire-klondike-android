@@ -1,5 +1,4 @@
 <resources>
-    <!-- 기본 언어: 한국어 -->
     <string name="app_name">솔리테어 클론다이크</string>
     <string name="welcome_message">솔리테어 클론다이크에 오신 것을 환영합니다!</string>
     <string name="instructions">모든 카드를 파운데이션으로 이동하세요.</string>
@@ -53,11 +52,11 @@
     <string name="back_button">뒤로가기</string>
     <string name="rules_draw_title">카드 뽑기</string>
     <string name="rules_draw_desc">스톡에서 한 번에 뽑을 카드 수를 설정합니다</string>
+    <string name="rules_draw_1_label">1장씩</string>
+    <string name="rules_draw_3_label">3장씩</string>
     <string name="rules_draw">Draw</string>
     <string name="rules_draw_1">1</string>
     <string name="rules_draw_3">3</string>
-    <string name="rules_draw_1_label">1장씩</string>
-    <string name="rules_draw_3_label">3장씩</string>
     <string name="rules_recycle_title">재순환 방식</string>
     <string name="rules_recycle_desc">스톡이 다 떨어졌을 때 웨이스트 더미를 재순환하는 방식입니다</string>
     <string name="rules_recycle">Recycle</string>
@@ -73,10 +72,10 @@
     <string name="rules_foundation_title">파운데이션→테이블로</string>
     <string name="rules_foundation_desc">파운데이션에서 테이블로로 카드를 이동할 수 있도록 허용합니다</string>
     <string name="rules_foundation_allow">허용</string>
+    <string name="rules_save_button">규칙 저장</string>
     <string name="rules_allow_f2t">Allow F→T</string>
     <string name="rules_apply">적용</string>
     <string name="rules_cancel">취소</string>
-    <string name="rules_save_button">규칙 저장</string>
     
     <!-- 언어 설정 -->
     <string name="language_title">언어 설정</string>

@@ -97,7 +97,7 @@
         android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@android:drawable/ic_media_play"
         android:tint="#000000"
-        android:contentDescription="재도전" />
+        android:contentDescription="@string/retry_description" />
 
     <!-- Hidden TextViews for compatibility -->
     <TextView

@@ -1,6 +1,8 @@
 package us.jyni.game.klondike.ui.screens
 
+import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
 import android.widget.*
@@ -49,6 +51,9 @@ class StatisticsActivity : AppCompatActivity() {
     private var bestTimeGame: SolveStats? = null
     
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Apply saved language before calling super.onCreate
+        applyLanguage()
+        
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_statistics)
         
@@ -104,7 +109,12 @@ class StatisticsActivity : AppCompatActivity() {
         val filterSpinner = findViewById<Spinner>(R.id.filter_spinner)
         filterSpinner.setBackgroundColor(android.graphics.Color.WHITE)
         
-        val filterOptions = arrayOf("전체", "⭐ 즐겨찾기", "✅ 성공", "❌ 실패")
+        val filterOptions = arrayOf(
+            getString(R.string.filter_all),
+            getString(R.string.filter_favorites),
+            getString(R.string.filter_wins),
+            getString(R.string.filter_losses)
+        )
         
         val filterAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, filterOptions)
         filterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -136,12 +146,12 @@ class StatisticsActivity : AppCompatActivity() {
         spinner.setBackgroundColor(android.graphics.Color.WHITE)
         
         val sortOptions = arrayOf(
-            "최신순",
-            "오래된순",
-            "이동 많은순",
-            "이동 적은순",
-            "시간 긴순",
-            "시간 짧은순"
+            getString(R.string.sort_newest),
+            getString(R.string.sort_oldest),
+            getString(R.string.sort_most_moves),
+            getString(R.string.sort_least_moves),
+            getString(R.string.sort_longest_time),
+            getString(R.string.sort_shortest_time)
         )
         
         val arrayAdapter = ArrayAdapter(
@@ -217,11 +227,11 @@ class StatisticsActivity : AppCompatActivity() {
             val avgMinutes = (avgTimeMs / 60000).toInt()
             val avgSeconds = ((avgTimeMs % 60000) / 1000).toInt()
             
-            avgMovesText.text = String.format("⚡ 평균 이동: %.1f수", avgMoves)
-            avgTimeText.text = String.format("🚀 평균 시간: %d:%02d", avgMinutes, avgSeconds)
+            avgMovesText.text = getString(R.string.stats_avg_moves, String.format("%.1f", avgMoves))
+            avgTimeText.text = getString(R.string.stats_avg_time, String.format("%d:%02d", avgMinutes, avgSeconds))
         } else {
-            avgMovesText.text = "⚡ 평균 이동: 0수"
-            avgTimeText.text = "🚀 평균 시간: 0:00"
+            avgMovesText.text = getString(R.string.stats_avg_moves, "0")
+            avgTimeText.text = getString(R.string.stats_avg_time, "0:00")
         }
     }
     
@@ -229,12 +239,12 @@ class StatisticsActivity : AppCompatActivity() {
         val wins = repository.readWinStats()
         
         if (wins.isEmpty()) {
-            bestMovesText.text = "⚡ 최소 이동: 기록 없음"
+            bestMovesText.text = getString(R.string.stats_min_moves, getString(R.string.stats_no_record))
             bestMovesDate.text = ""
-            bestTimeText.text = "🚀 최단 시간: 기록 없음"
+            bestTimeText.text = getString(R.string.stats_min_time, getString(R.string.stats_no_record))
             bestTimeDate.text = ""
             bestStreakDate.text = ""
-            bestStreakText.text = "🔥 최장 연승: 기록 없음"
+            bestStreakText.text = getString(R.string.stats_longest_streak, getString(R.string.stats_no_record))
             btnReplayBestMoves.visibility = View.GONE
             btnReplayBestTime.visibility = View.GONE
             return
@@ -245,7 +255,7 @@ class StatisticsActivity : AppCompatActivity() {
         bestMovesGame?.let { game ->
             val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
             val dateStr = dateFormat.format(Date(game.finishedAt ?: 0L))
-            bestMovesText.text = "⚡ 최소 이동: ${game.moveCount}수"
+            bestMovesText.text = getString(R.string.stats_min_moves, "${game.moveCount}${getString(R.string.unit_moves)}")
             bestMovesDate.text = dateStr
             btnReplayBestMoves.visibility = View.VISIBLE
         }
@@ -257,7 +267,7 @@ class StatisticsActivity : AppCompatActivity() {
             val seconds = ((game.durationMs % 60000) / 1000).toInt()
             val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
             val dateStr = dateFormat.format(Date(game.finishedAt ?: 0L))
-            bestTimeText.text = "🚀 최단 시간: $minutes:${String.format("%02d", seconds)}"
+            bestTimeText.text = getString(R.string.stats_min_time, "$minutes:${String.format("%02d", seconds)}")
             bestTimeDate.text = dateStr
             btnReplayBestTime.visibility = View.VISIBLE
         }
@@ -298,15 +308,16 @@ class StatisticsActivity : AppCompatActivity() {
             val startStr = maxStreakStart?.let { dateFormat.format(Date(it)) } ?: ""
             val endStr = maxStreakEnd?.let { dateFormat.format(Date(it)) } ?: ""
             
-            if (maxStreak == 1) {
-                bestStreakText.text = "🔥 최장 연승: 1게임"
-                bestStreakDate.text = ""
+            val gameUnit = if (maxStreak == 1) {
+                getString(R.string.unit_game_singular)
             } else {
-                bestStreakText.text = "🔥 최장 연승: ${maxStreak}게임"
-                bestStreakDate.text = "$startStr ~ $endStr"
+                getString(R.string.unit_game_plural)
             }
+            
+            bestStreakText.text = getString(R.string.stats_longest_streak, "${maxStreak}${gameUnit}")
+            bestStreakDate.text = if (maxStreak == 1) "" else "$startStr ~ $endStr"
         } else {
-            bestStreakText.text = "🔥 최장 연승: 기록 없음"
+            bestStreakText.text = getString(R.string.stats_longest_streak, getString(R.string.stats_no_record))
             bestStreakDate.text = ""
         }
     }
@@ -342,6 +353,18 @@ class StatisticsActivity : AppCompatActivity() {
         intent.putExtra("RULES", game.rules)
         intent.putExtra("IS_REPLAY", true)
         startActivity(intent)
+    }
+
+    private fun applyLanguage() {
+        val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        val languageCode = prefs.getString("language", "ko") ?: "ko"
+        
+        val locale = Locale(languageCode)
+        Locale.setDefault(locale)
+        
+        val config = Configuration(resources.configuration)
+        config.setLocale(locale)
+        resources.updateConfiguration(config, resources.displayMetrics)
     }
 }
 
@@ -386,7 +409,7 @@ class GameStatsAdapter(
         holder.dateText.text = dateFormat.format(Date(game.startedAt))
         
         // 이동 수
-        holder.movesText.text = "${game.moveCount}수"
+        holder.movesText.text = "${game.moveCount}"
         
         // 시간
         val minutes = (game.durationMs / 60000).toInt()
@@ -437,8 +460,9 @@ class GameStatsAdapter(
             )
             
             // 토스트 메시지
-            val message = if (nowFavorite) "⭐ 즐겨찾기에 추가" else "☆ 즐겨찾기에서 제거"
-            Toast.makeText(holder.itemView.context, message, Toast.LENGTH_SHORT).show()
+            val context = holder.itemView.context
+            val message = if (nowFavorite) context.getString(R.string.stats_favorite_added) else context.getString(R.string.stats_favorite_removed)
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
         
         // 재도전 버튼
@@ -446,6 +470,6 @@ class GameStatsAdapter(
             onReplayClick(game)
         }
     }
-    
+
     override fun getItemCount() = games.size
 }

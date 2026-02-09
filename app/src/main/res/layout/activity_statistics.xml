@@ -27,14 +27,14 @@
             android:layout_centerVertical="true"
             android:src="@drawable/ic_back"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="뒤로가기" />
+            android:contentDescription="@string/back_button" />
 
         <!-- Title -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:text="통계"
+            android:text="@string/stats_title"
             android:textSize="20sp"
             android:textColor="#FFFFFF"
             android:textStyle="bold" />
@@ -70,7 +70,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="📊 전체 통계"
+                        android:text="@string/stats_overall"
                         android:textSize="18sp"
                         android:textStyle="bold"
                         android:layout_marginBottom="12dp" />
@@ -98,7 +98,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="총 게임"
+                                android:text="@string/stats_total_games"
                                 android:textSize="12sp"
                                 android:textColor="#666666" />
                         </LinearLayout>
@@ -122,7 +122,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="승률"
+                                android:text="@string/stats_win_rate"
                                 android:textSize="12sp"
                                 android:textColor="#666666" />
                         </LinearLayout>
@@ -146,7 +146,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="⭐ 즐겨찾기"
+                                android:text="@string/stats_favorites"
                                 android:textSize="12sp"
                                 android:textColor="#666666" />
                         </LinearLayout>
@@ -197,7 +197,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🏆 최고 기록"
+                        android:text="@string/stats_best_records"
                         android:textSize="18sp"
                         android:textStyle="bold"
                         android:layout_marginBottom="12dp" />
@@ -240,7 +240,7 @@
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:src="@android:drawable/ic_media_play"
                             app:tint="#000000"
-                            android:contentDescription="재도전"
+                            android:contentDescription="@string/retry_description"
                             android:visibility="gone" />
                     </LinearLayout>
 
@@ -282,7 +282,7 @@
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:src="@android:drawable/ic_media_play"
                             app:tint="#000000"
-                            android:contentDescription="재도전"
+                            android:contentDescription="@string/retry_description"
                             android:visibility="gone" />
                     </LinearLayout>
 
@@ -360,8 +360,8 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="2"
-                    android:text="날짜/시간"
+                    android:layout_weight="1.8"
+                    android:text="@string/stats_date_time"
                     android:textSize="12sp"
                     android:textStyle="bold"
                     android:gravity="center" />
@@ -369,8 +369,8 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0.6"
-                    android:text="결과"
+                    android:layout_weight="0.8"
+                    android:text="@string/stats_result"
                     android:textSize="12sp"
                     android:textStyle="bold"
                     android:gravity="end" />
@@ -379,7 +379,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1.2"
-                    android:text="이동"
+                    android:text="@string/stats_moves"
                     android:textSize="12sp"
                     android:textStyle="bold"
                     android:gravity="end" />
@@ -388,7 +388,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1.2"
-                    android:text="시간"
+                    android:text="@string/stats_time"
                     android:textSize="12sp"
                     android:textStyle="bold"
                     android:gravity="end" />
@@ -396,7 +396,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="0.8"
-                    android:text="규칙"
+                    android:text="@string/stats_rules"
                     android:textSize="12sp"
                     android:textStyle="bold"
                     android:gravity="center" />
@@ -436,8 +436,13 @@
                     android:id="@+id/btn_prev_page"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="← 이전"
-                    android:textSize="14sp" />
+                    android:minWidth="80dp"
+                    android:text="@string/stats_prev_page"
+                    android:textSize="14sp"
+                    android:autoSizeTextType="uniform"
+                    android:autoSizeMinTextSize="10sp"
+                    android:autoSizeMaxTextSize="14sp"
+                    android:autoSizeStepGranularity="1sp" />
 
                 <TextView
                     android:id="@+id/page_info"
@@ -454,8 +459,13 @@
                     android:id="@+id/btn_next_page"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="다음 →"
-                    android:textSize="14sp" />
+                    android:minWidth="80dp"
+                    android:text="@string/stats_next_page"
+                    android:textSize="14sp"
+                    android:autoSizeTextType="uniform"
+                    android:autoSizeMinTextSize="10sp"
+                    android:autoSizeMaxTextSize="14sp"
+                    android:autoSizeStepGranularity="1sp" />
             </LinearLayout>
 
         </LinearLayout>

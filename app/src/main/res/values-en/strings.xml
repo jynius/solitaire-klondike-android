@@ -1,0 +1,132 @@
+<resources>
+    <string name="app_name">Solitaire Klondike</string>
+    <string name="welcome_message">Welcome to Solitaire Klondike!</string>
+    <string name="instructions">Try to move all cards to the foundation piles.</string>
+    
+    <!-- Buttons -->
+    <string name="undo">Undo</string>
+    <string name="redo">Redo</string>
+    <string name="restart">New Game</string>
+    <string name="exit">Exit</string>
+    <string name="hint_button">Hint</string>
+    <string name="auto_complete_button">Auto Complete</string>
+    <string name="share_button">Share</string>
+    <string name="pause_button">Pause</string>
+    <string name="resume_button">Resume</string>
+    <string name="retry_same_layout">Restart</string>
+    
+    <!-- Game Status -->
+    <string name="game_over">Game Over!</string>
+    <string name="you_win">You Win!</string>
+    <string name="score">Score</string>
+    <string name="moves">Moves</string>
+    <string name="time">Time</string>
+    
+    <!-- Toast Messages -->
+    <string name="deal_copied">Deal ID copied</string>
+    <string name="json_copied">JSON copied</string>
+    <string name="stats_total">Total: %d games (check log)</string>
+    <string name="invalid_move">Invalid move</string>
+    <string name="restart_same_layout">Restarting with same layout</string>
+    <string name="hint_message">Hint: %s</string>
+    <string name="no_hint_available">No hint available</string>
+    <string name="solver_running">Solver running...</string>
+    <string name="auto_complete_success">Automatically moved %d cards</string>
+    <string name="auto_complete_none">No more cards to move automatically</string>
+    <string name="share_not_ready">Share feature coming soon</string>
+    <string name="game_resumed">Game resumed</string>
+    <string name="game_paused">Game paused</string>
+    <string name="rules_updated">Rules updated. Starting new game.</string>
+    
+    <!-- Debug -->
+    <string name="debug_show_deal">Show Deal Info</string>
+    <string name="debug_copy_deal">Copy Deal</string>
+    <string name="debug_copy_json">Copy JSON</string>
+    <string name="debug_toggle">Debug</string>
+    <string name="debug_stats">View Stats</string>
+    <string name="debug_rules">Rules:</string>
+    
+    <!-- Rules Settings -->
+    <string name="rules_button">Settings</string>
+    <string name="rules_title">Game Rules Settings</string>
+    <string name="back_button">Back</string>
+    <string name="rules_draw_title">Card Draw</string>
+    <string name="rules_draw_desc">Set the number of cards to draw from stock at once</string>
+    <string name="rules_draw_1_label">Draw 1</string>
+    <string name="rules_draw_3_label">Draw 3</string>
+    <string name="rules_draw">Draw</string>
+    <string name="rules_draw_1">1</string>
+    <string name="rules_draw_3">3</string>
+    <string name="rules_recycle_title">Recycle Method</string>
+    <string name="rules_recycle_desc">How to recycle waste pile when stock is empty</string>
+    <string name="rules_recycle">Recycle</string>
+    <string name="rules_recycle_keep">Keep Order</string>
+    <string name="rules_recycle_reverse">Reverse Order</string>
+    <string name="rules_redeals_title">Redeal Count</string>
+    <string name="rules_redeals_desc">Number of times you can redeal the stock.</string>
+    <string name="rules_redeals">Redeals</string>
+    <string name="rules_redeals_unlimited">Unlimited</string>
+    <string name="rules_redeals_0">Never</string>
+    <string name="rules_redeals_1">Once</string>
+    <string name="rules_redeals_2">Twice</string>
+    <string name="rules_foundation_title">Foundation→Tableau</string>
+    <string name="rules_foundation_desc">Allow moving cards from foundation to tableau</string>
+    <string name="rules_foundation_allow">Allow</string>
+    <string name="rules_save_button">Save Rules</string>
+    <string name="rules_allow_f2t">Allow F→T</string>
+    <string name="rules_apply">Apply</string>
+    <string name="rules_cancel">Cancel</string>
+    
+    <!-- Language Settings -->
+    <string name="language_title">Language Settings</string>
+    <string name="language_desc">Select app display language</string>
+    <string name="language_korean">한국어 (Korean)</string>
+    <string name="language_english">English</string>
+    <string name="language_changed">Language changed. Restarting app.</string>
+    
+    <!-- Content descriptions -->
+    <string name="retry_description">Retry</string>
+    <string name="draw_button">Draw</string>
+
+    <!-- Statistics -->
+    <string name="stats_title">Statistics</string>
+    <string name="stats_overall">📊 Overall Stats</string>
+    <string name="stats_total_games">Total Games</string>
+    <string name="stats_win_rate">Win Rate</string>
+    <string name="stats_favorites">⭐ Favorites</string>
+    <string name="stats_avg_moves">⚡ Avg Moves: %s</string>
+    <string name="stats_avg_time">🚀 Avg Time: %s</string>
+    <string name="stats_best_records">🏆 Best Records</string>
+    <string name="stats_min_moves">⚡ Min Moves: %s</string>
+    <string name="stats_min_time">🚀 Min Time: %s</string>
+    <string name="stats_longest_streak">🔥 Longest Streak: %s</string>
+    <string name="stats_no_record">No Record</string>
+    <string name="stats_date_time">Date/Time</string>
+    <string name="stats_result">Result</string>
+    <string name="stats_moves">Moves</string>
+    <string name="stats_time">Time</string>
+    <string name="stats_rules">Rules</string>
+    <string name="stats_prev_page">← Previous</string>
+    <string name="stats_next_page">Next →</string>
+    <string name="stats_favorite_added">⭐ Added to Favorites</string>
+    <string name="stats_favorite_removed">☆ Removed from Favorites</string>
+
+    <!-- Filter options -->
+    <string name="filter_all">All</string>
+    <string name="filter_favorites">⭐ Favorites</string>
+    <string name="filter_wins">✅ Wins</string>
+    <string name="filter_losses">❌ Losses</string>
+
+    <!-- Sort options -->
+    <string name="sort_newest">Newest First</string>
+    <string name="sort_oldest">Oldest First</string>
+    <string name="sort_most_moves">Most Moves</string>
+    <string name="sort_least_moves">Least Moves</string>
+    <string name="sort_longest_time">Longest Time</string>
+    <string name="sort_shortest_time">Shortest Time</string>
+    
+    <!-- Units -->
+    <string name="unit_moves"> moves</string>
+    <string name="unit_game_singular"> game</string>
+    <string name="unit_game_plural"> games</string>
+</resources>

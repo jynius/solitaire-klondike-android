@@ -1,5 +1,6 @@
 package us.jyni.game.klondike.ui.screens
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
 import android.view.View
@@ -43,6 +44,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 import us.jyni.game.klondike.sync.JsonlFileRepository
+import java.util.Locale
 
 class GameActivity : AppCompatActivity() {
 
@@ -77,6 +79,9 @@ class GameActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Apply saved language before calling super.onCreate
+        applyLanguage()
+        
         super.onCreate(savedInstanceState)
         
         // Initialize repository
@@ -167,14 +172,14 @@ class GameActivity : AppCompatActivity() {
                     val deal = viewModel.dealId()
                     val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                     cm.setPrimaryClip(ClipData.newPlainText("Deal ID", deal))
-                    Toast.makeText(this@GameActivity, "Deal ID 복사됨", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@GameActivity, getString(R.string.deal_copied), Toast.LENGTH_SHORT).show()
                 }
                 
                 debugCopyLayout.setOnClickListener {
                     val gameStateJson = viewModel.getGameStateJson()
                     val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                     cm.setPrimaryClip(ClipData.newPlainText("Game State JSON", gameStateJson))
-                    Toast.makeText(this@GameActivity, "JSON 복사됨", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@GameActivity, getString(R.string.json_copied), Toast.LENGTH_SHORT).show()
                 }
                 
                 // Check stats button
@@ -190,7 +195,7 @@ class GameActivity : AppCompatActivity() {
                         android.util.Log.d("GameActivity", "  - ${stat.outcome}: seed=${stat.seed}, moves=${stat.moveCount}, time=${stat.durationMs}ms")
                     }
                     
-                    Toast.makeText(this@GameActivity, "기록: 총 ${allStats.size}개 (로그 확인)", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@GameActivity, getString(R.string.stats_total, allStats.size), Toast.LENGTH_LONG).show()
                 }
 
                 // Observe state and render
@@ -390,7 +395,7 @@ class GameActivity : AppCompatActivity() {
                                     val moved = viewModel.moveTableauToFoundation(from, index)
                                     if (!moved) {
                                         v.performHapticFeedback(HapticFeedbackConstants.REJECT)
-                                        Toast.makeText(this@GameActivity, "Invalid move", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(this@GameActivity, getString(R.string.invalid_move), Toast.LENGTH_SHORT).show()
                                     }
                                     clearAllSelections()
                                 } else if (selectedFoundation == null) {
@@ -402,7 +407,7 @@ class GameActivity : AppCompatActivity() {
                                     val moved = viewModel.moveWasteToFoundation(index)
                                     if (!moved) {
                                         v.performHapticFeedback(HapticFeedbackConstants.REJECT)
-                                        Toast.makeText(this@GameActivity, "Invalid move", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(this@GameActivity, getString(R.string.invalid_move), Toast.LENGTH_SHORT).show()
                                     }
                                     selectedFromWaste = false
                                 }
@@ -600,7 +605,7 @@ class GameActivity : AppCompatActivity() {
             }
             
             viewModel.restartGame()
-            Toast.makeText(this@GameActivity, "같은 배치로 다시 시작합니다", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@GameActivity, getString(R.string.restart_same_layout), Toast.LENGTH_SHORT).show()
             victoryShown = false  // 승리 상태 초기화
             persist()
             startNewGame(currentGameSeed)
@@ -665,16 +670,16 @@ class GameActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.auto_button).setOnClickListener {
             val moveCount = viewModel.autoComplete()
             if (moveCount > 0) {
-                Toast.makeText(this, "$moveCount 장의 카드를 자동으로 이동했습니다", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.auto_complete_success, moveCount), Toast.LENGTH_SHORT).show()
                 persist()
             } else {
-                Toast.makeText(this, "더 이상 자동으로 이동할 카드가 없습니다", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.auto_complete_none), Toast.LENGTH_SHORT).show()
             }
         }
         
         // Share button - 공유하기
         findViewById<ImageButton>(R.id.share_button).setOnClickListener {
-            Toast.makeText(this, "공유 기능은 준비 중입니다", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.share_not_ready), Toast.LENGTH_SHORT).show()
         }
         
         // 일시정지 버튼 추가 예정 (현재는 주석 처리)
@@ -684,11 +689,11 @@ class GameActivity : AppCompatActivity() {
             if (viewModel.isPaused()) {
                 viewModel.resume()
                 (it as Button).text = "Pause"
-                Toast.makeText(this@GameActivity, "게임 재개", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@GameActivity, getString(R.string.game_resumed), Toast.LENGTH_SHORT).show()
             } else {
                 viewModel.pause()
                 (it as Button).text = "Resume"
-                Toast.makeText(this@GameActivity, "일시정지", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@GameActivity, getString(R.string.game_paused), Toast.LENGTH_SHORT).show()
             }
         }
         */
@@ -768,7 +773,7 @@ class GameActivity : AppCompatActivity() {
                         view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
                     } else {
                         view.performHapticFeedback(HapticFeedbackConstants.REJECT)
-                        Toast.makeText(this, "Invalid move", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, getString(R.string.invalid_move), Toast.LENGTH_SHORT).show()
                     }
                 } else {
                     view.alpha = 1f
@@ -828,7 +833,7 @@ class GameActivity : AppCompatActivity() {
                     if (moved) {
                         view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
                     } else {
-                        Toast.makeText(this, "Invalid move", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, getString(R.string.invalid_move), Toast.LENGTH_SHORT).show()
                     }
                 } else {
                     view.alpha = 1f
@@ -1132,7 +1137,7 @@ class GameActivity : AppCompatActivity() {
                 Log.d("GameActivity", "New rules received: $newRules")
                 // 새로운 규칙으로 게임 시작
                 viewModel.startGame(viewModel.getSeed(), newRules)
-                Toast.makeText(this, "규칙이 업데이트되었습니다. 새 게임이 시작됩니다.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.rules_updated), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -1224,6 +1229,18 @@ class GameActivity : AppCompatActivity() {
         } catch (e: Exception) {
             android.util.Log.e("GameActivity", "Failed to save game result", e)
         }
+    }
+    
+    private fun applyLanguage() {
+        val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        val languageCode = prefs.getString("language", "ko") ?: "ko"
+        
+        val locale = Locale(languageCode)
+        Locale.setDefault(locale)
+        
+        val config = Configuration(resources.configuration)
+        config.setLocale(locale)
+        resources.updateConfiguration(config, resources.displayMetrics)
     }
 
     companion object {

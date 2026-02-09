@@ -14,6 +14,9 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        
+        // 기본 언어를 한국어로 설정
+        resourceConfigurations += listOf("ko", "en")
     }
 
     buildTypes {
