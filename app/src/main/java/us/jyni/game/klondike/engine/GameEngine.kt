@@ -55,7 +55,7 @@ class GameEngine {
         this.rules = rules
         this.redealsRemaining = rules.redeals
         this.currentSeed = seed
-        this.startedAt = System.currentTimeMillis()
+        this.startedAt = 0L  // 첫 무브 시 시작하도록 변경
         this.finishedAt = null
         this.moveCount = 0
         this.outcome = null
@@ -142,7 +142,7 @@ class GameEngine {
             gameState.waste.add(c)
         }
         undo.saveState(snapshot())
-        moveCount += 1
+        incrementMoveCount()
         return n
     }
 
@@ -200,7 +200,7 @@ class GameEngine {
             if (!top.isFaceUp) top.isFaceUp = true
         }
         undo.saveState(snapshot())
-        moveCount += 1
+        incrementMoveCount()
         return true
     }
     
@@ -262,7 +262,7 @@ class GameEngine {
             if (!top.isFaceUp) top.isFaceUp = true
         }
         undo.saveState(snapshot())
-        moveCount += 1
+        incrementMoveCount()
         return true
     }
 
@@ -283,7 +283,7 @@ class GameEngine {
         // check win condition
         gameState.isGameOver = rulesEngine.isGameWon(gameState)
         undo.saveState(snapshot())
-        moveCount += 1
+        incrementMoveCount()
         if (gameState.isGameOver) {
             outcome = "win"
             finishedAt = System.currentTimeMillis()
@@ -302,7 +302,7 @@ class GameEngine {
         dst.add(moving)
         addScore(-15)  // Foundation → Tableau: -15
         undo.saveState(snapshot())
-        moveCount += 1
+        incrementMoveCount()
         return true
     }
 
@@ -330,7 +330,7 @@ class GameEngine {
         dst.add(moving)
         addScore(5)  // Waste → Tableau: +5
         undo.saveState(snapshot())
-        moveCount += 1
+        incrementMoveCount()
         return true
     }
 
@@ -347,7 +347,7 @@ class GameEngine {
         // check win condition
         gameState.isGameOver = rulesEngine.isGameWon(gameState)
         undo.saveState(snapshot())
-        moveCount += 1
+        incrementMoveCount()
         if (gameState.isGameOver) {
             outcome = "win"
             finishedAt = System.currentTimeMillis()
@@ -358,12 +358,14 @@ class GameEngine {
     fun undo(): Boolean {
         val prev = undo.undo() ?: return false
         gameState = cloneState(prev)
+        incrementMoveCount() // Undo도 하나의 move로 카운트
         return true
     }
 
     fun redo(): Boolean {
         val next = undo.redo() ?: return false
         gameState = cloneState(next)
+        incrementMoveCount() // Redo도 하나의 move로 카운트
         return true
     }
 
@@ -607,6 +609,9 @@ class GameEngine {
     fun isPaused(): Boolean = pausedAt != null
     
     fun getElapsedTimeMs(): Long {
+        // 타이머가 아직 시작되지 않았으면 0 반환
+        if (startedAt == 0L) return 0L
+        
         val now = System.currentTimeMillis()
         val endTime = finishedAt ?: pausedAt ?: now
         val elapsed = endTime - startedAt - totalPausedMs
@@ -614,4 +619,12 @@ class GameEngine {
     }
     
     fun getMoveCount(): Int = moveCount
+    
+    // 첫 무브일 때 타이머 시작하고 moveCount 증가
+    private fun incrementMoveCount() {
+        if (moveCount == 0) {
+            startedAt = System.currentTimeMillis()
+        }
+        moveCount += 1
+    }
 }

@@ -166,6 +166,7 @@
                         android:text="⚡ 평균 이동: 0수"
                         android:textSize="14sp"
                         android:paddingStart="8dp"
+                        android:paddingEnd="4dp"
                         android:layout_marginBottom="4dp" />
 
                     <TextView
@@ -174,7 +175,8 @@
                         android:layout_height="wrap_content"
                         android:text="🚀 평균 시간: 0:00"
                         android:textSize="14sp"
-                        android:paddingStart="8dp" />
+                        android:paddingStart="8dp"
+                        android:paddingEnd="4dp" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -206,7 +208,7 @@
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:layout_marginBottom="2dp">
+                        android:layout_marginBottom="4dp">
 
                         <TextView
                             android:id="@+id/best_moves_text"
@@ -215,9 +217,7 @@
                             android:text="⚡ 최소 이동: 기록 없음"
                             android:textSize="14sp"
                             android:paddingStart="8dp"
-                            android:paddingEnd="4dp"
-                            android:paddingTop="4dp"
-                            android:paddingBottom="4dp" />
+                            android:paddingEnd="4dp" />
 
                         <TextView
                             android:id="@+id/best_moves_date"
@@ -228,19 +228,18 @@
                             android:textSize="12sp"
                             android:textColor="#666666"
                             android:gravity="end"
+                            android:paddingStart="4dp"
                             android:paddingEnd="4dp"
-                            android:paddingTop="4dp"
-                            android:paddingBottom="4dp"
                             android:ellipsize="end"
                             android:maxLines="1" />
 
                         <ImageButton
                             android:id="@+id/btn_replay_best_moves"
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:src="@android:drawable/ic_media_play"
-                            android:tint="#000000"
+                            app:tint="#000000"
                             android:contentDescription="재도전"
                             android:visibility="gone" />
                     </LinearLayout>
@@ -251,7 +250,7 @@
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:layout_marginBottom="2dp">
+                        android:layout_marginBottom="4dp">
 
                         <TextView
                             android:id="@+id/best_time_text"
@@ -260,9 +259,7 @@
                             android:text="🚀 최단 시간: 기록 없음"
                             android:textSize="14sp"
                             android:paddingStart="8dp"
-                            android:paddingEnd="4dp"
-                            android:paddingTop="4dp"
-                            android:paddingBottom="4dp" />
+                            android:paddingEnd="4dp" />
 
                         <TextView
                             android:id="@+id/best_time_date"
@@ -273,19 +270,18 @@
                             android:textSize="12sp"
                             android:textColor="#666666"
                             android:gravity="end"
+                            android:paddingStart="4dp"
                             android:paddingEnd="4dp"
-                            android:paddingTop="4dp"
-                            android:paddingBottom="4dp"
                             android:ellipsize="end"
                             android:maxLines="1" />
 
                         <ImageButton
                             android:id="@+id/btn_replay_best_time"
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:src="@android:drawable/ic_media_play"
-                            android:tint="#000000"
+                            app:tint="#000000"
                             android:contentDescription="재도전"
                             android:visibility="gone" />
                     </LinearLayout>
@@ -295,8 +291,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="2dp">
+                        android:gravity="center_vertical">
 
                         <TextView
                             android:id="@+id/best_streak_text"
@@ -305,9 +300,7 @@
                             android:text="🔥 최장 연승: 기록 없음"
                             android:textSize="14sp"
                             android:paddingStart="8dp"
-                            android:paddingEnd="4dp"
-                            android:paddingTop="4dp"
-                            android:paddingBottom="4dp" />
+                            android:paddingEnd="4dp" />
 
                         <TextView
                             android:id="@+id/best_streak_date"
@@ -319,8 +312,6 @@
                             android:textColor="#666666"
                             android:gravity="end"
                             android:paddingEnd="8dp"
-                            android:paddingTop="4dp"
-                            android:paddingBottom="4dp"
                             android:ellipsize="end"
                             android:maxLines="1" />
                     </LinearLayout>
@@ -337,7 +328,7 @@
                 <Spinner
                     android:id="@+id/filter_spinner"
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
+                    android:layout_height="36dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
                     android:background="#FFFFFF"
@@ -347,7 +338,7 @@
                 <Spinner
                     android:id="@+id/sort_spinner"
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
+                    android:layout_height="36dp"
                     android:layout_weight="1"
                     android:background="#FFFFFF"
                     android:paddingStart="12dp"
@@ -359,8 +350,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:paddingTop="14dp"
-                android:paddingBottom="12dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp"
                 android:background="#E0E0E0"
@@ -372,7 +363,8 @@
                     android:layout_weight="2"
                     android:text="날짜/시간"
                     android:textSize="12sp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:gravity="center" />
 
                 <TextView
                     android:layout_width="0dp"
@@ -381,7 +373,7 @@
                     android:text="결과"
                     android:textSize="12sp"
                     android:textStyle="bold"
-                    android:gravity="center" />
+                    android:gravity="end" />
 
                 <TextView
                     android:layout_width="0dp"
@@ -395,12 +387,11 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:layout_weight="1.2"
                     android:text="시간"
                     android:textSize="12sp"
                     android:textStyle="bold"
                     android:gravity="end" />
-
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -412,14 +403,13 @@
 
                 <!-- Favorite Button Space -->
                 <View
-                    android:layout_width="32dp"
+                    android:layout_width="28dp"
                     android:layout_height="1dp" />
 
                 <!-- Replay Button Space -->
                 <View
-                    android:layout_width="32dp"
-                    android:layout_height="1dp"
-                    android:layout_marginStart="4dp" />
+                    android:layout_width="28dp"
+                    android:layout_height="1dp" />
 
             </LinearLayout>
 
@@ -454,7 +444,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="페이지 1 / 1"
+                    android:text="1 / 1"
                     android:gravity="center"
                     android:textSize="14sp"
                     android:layout_marginStart="8dp"

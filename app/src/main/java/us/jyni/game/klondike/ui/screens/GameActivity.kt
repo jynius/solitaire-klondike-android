@@ -70,7 +70,6 @@ class GameActivity : AppCompatActivity() {
     
     // 게임 기록 관련 변수들
     private var gameStartTime: Long = 0
-    private var moveCount: Int = 0
     private var currentGameSeed: ULong = 0u
     
     enum class DragSourceType {
@@ -183,7 +182,7 @@ class GameActivity : AppCompatActivity() {
                     val allStats = repository.readAllStats()
                     android.util.Log.d("GameActivity", "=== Stats Check ===")
                     android.util.Log.d("GameActivity", "Total games: ${allStats.size}")
-                    android.util.Log.d("GameActivity", "Current moveCount: $moveCount")
+                    android.util.Log.d("GameActivity", "Current moveCount: ${viewModel.getMoveCount()}")
                     android.util.Log.d("GameActivity", "Current seed: $currentGameSeed")
                     android.util.Log.d("GameActivity", "Victory shown: $victoryShown")
                     
@@ -280,9 +279,6 @@ class GameActivity : AppCompatActivity() {
                                         moved = viewModel.moveWasteToTableau(col)
                                     } else if (selectedFoundation != null) {
                                         moved = viewModel.moveFoundationToTableau(selectedFoundation!!, col)
-                                    }
-                                    if (moved) {
-                                        incrementMoveCount()
                                     }
                                     if (!moved) {
                                         v.performHapticFeedback(HapticFeedbackConstants.REJECT)
@@ -392,9 +388,6 @@ class GameActivity : AppCompatActivity() {
                                 val from = selectedTableau
                                 if (from != null) {
                                     val moved = viewModel.moveTableauToFoundation(from, index)
-                                    if (moved) {
-                                        incrementMoveCount()
-                                    }
                                     if (!moved) {
                                         v.performHapticFeedback(HapticFeedbackConstants.REJECT)
                                         Toast.makeText(this@GameActivity, "Invalid move", Toast.LENGTH_SHORT).show()
@@ -407,9 +400,6 @@ class GameActivity : AppCompatActivity() {
                                 } else {
                                     // Try waste -> foundation
                                     val moved = viewModel.moveWasteToFoundation(index)
-                                    if (moved) {
-                                        incrementMoveCount()
-                                    }
                                     if (!moved) {
                                         v.performHapticFeedback(HapticFeedbackConstants.REJECT)
                                         Toast.makeText(this@GameActivity, "Invalid move", Toast.LENGTH_SHORT).show()
@@ -599,13 +589,14 @@ class GameActivity : AppCompatActivity() {
         updateFavoriteIndicator()
         
         findViewById<ImageButton>(R.id.restart_button).setOnClickListener {
-            android.util.Log.d("GameActivity", "Restart button clicked: moveCount=$moveCount, victoryShown=$victoryShown")
+            val currentMoveCount = viewModel.getMoveCount()
+            android.util.Log.d("GameActivity", "Restart button clicked: moveCount=$currentMoveCount, victoryShown=$victoryShown")
             // 현재 게임을 포기로 기록
-            if (moveCount > 0 && !victoryShown) {
+            if (currentMoveCount > 0 && !victoryShown) {
                 android.util.Log.d("GameActivity", "Saving current game as resign")
                 saveGameResult("resign")
             } else {
-                android.util.Log.d("GameActivity", "Not saving: moveCount=$moveCount, victoryShown=$victoryShown")
+                android.util.Log.d("GameActivity", "Not saving: moveCount=$currentMoveCount, victoryShown=$victoryShown")
             }
             
             viewModel.restartGame()
@@ -616,13 +607,14 @@ class GameActivity : AppCompatActivity() {
             updateFavoriteIndicator()
         }
         findViewById<ImageButton>(R.id.reset_button).setOnClickListener {
-            android.util.Log.d("GameActivity", "Reset button clicked: moveCount=$moveCount, victoryShown=$victoryShown")
+            val currentMoveCount = viewModel.getMoveCount()
+            android.util.Log.d("GameActivity", "Reset button clicked: moveCount=$currentMoveCount, victoryShown=$victoryShown")
             // 현재 게임을 포기로 기록
-            if (moveCount > 0 && !victoryShown) {
+            if (currentMoveCount > 0 && !victoryShown) {
                 android.util.Log.d("GameActivity", "Saving current game as resign")
                 saveGameResult("resign")
             } else {
-                android.util.Log.d("GameActivity", "Not saving: moveCount=$moveCount, victoryShown=$victoryShown")
+                android.util.Log.d("GameActivity", "Not saving: moveCount=$currentMoveCount, victoryShown=$victoryShown")
             }
             
             viewModel.reset()
@@ -632,7 +624,6 @@ class GameActivity : AppCompatActivity() {
         }
         findViewById<ImageButton>(R.id.undo_button).setOnClickListener {
             viewModel.undo()
-            if (moveCount > 0) moveCount--
             persist()
         }
         
@@ -835,10 +826,8 @@ class GameActivity : AppCompatActivity() {
                     }
                     
                     if (moved) {
-                        incrementMoveCount()
                         view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
                     } else {
-                        view.performHapticFeedback(HapticFeedbackConstants.REJECT)
                         Toast.makeText(this, "Invalid move", Toast.LENGTH_SHORT).show()
                     }
                 } else {
@@ -954,7 +943,6 @@ class GameActivity : AppCompatActivity() {
                     for (foundationIndex in 0..3) {
                         if (viewModel.canMoveTableauToFoundation(sourceIndex, foundationIndex)) {
                             if (viewModel.moveTableauToFoundation(sourceIndex, foundationIndex)) {
-                                incrementMoveCount()
                                 return
                             }
                         }
@@ -965,7 +953,6 @@ class GameActivity : AppCompatActivity() {
                 for (foundationIndex in 0..3) {
                     if (viewModel.canMoveWasteToFoundation(foundationIndex)) {
                         if (viewModel.moveWasteToFoundation(foundationIndex)) {
-                            incrementMoveCount()
                             return
                         }
                     }
@@ -1101,7 +1088,6 @@ class GameActivity : AppCompatActivity() {
                     for (foundationIndex in 0..3) {
                         if (viewModel.canMoveTableauToFoundation(col, foundationIndex)) {
                             if (viewModel.moveTableauToFoundation(col, foundationIndex)) {
-                                incrementMoveCount()
                                 moved = true
                                 break
                             }
@@ -1153,8 +1139,16 @@ class GameActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+        // 타이머 일시정지
+        viewModel.pause()
         // 앱이 백그라운드로 가거나 종료될 때 게임 상태를 저장
         saveGameState()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 타이머 재개
+        viewModel.resume()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -1184,7 +1178,7 @@ class GameActivity : AppCompatActivity() {
                 startedAt = gameStartTime,
                 finishedAt = null,
                 durationMs = 0,
-                moveCount = moveCount,
+                moveCount = viewModel.getMoveCount(),
                 outcome = null
             )
         } catch (e: Exception) {
@@ -1208,13 +1202,13 @@ class GameActivity : AppCompatActivity() {
     
     private fun startNewGame(seed: ULong) {
         gameStartTime = System.currentTimeMillis()
-        moveCount = 0
         currentGameSeed = seed
     }
     
     private fun saveGameResult(outcome: String) {
         try {
             val finishTime = System.currentTimeMillis()
+            val currentMoveCount = viewModel.getMoveCount()
             val stats = us.jyni.game.klondike.util.stats.SolveStats(
                 dealId = viewModel.dealId(),
                 seed = currentGameSeed,
@@ -1222,19 +1216,14 @@ class GameActivity : AppCompatActivity() {
                 startedAt = gameStartTime,
                 finishedAt = finishTime,
                 durationMs = finishTime - gameStartTime,
-                moveCount = moveCount,
+                moveCount = currentMoveCount,
                 outcome = outcome
             )
             repository.appendPending(stats)
-            android.util.Log.d("GameActivity", "Game result saved: outcome=$outcome, moves=$moveCount, duration=${finishTime - gameStartTime}ms")
+            android.util.Log.d("GameActivity", "Game result saved: outcome=$outcome, moves=$currentMoveCount, duration=${finishTime - gameStartTime}ms")
         } catch (e: Exception) {
             android.util.Log.e("GameActivity", "Failed to save game result", e)
         }
-    }
-    
-    private fun incrementMoveCount() {
-        moveCount++
-        android.util.Log.d("GameActivity", "Move count incremented: $moveCount")
     }
 
     companion object {

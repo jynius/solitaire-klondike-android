@@ -31,12 +31,13 @@ class GameViewModel : ViewModel() {
         Log.d("GameViewModel", "Game started - Stock: ${_state.value.stock.size}, Waste: ${_state.value.waste.size}")
     }
 
-    fun draw() {
+    fun draw(): Int {
         // Make draw synchronous so Espresso waits for UI state to settle
         android.util.Log.d("GameViewModel", "draw() called")
         val drawn = engine.draw()
         android.util.Log.d("GameViewModel", "draw() returned: $drawn, waste size: ${engine.getGameState().waste.size}")
         _state.value = engine.getGameState()
+        return drawn
     }
 
     fun undo() {

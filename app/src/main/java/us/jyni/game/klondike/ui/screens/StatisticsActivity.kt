@@ -112,7 +112,8 @@ class StatisticsActivity : AppCompatActivity() {
         
         filterSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                // 텍스트 색상을 검은색으로 설정
+                // 배경색을 흰색, 텍스트 색상을 검은색으로 설정
+                (view as? TextView)?.setBackgroundColor(android.graphics.Color.WHITE)
                 (view as? TextView)?.setTextColor(android.graphics.Color.BLACK)
                 
                 currentFilter = when (position) {
@@ -153,7 +154,8 @@ class StatisticsActivity : AppCompatActivity() {
         
         spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                // 텍스트 색상을 검은색으로 설정
+                // 배경색을 흰색, 텍스트 색상을 검은색으로 설정
+                (view as? TextView)?.setBackgroundColor(android.graphics.Color.WHITE)
                 (view as? TextView)?.setTextColor(android.graphics.Color.BLACK)
                 
                 currentSort = when (position) {
@@ -322,7 +324,7 @@ class StatisticsActivity : AppCompatActivity() {
         
         // 페이지 정보 업데이트
         pageInfoText.text = if (result.totalPages > 0) {
-            "페이지 ${result.page + 1} / ${result.totalPages} (전체 ${result.totalItems}개)"
+            "${result.page + 1} / ${result.totalPages} (${result.totalItems})"
         } else {
             "게임 기록이 없습니다"
         }
