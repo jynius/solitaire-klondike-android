@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:textColor="#FFFFFF"
         android:textSize="12sp"
-        android:text="status"/>
+        android:text="@string/debug_status"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -21,31 +21,31 @@
         android:orientation="horizontal"
         android:paddingTop="8dp">
 
-        <Switch
+        <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/toggle_upload"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Enable Upload"/>
+            android:text="@string/debug_enable_upload"/>
 
         <Button
             android:id="@+id/btn_trigger_upload"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Trigger Upload"
+            android:text="@string/debug_trigger_upload"
             android:layout_marginStart="16dp"/>
 
         <Button
             android:id="@+id/btn_edit_base_url"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Edit Base URL"
+            android:text="@string/debug_edit_base_url"
             android:layout_marginStart="16dp"/>
 
         <Button
             android:id="@+id/btn_refresh_pending"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Refresh"
+            android:text="@string/debug_refresh"
             android:layout_marginStart="16dp"/>
     </LinearLayout>
 

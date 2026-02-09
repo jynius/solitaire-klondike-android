@@ -88,7 +88,7 @@ object SaveCodec {
         // New fields in GS2 (with defaults for GS1 compatibility)
         val score = map["score"]?.toIntOrNull() ?: 0
         val moveCount = map["moves"]?.toIntOrNull() ?: 0
-        val startedAt = map["started"]?.toLongOrNull() ?: System.currentTimeMillis()
+        val startedAt = map["started"]?.toLongOrNull() ?: 0L
         val totalPausedMs = map["paused"]?.toLongOrNull() ?: 0L
         
         val tableau = decodeColumns(map["tab"].orEmpty())

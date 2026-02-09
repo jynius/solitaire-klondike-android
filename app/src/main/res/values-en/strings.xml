@@ -30,7 +30,7 @@
     <string name="restart_same_layout">Restarting with same layout</string>
     <string name="hint_message">Hint: %s</string>
     <string name="no_hint_available">No hint available</string>
-    <string name="solver_running">Solver running...</string>
+    <string name="solver_running">Solver running…</string>
     <string name="auto_complete_success">Automatically moved %d cards</string>
     <string name="auto_complete_none">No more cards to move automatically</string>
     <string name="share_not_ready">Share feature coming soon</string>
@@ -87,6 +87,12 @@
     <!-- Content descriptions -->
     <string name="retry_description">Retry</string>
     <string name="draw_button">Draw</string>
+    <string name="share_description">Share</string>
+    <string name="stats_description">Statistics</string>
+    <string name="hint_description">Hint</string>
+    <string name="auto_description">Auto</string>
+    <string name="favorite_status">Favorite status</string>
+    <string name="restart_description">Restart</string>
 
     <!-- Statistics -->
     <string name="stats_title">Statistics</string>
@@ -125,8 +131,22 @@
     <string name="sort_longest_time">Longest Time</string>
     <string name="sort_shortest_time">Shortest Time</string>
     
+    <!-- Game Header -->
+    <string name="game_title">SOLITAIRE</string>
+    <string name="game_subtitle">KLONDIKE</string>
+    <string name="label_score">SCORE</string>
+    <string name="label_moves">MOVES</string>
+    <string name="label_time">TIME</string>
+    
     <!-- Units -->
     <string name="unit_moves"> moves</string>
     <string name="unit_game_singular"> game</string>
     <string name="unit_game_plural"> games</string>
+    
+    <!-- Debug (MainActivity) -->
+    <string name="debug_status">status</string>
+    <string name="debug_enable_upload">Enable Upload</string>
+    <string name="debug_trigger_upload">Trigger Upload</string>
+    <string name="debug_edit_base_url">Edit Base URL</string>
+    <string name="debug_refresh">Refresh</string>
 </resources>

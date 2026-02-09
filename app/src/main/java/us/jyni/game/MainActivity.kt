@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
             panel?.visibility = android.view.View.GONE
         }
         val status = findViewById<TextView>(R.id.debug_status)
-        val toggle = findViewById<Switch>(R.id.toggle_upload)
+        val toggle = findViewById<androidx.appcompat.widget.SwitchCompat>(R.id.toggle_upload)
         val trigger = findViewById<Button>(R.id.btn_trigger_upload)
         val editBaseUrl = findViewById<Button>(R.id.btn_edit_base_url)
         val refreshPending = findViewById<Button>(R.id.btn_refresh_pending)

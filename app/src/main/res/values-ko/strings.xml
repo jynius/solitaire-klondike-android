@@ -30,7 +30,7 @@
     <string name="restart_same_layout">같은 배치로 다시 시작합니다</string>
     <string name="hint_message">힌트: %s</string>
     <string name="no_hint_available">힌트를 찾을 수 없습니다</string>
-    <string name="solver_running">솔버 실행 중...</string>
+    <string name="solver_running">솔버 실행 중…</string>
     <string name="auto_complete_success">%d 장의 카드를 자동으로 이동했습니다</string>
     <string name="auto_complete_none">더 이상 자동으로 이동할 카드가 없습니다</string>
     <string name="share_not_ready">공유 기능은 준비 중입니다</string>
@@ -87,6 +87,12 @@
     <!-- Content descriptions -->
     <string name="retry_description">재도전</string>
     <string name="draw_button">뽑기</string>
+    <string name="share_description">공유하기</string>
+    <string name="stats_description">통계</string>
+    <string name="hint_description">힌트</string>
+    <string name="auto_description">자동</string>
+    <string name="favorite_status">즐겨찾기 상태</string>
+    <string name="restart_description">다시시작</string>
 
     <!-- Statistics -->
     <string name="stats_title">통계</string>
@@ -125,8 +131,22 @@
     <string name="sort_longest_time">시간 긴순</string>
     <string name="sort_shortest_time">시간 짧은순</string>
     
+    <!-- Game Header -->
+    <string name="game_title">솔리테어</string>
+    <string name="game_subtitle">클론다이크</string>
+    <string name="label_score">점수</string>
+    <string name="label_moves">이동</string>
+    <string name="label_time">시간</string>
+    
     <!-- Units -->
     <string name="unit_moves">수</string>
     <string name="unit_game_singular">게임</string>
     <string name="unit_game_plural">게임</string>
+    
+    <!-- Debug (MainActivity) -->
+    <string name="debug_status">status</string>
+    <string name="debug_enable_upload">Enable Upload</string>
+    <string name="debug_trigger_upload">Trigger Upload</string>
+    <string name="debug_edit_base_url">Edit Base URL</string>
+    <string name="debug_refresh">Refresh</string>
 </resources>

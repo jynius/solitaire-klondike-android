@@ -610,13 +610,19 @@ class GameEngine {
     
     fun getElapsedTimeMs(): Long {
         // 타이머가 아직 시작되지 않았으면 0 반환
-        if (startedAt == 0L) return 0L
+        if (startedAt == 0L) {
+            android.util.Log.d("GameEngine", "getElapsedTimeMs: startedAt is 0")
+            return 0L
+        }
         
         val now = System.currentTimeMillis()
         val endTime = finishedAt ?: pausedAt ?: now
         val elapsed = endTime - startedAt - totalPausedMs
+        android.util.Log.d("GameEngine", "getElapsedTimeMs: now=$now, startedAt=$startedAt, elapsed=$elapsed, totalPausedMs=$totalPausedMs")
         return maxOf(0, elapsed)
     }
+    
+    fun getStartedAt(): Long = startedAt
     
     fun getMoveCount(): Int = moveCount
     
@@ -624,7 +630,9 @@ class GameEngine {
     private fun incrementMoveCount() {
         if (moveCount == 0) {
             startedAt = System.currentTimeMillis()
+            android.util.Log.d("GameEngine", "Timer started at: $startedAt")
         }
         moveCount += 1
+        android.util.Log.d("GameEngine", "Move count: $moveCount, startedAt: $startedAt")
     }
 }

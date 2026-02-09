@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_color">
@@ -27,20 +27,21 @@
             android:layout_centerVertical="true"
             android:src="@drawable/ic_back"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="뒤로가기" />
+            android:contentDescription="@string/back_button" />
 
         <!-- Title (center) -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
             android:orientation="vertical"
             android:gravity="center">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="SOLITAIRE"
+                android:text="@string/game_title"
                 android:textSize="16sp"
                 android:textColor="#FFFFFF"
                 android:textStyle="bold"
@@ -49,14 +50,15 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="FOREST EDITION"
-                android:textSize="10sp"
+                android:text="@string/game_subtitle"
+                android:textSize="12sp"
                 android:textColor="#A5D6A7"
                 android:letterSpacing="0.2" />
         </LinearLayout>
 
         <!-- Right buttons -->
         <LinearLayout
+            android:id="@+id/right_buttons"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
@@ -69,7 +71,7 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="공유하기"
+                android:contentDescription="@string/share_description"
                 android:src="@android:drawable/ic_menu_share" />
 
             <!-- Statistics button -->
@@ -78,7 +80,7 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="통계"
+                android:contentDescription="@string/stats_description"
                 android:src="@drawable/ic_statistics" />
 
             <!-- Settings button -->
@@ -99,6 +101,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/header_layout"
         android:orientation="horizontal"
+        android:baselineAligned="false"
         android:gravity="center"
         android:paddingTop="10dp"
         android:paddingBottom="8dp"
@@ -118,8 +121,8 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="SCORE"
-                android:textSize="10sp"
+                android:text="@string/label_score"
+                android:textSize="12sp"
                 android:textColor="#A5D6A7"
                 android:letterSpacing="0.1" />
 
@@ -127,7 +130,8 @@
                 android:id="@+id/score_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="2,450"
+                android:text="0"
+                tools:text="2,450"
                 android:textSize="18sp"
                 android:textColor="#FFFFFF"
                 android:textStyle="bold"
@@ -145,8 +149,8 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="TIME"
-                android:textSize="10sp"
+                android:text="@string/label_time"
+                android:textSize="12sp"
                 android:textColor="#A5D6A7"
                 android:letterSpacing="0.1" />
 
@@ -154,7 +158,8 @@
                 android:id="@+id/timer_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="04:12"
+                android:text="00:00"
+                tools:text="04:12"
                 android:textSize="18sp"
                 android:textColor="#FFFFFF"
                 android:textStyle="bold"
@@ -172,8 +177,8 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="MOVES"
-                android:textSize="10sp"
+                android:text="@string/label_moves"
+                android:textSize="12sp"
                 android:textColor="#A5D6A7"
                 android:letterSpacing="0.1" />
 
@@ -181,7 +186,8 @@
                 android:id="@+id/moves_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="42"
+                android:text="0"
+                tools:text="42"
                 android:textSize="18sp"
                 android:textColor="#FFFFFF"
                 android:textStyle="bold"
@@ -243,59 +249,64 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="start|center_vertical">
+            android:gravity="start|center_vertical"
+            style="?android:attr/buttonBarStyle">
 
             <Button
                 android:id="@+id/debug_copy_deal"
                 android:layout_width="wrap_content"
                 android:layout_height="28dp"
-                android:text="Deal복사"
-                android:textSize="9sp"
+                android:text="@string/debug_copy_deal"
+                android:textSize="12sp"
                 android:textColor="#424242"
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp"
                 android:minWidth="0dp"
                 android:background="@drawable/chip_debug_style"
-                android:layout_marginEnd="@dimen/spacing_small"/>
+                android:layout_marginEnd="@dimen/spacing_small"
+                style="?android:attr/buttonBarButtonStyle"/>
 
             <Button
                 android:id="@+id/debug_copy_layout"
                 android:layout_width="wrap_content"
                 android:layout_height="28dp"
-                android:text="JSON복사"
-                android:textSize="9sp"
+                android:text="@string/debug_copy_json"
+                android:textSize="12sp"
                 android:textColor="#424242"
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp"
                 android:minWidth="0dp"
                 android:background="@drawable/chip_debug_style"
-                android:layout_marginEnd="@dimen/spacing_small"/>
+                android:layout_marginEnd="@dimen/spacing_small"
+                style="?android:attr/buttonBarButtonStyle"/>
             
             <Button
                 android:id="@+id/debug_check_stats"
                 android:layout_width="wrap_content"
                 android:layout_height="28dp"
-                android:text="기록확인"
-                android:textSize="9sp"
+                android:text="@string/debug_stats"
+                android:textSize="12sp"
                 android:textColor="#424242"
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp"
                 android:minWidth="0dp"
                 android:background="@drawable/chip_debug_style"
-                android:layout_marginEnd="@dimen/spacing_small"/>
+                android:layout_marginEnd="@dimen/spacing_small"
+                style="?android:attr/buttonBarButtonStyle"/>
                 
             <Button
                 android:id="@+id/debug_log_state"
                 android:layout_width="wrap_content"
                 android:layout_height="28dp"
-                android:text="상태출력"
-                android:textSize="9sp"
+                android:text="@string/debug_show_deal"
+                android:textSize="12sp"
                 android:textColor="#424242"
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp"
                 android:minWidth="0dp"
                 android:background="@drawable/chip_debug_style"
-                android:layout_marginEnd="@dimen/spacing_small"/>
+                android:layout_marginEnd="@dimen/spacing_small"
+                style="?android:attr/buttonBarButtonStyle"/>
 
         </LinearLayout>
     </LinearLayout>
@@ -324,6 +335,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:orientation="horizontal"
+        android:baselineAligned="false"
         android:gravity="center_vertical"
         android:paddingStart="@dimen/padding_large"
         android:paddingEnd="@dimen/padding_large"
@@ -341,7 +353,7 @@
             android:layout_weight="1"
             android:layout_gravity="center"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="힌트"
+            android:contentDescription="@string/hint_description"
             android:src="@drawable/ic_hint" />
 
         <!-- Auto -->
@@ -352,7 +364,7 @@
             android:layout_weight="1"
             android:layout_gravity="center"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="자동"
+            android:contentDescription="@string/auto_description"
             android:src="@drawable/ic_auto_play" />
 
         <!-- New Game -->
@@ -373,7 +385,7 @@
             android:layout_height="40dp"
             android:layout_weight="1"
             android:layout_gravity="center"
-            android:contentDescription="즐겨찾기 상태"
+            android:contentDescription="@string/favorite_status"
             android:src="@drawable/ic_star_outline"
             android:scaleType="centerInside"
             android:padding="8dp" />
@@ -386,7 +398,7 @@
             android:layout_weight="1"
             android:layout_gravity="center"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="다시시작"
+            android:contentDescription="@string/restart_description"
             android:src="@drawable/ic_restart" />
 
         <!-- Undo -->

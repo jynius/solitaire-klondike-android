@@ -1119,6 +1119,8 @@ class GameActivity : AppCompatActivity() {
         val moves = viewModel.getMoveCount()
         val timeStr = String.format("%02d:%02d", minutes, seconds)
         
+        android.util.Log.d("GameActivity", "updateTimerAndScore: time=$timeStr, score=$score, moves=$moves, elapsed=$elapsed")
+        
         // Update header timer, score, and moves
         findViewById<TextView>(R.id.timer_text)?.text = timeStr
         findViewById<TextView>(R.id.score_text)?.text = String.format("%,d", score)

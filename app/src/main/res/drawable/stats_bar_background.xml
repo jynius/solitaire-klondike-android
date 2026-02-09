@@ -8,13 +8,14 @@
         </shape>
     </item>
     
-    <!-- Bottom shadow for depth -->
-    <item android:gravity="bottom" android:height="3dp">
+    <!-- Bottom shadow for depth (3dp from bottom) -->
+    <item android:bottom="0dp">
         <shape android:shape="rectangle">
             <gradient
                 android:startColor="#00000000"
                 android:endColor="#60000000"
                 android:angle="90" />
+            <size android:height="3dp" />
         </shape>
     </item>
     

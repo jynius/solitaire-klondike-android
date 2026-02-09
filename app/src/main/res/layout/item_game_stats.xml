@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="0dp"
@@ -18,6 +20,7 @@
         android:layout_marginTop="4dp"
         android:layout_marginBottom="4dp"
         android:orientation="horizontal"
+        android:baselineAligned="false"
         android:paddingStart="12dp"
         android:paddingEnd="12dp"
         android:background="#FFFFFF"
@@ -29,7 +32,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="2"
-        android:text="02-06 14:23"
+        tools:text="02-06 14:23"
         android:textSize="13sp"
         android:textColor="#000000"
         android:ellipsize="end"
@@ -41,7 +44,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="0.6"
-        android:text="✅"
+        tools:text="✅"
         android:textSize="16sp"
         android:gravity="center" />
 
@@ -51,7 +54,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1.2"
-        android:text="102수"
+        tools:text="102"
         android:textSize="13sp"
         android:textColor="#000000"
         android:gravity="end" />
@@ -62,7 +65,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1.2"
-        android:text="4:23"
+        tools:text="4:23"
         android:textSize="13sp"
         android:textColor="#000000"
         android:gravity="end" />
@@ -73,7 +76,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="0.8"
-        android:text="D3"
+        tools:text="D3"
         android:textSize="13sp"
         android:textColor="#000000"
         android:gravity="center"
@@ -86,7 +89,7 @@
         android:layout_height="24dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@drawable/ic_star_outline"
-        android:contentDescription="즐겨찾기" />
+        android:contentDescription="@string/stats_favorites" />
 
     <!-- Replay Button -->
     <ImageButton
@@ -95,8 +98,8 @@
         android:layout_height="24dp"
         android:layout_marginStart="4dp"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:src="@android:drawable/ic_media_play"
-        android:tint="#000000"
+        android:src="@drawable/ic_replay"
+        app:tint="#000000"
         android:contentDescription="@string/retry_description" />
 
     <!-- Hidden TextViews for compatibility -->

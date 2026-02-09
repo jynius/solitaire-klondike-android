@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -78,7 +79,8 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:baselineAligned="false">
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -91,7 +93,7 @@
                                 android:id="@+id/total_games_text"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="0"
+                                tools:text="0"
                                 android:textSize="24sp"
                                 android:textStyle="bold" />
 
@@ -114,7 +116,7 @@
                                 android:id="@+id/win_rate_text"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="0%"
+                                tools:text="0%"
                                 android:textSize="24sp"
                                 android:textStyle="bold"
                                 android:textColor="#4CAF50" />
@@ -138,7 +140,7 @@
                                 android:id="@+id/favorites_count_text"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="0"
+                                tools:text="0"
                                 android:textSize="24sp"
                                 android:textStyle="bold"
                                 android:textColor="#FFC107" />
@@ -163,20 +165,20 @@
                         android:id="@+id/avg_moves_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="⚡ 평균 이동: 0수"
+                        android:text="@string/stats_avg_moves"
                         android:textSize="14sp"
-                        android:paddingStart="8dp"
-                        android:paddingEnd="4dp"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="2dp"
                         android:layout_marginBottom="4dp" />
 
                     <TextView
                         android:id="@+id/avg_time_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🚀 평균 시간: 0:00"
+                        android:text="@string/stats_avg_time"
                         android:textSize="14sp"
-                        android:paddingStart="8dp"
-                        android:paddingEnd="4dp" />
+                        android:paddingStart="4dp"
+                        android:paddingEnd="2dp" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -214,10 +216,10 @@
                             android:id="@+id/best_moves_text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="⚡ 최소 이동: 기록 없음"
+                            android:text="@string/stats_min_moves"
                             android:textSize="14sp"
-                            android:paddingStart="8dp"
-                            android:paddingEnd="4dp" />
+                            android:paddingStart="4dp"
+                            android:paddingEnd="2dp" />
 
                         <TextView
                             android:id="@+id/best_moves_date"
@@ -238,7 +240,7 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:background="?attr/selectableItemBackgroundBorderless"
-                            android:src="@android:drawable/ic_media_play"
+                            android:src="@drawable/ic_replay"
                             app:tint="#000000"
                             android:contentDescription="@string/retry_description"
                             android:visibility="gone" />
@@ -256,10 +258,10 @@
                             android:id="@+id/best_time_text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="🚀 최단 시간: 기록 없음"
+                            android:text="@string/stats_min_time"
                             android:textSize="14sp"
-                            android:paddingStart="8dp"
-                            android:paddingEnd="4dp" />
+                            android:paddingStart="4dp"
+                            android:paddingEnd="2dp" />
 
                         <TextView
                             android:id="@+id/best_time_date"
@@ -297,10 +299,10 @@
                             android:id="@+id/best_streak_text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="🔥 최장 연승: 기록 없음"
+                            android:text="@string/stats_longest_streak"
                             android:textSize="14sp"
-                            android:paddingStart="8dp"
-                            android:paddingEnd="4dp" />
+                            android:paddingStart="4dp"
+                            android:paddingEnd="2dp" />
 
                         <TextView
                             android:id="@+id/best_streak_date"
@@ -311,6 +313,7 @@
                             android:textSize="12sp"
                             android:textColor="#666666"
                             android:gravity="end"
+                            android:paddingStart="4dp"
                             android:paddingEnd="8dp"
                             android:ellipsize="end"
                             android:maxLines="1" />
@@ -430,7 +433,8 @@
                 android:orientation="horizontal"
                 android:gravity="center"
                 android:padding="8dp"
-                android:layout_marginTop="8dp">
+                android:layout_marginTop="8dp"
+                style="?android:attr/buttonBarStyle">
 
                 <Button
                     android:id="@+id/btn_prev_page"
@@ -439,17 +443,18 @@
                     android:minWidth="80dp"
                     android:text="@string/stats_prev_page"
                     android:textSize="14sp"
-                    android:autoSizeTextType="uniform"
-                    android:autoSizeMinTextSize="10sp"
-                    android:autoSizeMaxTextSize="14sp"
-                    android:autoSizeStepGranularity="1sp" />
+                    app:autoSizeTextType="uniform"
+                    app:autoSizeMinTextSize="12sp"
+                    app:autoSizeMaxTextSize="14sp"
+                    app:autoSizeStepGranularity="1sp"
+                    style="?android:attr/buttonBarButtonStyle" />
 
                 <TextView
                     android:id="@+id/page_info"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="1 / 1"
+                    tools:text="1 / 1"
                     android:gravity="center"
                     android:textSize="14sp"
                     android:layout_marginStart="8dp"
@@ -462,10 +467,11 @@
                     android:minWidth="80dp"
                     android:text="@string/stats_next_page"
                     android:textSize="14sp"
-                    android:autoSizeTextType="uniform"
-                    android:autoSizeMinTextSize="10sp"
-                    android:autoSizeMaxTextSize="14sp"
-                    android:autoSizeStepGranularity="1sp" />
+                    app:autoSizeTextType="uniform"
+                    app:autoSizeMinTextSize="12sp"
+                    app:autoSizeMaxTextSize="14sp"
+                    app:autoSizeStepGranularity="1sp"
+                    style="?android:attr/buttonBarButtonStyle" />
             </LinearLayout>
 
         </LinearLayout>
