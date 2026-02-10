@@ -108,6 +108,7 @@ class StatisticsActivity : AppCompatActivity() {
     private fun setupFilterButtons() {
         val filterSpinner = findViewById<Spinner>(R.id.filter_spinner)
         filterSpinner.setBackgroundColor(android.graphics.Color.WHITE)
+        filterSpinner.setPopupBackgroundResource(android.R.color.white)
         
         val filterOptions = arrayOf(
             getString(R.string.filter_all),
@@ -157,8 +158,9 @@ class StatisticsActivity : AppCompatActivity() {
     }
     
     private fun setupSortSpinner() {
-        val spinner = findViewById<Spinner>(R.id.sort_spinner)
-        spinner.setBackgroundColor(android.graphics.Color.WHITE)
+        val sortSpinner = findViewById<Spinner>(R.id.sort_spinner)
+        sortSpinner.setBackgroundColor(android.graphics.Color.WHITE)
+        sortSpinner.setPopupBackgroundResource(android.R.color.white)
         
         val sortOptions = arrayOf(
             getString(R.string.sort_newest),
@@ -176,7 +178,7 @@ class StatisticsActivity : AppCompatActivity() {
                 view.setTextColor(android.graphics.Color.BLACK)
                 
                 // 현재 선택된 항목 하이라이트
-                if (position == spinner.selectedItemPosition) {
+                if (position == sortSpinner.selectedItemPosition) {
                     view.setBackgroundColor(android.graphics.Color.parseColor("#E3F2FD"))
                     view.setTypeface(null, android.graphics.Typeface.BOLD)
                 } else {
@@ -187,11 +189,11 @@ class StatisticsActivity : AppCompatActivity() {
             }
         }
         arrayAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
-        spinner.adapter = arrayAdapter
-        spinner.dropDownVerticalOffset = 14
-        spinner.dropDownHorizontalOffset = -20
+        sortSpinner.adapter = arrayAdapter
+        sortSpinner.dropDownVerticalOffset = 14
+        sortSpinner.dropDownHorizontalOffset = -20
         
-        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+        sortSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 currentSort = when (position) {
                     0 -> SortOrder.NEWEST_FIRST
