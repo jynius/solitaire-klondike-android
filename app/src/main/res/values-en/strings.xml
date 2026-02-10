@@ -21,6 +21,10 @@
     <string name="score">Score</string>
     <string name="moves">Moves</string>
     <string name="time">Time</string>
+    <string name="victory_title">🎉 Congratulations!</string>
+    <string name="victory_message">You completed Klondike Solitaire!\n\nWould you like to start a new game?</string>
+    <string name="victory_new_game">New Game</string>
+    <string name="victory_restart">Restart</string>
     
     <!-- Toast Messages -->
     <string name="deal_copied">Deal ID copied</string>

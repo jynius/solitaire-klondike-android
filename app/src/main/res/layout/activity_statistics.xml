@@ -282,7 +282,7 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:background="?attr/selectableItemBackgroundBorderless"
-                            android:src="@android:drawable/ic_media_play"
+                            android:src="@drawable/ic_replay"
                             app:tint="#000000"
                             android:contentDescription="@string/retry_description"
                             android:visibility="gone" />

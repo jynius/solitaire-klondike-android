@@ -924,14 +924,14 @@ class GameActivity : AppCompatActivity() {
         saveGameResult("win")
         
         val builder = androidx.appcompat.app.AlertDialog.Builder(this)
-        builder.setTitle("🎉 축하합니다!")
-        builder.setMessage("Klondike Solitaire를 완료했습니다!\n\n새 게임을 시작하시겠습니까?")
-        builder.setPositiveButton("새 게임") { _, _ ->
+        builder.setTitle(getString(R.string.victory_title))
+        builder.setMessage(getString(R.string.victory_message))
+        builder.setPositiveButton(getString(R.string.victory_new_game)) { _, _ ->
             victoryShown = false
             viewModel.reset()
             startNewGame(viewModel.getSeed())
         }
-        builder.setNegativeButton("다시 시작") { _, _ ->
+        builder.setNegativeButton(getString(R.string.victory_restart)) { _, _ ->
             victoryShown = false
             // 같은 시드로 재시작
             viewModel.restartGame()

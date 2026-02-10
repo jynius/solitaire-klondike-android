@@ -116,16 +116,30 @@ class StatisticsActivity : AppCompatActivity() {
             getString(R.string.filter_losses)
         )
         
-        val filterAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, filterOptions)
-        filterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        val filterAdapter = object : ArrayAdapter<String>(this, R.layout.spinner_item, filterOptions) {
+            override fun getDropDownView(position: Int, convertView: View?, parent: android.view.ViewGroup): View {
+                val view = super.getDropDownView(position, convertView, parent) as TextView
+                view.setBackgroundColor(android.graphics.Color.WHITE)
+                view.setTextColor(android.graphics.Color.BLACK)
+                
+                // 현재 선택된 항목 하이라이트
+                if (position == filterSpinner.selectedItemPosition) {
+                    view.setBackgroundColor(android.graphics.Color.parseColor("#E3F2FD"))
+                    view.setTypeface(null, android.graphics.Typeface.BOLD)
+                } else {
+                    view.setBackgroundResource(android.R.drawable.list_selector_background)
+                    view.setTypeface(null, android.graphics.Typeface.NORMAL)
+                }
+                return view
+            }
+        }
+        filterAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
         filterSpinner.adapter = filterAdapter
+        filterSpinner.dropDownVerticalOffset = 14
+        filterSpinner.dropDownHorizontalOffset = -20
         
         filterSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                // 배경색을 흰색, 텍스트 색상을 검은색으로 설정
-                (view as? TextView)?.setBackgroundColor(android.graphics.Color.WHITE)
-                (view as? TextView)?.setTextColor(android.graphics.Color.BLACK)
-                
                 currentFilter = when (position) {
                     0 -> GameFilter.ALL
                     1 -> GameFilter.FAVORITE
@@ -133,6 +147,7 @@ class StatisticsActivity : AppCompatActivity() {
                     3 -> GameFilter.LOSS
                     else -> GameFilter.ALL
                 }
+                filterAdapter.notifyDataSetChanged()
                 currentPage = 0
                 loadPage(0)
             }
@@ -154,20 +169,30 @@ class StatisticsActivity : AppCompatActivity() {
             getString(R.string.sort_shortest_time)
         )
         
-        val arrayAdapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_item,
-            sortOptions
-        )
-        arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        val arrayAdapter = object : ArrayAdapter<String>(this, R.layout.spinner_item, sortOptions) {
+            override fun getDropDownView(position: Int, convertView: View?, parent: android.view.ViewGroup): View {
+                val view = super.getDropDownView(position, convertView, parent) as TextView
+                view.setBackgroundColor(android.graphics.Color.WHITE)
+                view.setTextColor(android.graphics.Color.BLACK)
+                
+                // 현재 선택된 항목 하이라이트
+                if (position == spinner.selectedItemPosition) {
+                    view.setBackgroundColor(android.graphics.Color.parseColor("#E3F2FD"))
+                    view.setTypeface(null, android.graphics.Typeface.BOLD)
+                } else {
+                    view.setBackgroundResource(android.R.drawable.list_selector_background)
+                    view.setTypeface(null, android.graphics.Typeface.NORMAL)
+                }
+                return view
+            }
+        }
+        arrayAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
         spinner.adapter = arrayAdapter
+        spinner.dropDownVerticalOffset = 14
+        spinner.dropDownHorizontalOffset = -20
         
         spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                // 배경색을 흰색, 텍스트 색상을 검은색으로 설정
-                (view as? TextView)?.setBackgroundColor(android.graphics.Color.WHITE)
-                (view as? TextView)?.setTextColor(android.graphics.Color.BLACK)
-                
                 currentSort = when (position) {
                     0 -> SortOrder.NEWEST_FIRST
                     1 -> SortOrder.OLDEST_FIRST
@@ -177,6 +202,7 @@ class StatisticsActivity : AppCompatActivity() {
                     5 -> SortOrder.SHORTEST_TIME
                     else -> SortOrder.NEWEST_FIRST
                 }
+                arrayAdapter.notifyDataSetChanged()
                 currentPage = 0
                 loadPage(0)
             }
