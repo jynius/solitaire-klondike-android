@@ -25,9 +25,9 @@ class UnsolvableDetector(private val engine: GameEngine) {
             return UnsolvableReason.KingDeadlock("킹이 필요한 카드를 막고 있습니다")
         }
         
-        val colorBlock = findSameColorBlock(state)
-        if (colorBlock != null) {
-            return colorBlock
+        val suitBlock = findSameSuitBlock(state)
+        if (suitBlock != null) {
+            return suitBlock
         }
         
         return null  // Solvable 또는 판단 불가
@@ -102,10 +102,10 @@ class UnsolvableDetector(private val engine: GameEngine) {
     }
     
     /**
-     * 3. 색상 블록 (Same Color Block)
+     * 3. 무늬 블록 (Same Suit Block)
      * Foundation에 올라가야 할 카드가 같은 무늬의 더 높은 카드 밑에 깔림
      */
-    private fun findSameColorBlock(state: GameState): UnsolvableReason.SameColorBlock? {
+    private fun findSameSuitBlock(state: GameState): UnsolvableReason.SameSuitBlock? {
         for ((foundationIndex, foundation) in state.foundation.withIndex()) {
             if (foundation.isEmpty()) continue
             
@@ -131,7 +131,7 @@ class UnsolvableDetector(private val engine: GameEngine) {
                                 
                                 // 더 엄격한 조건: 카드가 뒷면이거나, 꺼낼 방법이 없는 경우
                                 if (!card.isFaceUp) {
-                                    return UnsolvableReason.SameColorBlock(
+                                    return UnsolvableReason.SameSuitBlock(
                                         "필요한 카드가 같은 무늬 카드 밑에 뒷면으로 깔려있습니다: " +
                                         "${topFoundation.suit} ${nextRankNeeded}"
                                     )
@@ -164,7 +164,7 @@ sealed class UnsolvableReason(val message: String) {
     /**
      * 같은 무늬의 카드가 블록을 형성
      */
-    data class SameColorBlock(val reason: String) : UnsolvableReason(reason)
+    data class SameSuitBlock(val reason: String) : UnsolvableReason(reason)
     
     /**
      * 순환 의존성 (구현 예정)
