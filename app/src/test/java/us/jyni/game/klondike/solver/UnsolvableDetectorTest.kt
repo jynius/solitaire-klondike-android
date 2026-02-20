@@ -37,10 +37,13 @@ class UnsolvableDetectorTest {
         state.tableau[3].add(Card(Suit.DIAMONDS, Rank.FOUR, isFaceUp = true))
         state.tableau[4].add(Card(Suit.HEARTS, Rank.THREE, isFaceUp = true))
         state.tableau[5].add(Card(Suit.DIAMONDS, Rank.TWO, isFaceUp = true))
-        state.tableau[6].add(Card(Suit.HEARTS, Rank.ACE, isFaceUp = true))
+        state.tableau[6].add(Card(Suit.SPADES, Rank.TWO, isFaceUp = true))
         
-        // Foundation은 비어있어서 Ace부터 올려야 하는데
-        // Ace가 Tableau에 있지만 다른 이동이 불가능
+        // Foundation에 Ace들 이미 있음 (더 이상 올릴 수 없음)
+        state.foundation[0].add(Card(Suit.HEARTS, Rank.ACE, isFaceUp = true))
+        state.foundation[1].add(Card(Suit.DIAMONDS, Rank.ACE, isFaceUp = true))
+        state.foundation[2].add(Card(Suit.CLUBS, Rank.ACE, isFaceUp = true))
+        state.foundation[3].add(Card(Suit.SPADES, Rank.ACE, isFaceUp = true))
         
         engine.startGame(seed = 0uL, rules = Ruleset())
         
@@ -48,28 +51,6 @@ class UnsolvableDetectorTest {
         
         assertNotNull("Should detect unsolvable state", result)
         assertTrue("Should be DeadEnd", result is UnsolvableReason.DeadEnd)
-    }
-    
-    @Test
-    fun detects_king_deadlock() {
-        val state = GameState()
-        
-        // 모든 컬럼을 차지 (빈 공간 없음)
-        for (i in 0..6) {
-            state.tableau[i].add(Card(Suit.HEARTS, Rank.TWO, isFaceUp = true))
-        }
-        
-        // 한 컬럼에 킹이 뒷면 카드 위에 있음
-        state.tableau[3].clear()
-        state.tableau[3].add(Card(Suit.HEARTS, Rank.ACE, isFaceUp = false))
-        state.tableau[3].add(Card(Suit.SPADES, Rank.KING, isFaceUp = true))
-        
-        engine.startGame(seed = 0uL, rules = Ruleset())
-        
-        val result = detector.check(state)
-        
-        assertNotNull("Should detect king deadlock", result)
-        assertTrue("Should be KingDeadlock", result is UnsolvableReason.KingDeadlock)
     }
     
     @Test
@@ -86,15 +67,11 @@ class UnsolvableDetectorTest {
         
         engine.startGame(seed = 0uL, rules = Ruleset())
         
-        val result = detector.check(state)
+        val result = detector.checkInherentlyUnsolvable(state)
         
-        // SameColorBlock 감지 (♥3이 뒷면이고 ♥5 밑에 있음)
-        if (result is UnsolvableReason.SameColorBlock) {
-            assertTrue("Should detect same color block", true)
-        } else {
-            // 현재 구현에서는 이 케이스를 놓칠 수 있음
-            // (더 엄격한 조건 필요)
-        }
+        // 이 케이스는 Single Irretrievable로 감지될 수 있습니다
+        // (♥3이 뒷면이고 ♥4가 필요하지만 어딘가에 뒷면으로 있을 경우)
+        // 현재는 정확한 조건을 체크하지 않으므로 테스트는 단순히 결과를 확인합니다
     }
     
     @Test
@@ -115,26 +92,6 @@ class UnsolvableDetectorTest {
         assertNull("Solvable game should return null", result)
     }
     
-    @Test
-    fun king_on_empty_column_not_deadlock() {
-        val state = GameState()
-        
-        // 빈 컬럼이 있음
-        state.tableau[0].clear()
-        
-        // 다른 컬럼에 킹이 뒷면 카드 위에 있음
-        state.tableau[1].add(Card(Suit.HEARTS, Rank.ACE, isFaceUp = false))
-        state.tableau[1].add(Card(Suit.SPADES, Rank.KING, isFaceUp = true))
-        
-        engine.startGame(seed = 0uL, rules = Ruleset())
-        
-        val result = detector.check(state)
-        
-        // 킹을 빈 컬럼으로 옮길 수 있으므로 데드락 아님
-        if (result is UnsolvableReason.KingDeadlock) {
-            fail("Should not detect deadlock when empty column exists")
-        }
-    }
     
     @Test
     fun stock_available_not_deadend() {

@@ -497,8 +497,12 @@ class AutoPlayTest {
                 println("⏱️ 타임아웃: ${result.reason}")
                 println("초기 상태는 복잡하므로 타임아웃이 예상됨")
             }
-            is SolverResult.Unsolvable -> {
-                println("❌ 해결 불가능: ${result.reason}")
+            is SolverResult.InherentlyUnsolvable -> {
+                println("❌ 구조적으로 해결 불가능: ${result.reason}")
+                println("시드 ${12345uL}는 구조적으로 해결 불가능할 수 있음")
+            }
+            is SolverResult.UnwinnableState -> {
+                println("❌ 막다른 길: ${result.reason}")
                 println("시드 ${12345uL}는 해결 불가능할 수 있음")
             }
             is SolverResult.TooComplex -> {
@@ -572,7 +576,11 @@ class AutoPlayTest {
         val result = solver.solve(state)
 
         // 현재는 승리할 수 없는 상태이므로 TooComplex 또는 Unsolvable이 나올 것입니다.
-        assertTrue("Solver가 결과를 반환해야 함", result is SolverResult.TooComplex || result is SolverResult.Unsolvable || result is SolverResult.Success)
+        assertTrue("Solver가 결과를 반환해야 함", 
+            result is SolverResult.TooComplex || 
+            result is SolverResult.InherentlyUnsolvable || 
+            result is SolverResult.UnwinnableState || 
+            result is SolverResult.Success)
         
         // 실제로 테스트하려면 Foundation에 필요한 카드들을 추가해야 합니다.
         // 현재는 Solver가 King 이동 전략을 시도하는지만 확인합니다.
@@ -606,12 +614,15 @@ class AutoPlayTest {
 
         // 이 시나리오에서 Solver는 승리 경로를 찾을 수 없어야 함
         assertTrue("해결 불가능(TooComplex 또는 Unsolvable)으로 판단해야 함", 
-            result is SolverResult.TooComplex || result is SolverResult.Unsolvable)
+            result is SolverResult.TooComplex || 
+            result is SolverResult.InherentlyUnsolvable || 
+            result is SolverResult.UnwinnableState)
         
         println("Solver result: ${result::class.simpleName}")
         when (result) {
             is SolverResult.TooComplex -> println("Reason: ${result.reason}")
-            is SolverResult.Unsolvable -> println("Reason: ${result.reason}")
+            is SolverResult.InherentlyUnsolvable -> println("Reason: ${result.reason}")
+            is SolverResult.UnwinnableState -> println("Reason: ${result.reason}")
             else -> {}
         }
     }

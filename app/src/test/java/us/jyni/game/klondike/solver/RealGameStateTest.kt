@@ -72,7 +72,8 @@ class RealGameStateTest {
             }
             is SolverResult.Timeout -> println("⏱️ 시간 초과: ${result.reason}")
             is SolverResult.TooComplex -> println("🔥 너무 복잡: ${result.reason}")
-            is SolverResult.Unsolvable -> println("❌ 불가능: ${result.reason}")
+            is SolverResult.InherentlyUnsolvable -> println("❌ 구조적으로 불가능: ${result.reason}")
+            is SolverResult.UnwinnableState -> println("❌ 막다른 길: ${result.reason}")
         }
         
         // 최소한 Draw나 Tableau 이동을 찾아야 함

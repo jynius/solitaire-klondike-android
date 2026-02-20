@@ -31,13 +31,18 @@ class GameEngine {
     private var pausedAt: Long? = null
     private var totalPausedMs: Long = 0L
     
+    // State cycle detection
+    private val stateHistory = mutableSetOf<Int>()
+    
     private var gameState: GameState = GameState(
         tableau = List(7) { mutableListOf() },
         foundation = List(4) { mutableListOf() },
         stock = mutableListOf(),
         waste = mutableListOf(),
         isGameOver = false,
-        score = 0
+        score = 0,
+        redealsRemaining = rules.redeals,
+        rules = rules
     )
     private var deck: Deck = Deck()
     private var piles: List<Pile> = listOf()
@@ -64,6 +69,7 @@ class GameEngine {
         
         // Clear history when starting a new game
         undo.clearHistory()
+        stateHistory.clear()
         
         // 준비: 덱을 셔플
         val list: MutableList<Card> = deck.asMutableList()
@@ -108,7 +114,9 @@ class GameEngine {
             stock = stock,
             waste = waste,
             isGameOver = false,
-            score = 0
+            score = 0,
+            redealsRemaining = this.redealsRemaining,
+            rules = this.rules
         )
         // 초기 스냅샷 저장
         undo.clearHistory()
@@ -166,6 +174,7 @@ class GameEngine {
         }
         if (rules.redeals >= 0) {
             redealsRemaining -= 1
+            gameState.redealsRemaining = redealsRemaining  // GameState 동기화
         }
     }
 
@@ -436,7 +445,16 @@ class GameEngine {
         val foundation = src.foundation.map { cloneCards(it) }
         val stock = cloneCards(src.stock)
         val waste = cloneCards(src.waste)
-        return GameState(tableau, foundation, stock, waste, src.isGameOver)
+        return GameState(
+            tableau = tableau, 
+            foundation = foundation, 
+            stock = stock, 
+            waste = waste, 
+            isGameOver = src.isGameOver,
+            score = src.score,
+            redealsRemaining = src.redealsRemaining,
+            rules = src.rules
+        )
     }
 
     // --- Save/Restore ---
@@ -634,5 +652,53 @@ class GameEngine {
         }
         moveCount += 1
         android.util.Log.d("GameEngine", "Move count: $moveCount, startedAt: $startedAt")
+    }
+    
+    /**
+     * 현재 상태 해시가 히스토리에 있는지 확인 (Cycle 검출용)
+     * @return true if state is in history (cycle), false if new state
+     */
+    fun isStateInHistory(): Boolean {
+        val stateHash = calculateStateHash(gameState)
+        return stateHash in stateHistory
+    }
+    
+    /**
+     * 현재 상태를 히스토리에 추가
+     * @return true if added, false if state already exists (cycle detected)
+     */
+    fun recordCurrentState(): Boolean {
+        val stateHash = calculateStateHash(gameState)
+        return stateHistory.add(stateHash)
+    }
+    
+    /**
+     * 상태 히스토리를 반환 (읽기 전용)
+     */
+    fun getStateHistory(): Set<Int> = stateHistory.toSet()
+    
+    /**
+     * 게임 상태의 해시를 계산
+     */
+    private fun calculateStateHash(state: GameState): Int {
+        var result = 17
+        
+        // Tableau
+        for (pile in state.tableau) {
+            result = 31 * result + pile.hashCode()
+        }
+        
+        // Foundation
+        for (pile in state.foundation) {
+            result = 31 * result + pile.hashCode()
+        }
+        
+        // Stock
+        result = 31 * result + state.stock.hashCode()
+        
+        // Waste
+        result = 31 * result + state.waste.hashCode()
+        
+        return result
     }
 }

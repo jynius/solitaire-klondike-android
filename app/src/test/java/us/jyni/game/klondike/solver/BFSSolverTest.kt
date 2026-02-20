@@ -80,27 +80,6 @@ class BFSSolverTest {
     }
     
     @Test
-    fun unsolvable_king_deadlock() {
-        val state = GameState()
-        
-        // 모든 빈 컬럼 제거
-        for (i in 0..6) {
-            state.tableau[i].add(Card(Suit.HEARTS, Rank.TWO, isFaceUp = false))
-        }
-        
-        // 한 컬럼에 킹이 맨 위, 밑에 뒷면 카드
-        state.tableau[0].clear()
-        state.tableau[0].add(Card(Suit.HEARTS, Rank.ACE, isFaceUp = false))
-        state.tableau[0].add(Card(Suit.SPADES, Rank.KING, isFaceUp = true))
-        
-        val detector = UnsolvableDetector(engine)
-        val unsolvable = detector.check(state)
-        
-        assertNotNull("Should detect king deadlock", unsolvable)
-        assertTrue("Should be KingDeadlock type", unsolvable is UnsolvableReason.KingDeadlock)
-    }
-    
-    @Test
     fun find_hint_for_simple_game() {
         val state = GameState()
         

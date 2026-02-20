@@ -24,11 +24,11 @@ class AStarSolver(private val engine: GameEngine) {
     fun solve(initialState: GameState): SolverResult {
         val startTime = System.currentTimeMillis()
         
-        // Unsolvable 빠른 체크
+        // Inherently Unsolvable 체크 (게임 시작 시)
         val unsolvableDetector = UnsolvableDetector(engine)
-        val unsolvableReason = unsolvableDetector.check(initialState)
-        if (unsolvableReason != null) {
-            return SolverResult.Unsolvable(unsolvableReason.message)
+        val inherentlyUnsolvable = unsolvableDetector.checkInherentlyUnsolvable(initialState)
+        if (inherentlyUnsolvable != null) {
+            return SolverResult.InherentlyUnsolvable(inherentlyUnsolvable)
         }
         
         // Priority Queue: f(n) = g(n) + h(n) 기준 정렬
@@ -106,7 +106,7 @@ class AStarSolver(private val engine: GameEngine) {
         
         val possibleMoves = getPrioritizedMoves(currentState)
         return if (possibleMoves.isEmpty()) {
-            SolverResult.Unsolvable("모든 경로 탐색 완료 - 승리 불가능 (${statesExplored}개 상태 탐색)")
+            SolverResult.TooComplex("모든 경로 탐색 완료 - 승리 불가능 (${statesExplored}개 상태 탐색)")
         } else {
             SolverResult.TooComplex("경로를 찾을 수 없음 - 게임은 계속 가능 (${statesExplored}개 상태 탐색)")
         }
