@@ -212,6 +212,10 @@ class GameViewModel : ViewModel() {
         return unsolvableDetector.check(_state.value)
     }
     
+    fun checkInherentlyUnsolvable(): UnsolvableReason? {
+        return unsolvableDetector.checkInherentlyUnsolvable(_state.value)
+    }
+    
     // Solver
     fun solve(): SolverResult {
         return solver.solve(_state.value)

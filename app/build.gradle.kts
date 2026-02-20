@@ -19,9 +19,22 @@ android {
         resourceConfigurations += listOf("ko", "en")
     }
 
+    signingConfigs {
+        create("release") {
+            // 디버그 키스토어 사용 (개발/테스트용)
+            // 실제 배포시에는 별도의 릴리즈 키스토어를 생성하여 사용하세요
+            storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         getByName("release") {
             isMinifyEnabled = true
+            isShrinkResources = true
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }

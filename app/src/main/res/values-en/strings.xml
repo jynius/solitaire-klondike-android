@@ -25,6 +25,7 @@
     <string name="victory_message">You completed Klondike Solitaire!\n\nWould you like to start a new game?</string>
     <string name="victory_new_game">New Game</string>
     <string name="victory_restart">Restart</string>
+    <string name="victory_close">Close</string>
     
     <!-- Toast Messages -->
     <string name="deal_copied">Deal ID copied</string>
@@ -141,6 +142,15 @@
     <string name="label_score">SCORE</string>
     <string name="label_moves">MOVES</string>
     <string name="label_time">TIME</string>
+    
+    <!-- Game State Status -->
+    <string name="state_inherently_unsolvable">❌</string>
+    <string name="state_inherently_solvable">⭕</string>
+    <string name="state_dead_end">⛔</string>
+    <string name="state_state_cycle">🔄</string>
+    <string name="state_solvable">✅</string>
+    <string name="state_in_progress">🎮</string>
+    <string name="state_won">🏆</string>
     
     <!-- Units -->
     <string name="unit_moves"> moves</string>

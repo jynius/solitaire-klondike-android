@@ -73,6 +73,7 @@ class GameActivity : AppCompatActivity() {
     // 게임 기록 관련 변수들
     private var gameStartTime: Long = 0
     private var currentGameSeed: ULong = 0u
+    private var inherentStatusEmoji: String? = null  // 게임 시작 시 Inherent Status 저장
     
     enum class DragSourceType {
         TABLEAU, WASTE, FOUNDATION
@@ -149,8 +150,8 @@ class GameActivity : AppCompatActivity() {
                 while (true) {
                     kotlinx.coroutines.delay(1000)
                     if (!viewModel.isPaused()) {
-                        // Force state refresh to update timer display
-                        updateTimerAndScore()
+                        // Update timer display only
+                        updateTimer()
                     }
                 }
             }
@@ -219,21 +220,11 @@ class GameActivity : AppCompatActivity() {
                     val rulesStr = "Rules: D${r.draw} R:${r.recycle.name.take(3)} Redeals:$redealsTxt F→T:${if (r.allowFoundationToTableau) "on" else "off"}"
                     rulesText.text = rulesStr
                     
-                    // Update Timer and Score in header (if available)
-                    val elapsed = viewModel.getElapsedTimeMs()
-                    val minutes = (elapsed / 60000).toInt()
-                    val seconds = ((elapsed % 60000) / 1000).toInt()
-                    val score = viewModel.getScore()
-                    val moves = viewModel.getMoveCount()
-                    val timeStr = String.format("%02d:%02d", minutes, seconds)
+                    // Update game state indicator (moves with emoji)
+                    updateGameStateIndicator()
                     
-                    findViewById<TextView>(R.id.timer_text)?.text = timeStr
-                    findViewById<TextView>(R.id.score_text)?.text = String.format("%,d", score)
-                    findViewById<TextView>(R.id.moves_text)?.text = moves.toString()
-                    
-                    // Line 2: Card counts (simplified)
-                    val countsStr = "Stock:$stock  Waste:$waste  Foundation:$fnd  Tableau:${52 - stock - waste - fnd}"
-                    statusText.text = countsStr
+                    // Update score and card counts
+                    updateScoreAndCounts()
                     
                     // Line 3: Game State JSON
                     val gameStateJson = viewModel.getGameStateJson()
@@ -926,16 +917,19 @@ class GameActivity : AppCompatActivity() {
         val builder = androidx.appcompat.app.AlertDialog.Builder(this)
         builder.setTitle(getString(R.string.victory_title))
         builder.setMessage(getString(R.string.victory_message))
-        builder.setPositiveButton(getString(R.string.victory_new_game)) { _, _ ->
-            victoryShown = false
-            viewModel.reset()
-            startNewGame(viewModel.getSeed())
-        }
         builder.setNegativeButton(getString(R.string.victory_restart)) { _, _ ->
             victoryShown = false
             // 같은 시드로 재시작
             viewModel.restartGame()
             startNewGame(currentGameSeed)
+        }
+        builder.setNeutralButton(getString(R.string.victory_new_game)) { _, _ ->
+            victoryShown = false
+            viewModel.reset()
+            startNewGame(viewModel.getSeed())
+        }
+        builder.setPositiveButton(getString(R.string.victory_close)) { dialog, _ ->
+            dialog.dismiss()
         }
         builder.setCancelable(false)
         builder.show()
@@ -1106,29 +1100,69 @@ class GameActivity : AppCompatActivity() {
         return false
     }
     
-    private fun updateTimerAndScore() {
+    private fun updateTimer() {
+        val elapsed = viewModel.getElapsedTimeMs()
+        val minutes = (elapsed / 60000).toInt()
+        val seconds = ((elapsed % 60000) / 1000).toInt()
+        val timeStr = String.format("%02d:%02d", minutes, seconds)
+        
+        findViewById<TextView>(R.id.timer_text)?.text = timeStr
+    }
+    
+    private fun updateScoreAndCounts() {
         val statusText = findViewById<TextView>(R.id.status_text)
         val s = viewModel.state.value
         val stock = s.stock.size
         val waste = s.waste.size
         val fnd = s.foundation.sumOf { it.size }
-        val elapsed = viewModel.getElapsedTimeMs()
-        val minutes = (elapsed / 60000).toInt()
-        val seconds = ((elapsed % 60000) / 1000).toInt()
         val score = viewModel.getScore()
-        val moves = viewModel.getMoveCount()
-        val timeStr = String.format("%02d:%02d", minutes, seconds)
         
-        android.util.Log.d("GameActivity", "updateTimerAndScore: time=$timeStr, score=$score, moves=$moves, elapsed=$elapsed")
-        
-        // Update header timer, score, and moves
-        findViewById<TextView>(R.id.timer_text)?.text = timeStr
+        // Update score
         findViewById<TextView>(R.id.score_text)?.text = String.format("%,d", score)
-        findViewById<TextView>(R.id.moves_text)?.text = moves.toString()
         
-        // Update status text (card counts only)
+        // Update card counts
         val countsStr = "Stock:$stock  Waste:$waste  Foundation:$fnd  Tableau:${52 - stock - waste - fnd}"
         statusText.text = countsStr
+    }
+    
+    private fun updateGameStateIndicator() {
+        val movesText = findViewById<TextView>(R.id.moves_text) ?: return
+        val moves = viewModel.getMoveCount()
+        val isGameOver = viewModel.state.value.isGameOver
+        
+        // Inherent Status (게임 시작 시 결정, 변하지 않음) - 항상 표시
+        val inherentEmoji = inherentStatusEmoji ?: getString(R.string.state_inherently_solvable)
+        
+        // Winnable Status (게임 진행 중 변하는 상태)
+        val winnableEmoji = if (isGameOver) {
+            // 게임 완료 시 승리 표시
+            getString(R.string.state_won)
+        } else {
+            val unsolvableReason = viewModel.checkUnsolvable()
+            when (unsolvableReason) {
+                is us.jyni.game.klondike.solver.UnsolvableReason.NPileIrretrievable,
+                is us.jyni.game.klondike.solver.UnsolvableReason.KingIrretrievable,
+                is us.jyni.game.klondike.solver.UnsolvableReason.CircularDependency -> {
+                    // Inherently Unsolvable이므로 winnable status는 의미 없음
+                    // 하지만 일관성을 위해 표시
+                    getString(R.string.state_dead_end)
+                }
+                is us.jyni.game.klondike.solver.UnsolvableReason.DeadEnd -> {
+                    // Unwinnable State - Dead End (플레이어의 잘못된 선택)
+                    getString(R.string.state_dead_end)
+                }
+                is us.jyni.game.klondike.solver.UnsolvableReason.StateCycle -> {
+                    // Unwinnable State - State Cycle (무한 루프)
+                    getString(R.string.state_state_cycle)
+                }
+                null -> {
+                    // win, dead end 미확정 상태 - 게임 진행 중
+                    getString(R.string.state_in_progress)
+                }
+            }
+        }
+        
+        movesText.text = "$inherentEmoji$winnableEmoji $moves"
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -1210,6 +1244,14 @@ class GameActivity : AppCompatActivity() {
     private fun startNewGame(seed: ULong) {
         gameStartTime = System.currentTimeMillis()
         currentGameSeed = seed
+        
+        // Check Inherent Status (게임 시작 시 한 번만)
+        val inherentReason = viewModel.checkInherentlyUnsolvable()
+        inherentStatusEmoji = if (inherentReason != null) {
+            getString(R.string.state_inherently_unsolvable)
+        } else {
+            getString(R.string.state_inherently_solvable)
+        }
     }
     
     private fun saveGameResult(outcome: String) {

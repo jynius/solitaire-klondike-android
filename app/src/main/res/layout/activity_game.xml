@@ -31,10 +31,15 @@
 
         <!-- Title (center) -->
         <LinearLayout
+            android:id="@+id/title_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
+            android:layout_toStartOf="@id/right_buttons"
+            android:layout_toEndOf="@id/back_button"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
             android:orientation="vertical"
             android:gravity="center">
 
@@ -110,34 +115,6 @@
         android:background="@drawable/stats_bar_background"
         android:elevation="2dp">
 
-        <!-- Score -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/label_score"
-                android:textSize="12sp"
-                android:textColor="#A5D6A7"
-                android:letterSpacing="0.1" />
-
-            <TextView
-                android:id="@+id/score_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0"
-                tools:text="2,450"
-                android:textSize="18sp"
-                android:textColor="#FFFFFF"
-                android:textStyle="bold"
-                android:fontFamily="monospace" />
-        </LinearLayout>
-
         <!-- Timer -->
         <LinearLayout
             android:layout_width="0dp"
@@ -158,8 +135,36 @@
                 android:id="@+id/timer_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="00:00"
+                android:text=""
                 tools:text="04:12"
+                android:textSize="18sp"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:fontFamily="monospace" />
+        </LinearLayout>
+
+        <!-- Score -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/label_score"
+                android:textSize="12sp"
+                android:textColor="#A5D6A7"
+                android:letterSpacing="0.1" />
+
+            <TextView
+                android:id="@+id/score_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                tools:text="2,450"
                 android:textSize="18sp"
                 android:textColor="#FFFFFF"
                 android:textStyle="bold"
@@ -186,7 +191,7 @@
                 android:id="@+id/moves_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="0"
+                android:text=""
                 tools:text="42"
                 android:textSize="18sp"
                 android:textColor="#FFFFFF"

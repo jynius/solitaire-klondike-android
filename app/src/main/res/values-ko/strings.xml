@@ -137,7 +137,13 @@
     <string name="label_score">점수</string>
     <string name="label_moves">이동</string>
     <string name="label_time">시간</string>
-    
+
+    <!-- Game State Status -->
+    <string name="state_inherently_unsolvable">❌</string>
+    <string name="state_dead_end">⚠️</string>
+    <string name="state_state_cycle">🔄</string>
+    <string name="state_solvable">✅</string>
+
     <!-- Units -->
     <string name="unit_moves">수</string>
     <string name="unit_game_singular">게임</string>
