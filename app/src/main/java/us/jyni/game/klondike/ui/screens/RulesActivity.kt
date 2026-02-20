@@ -25,6 +25,16 @@ class RulesActivity : AppCompatActivity() {
         applyLanguage()
         
         super.onCreate(savedInstanceState)
+        
+        // Hide action bar for fullscreen experience
+        supportActionBar?.hide()
+        
+        // Hide system navigation bar
+        window.insetsController?.let { controller ->
+            controller.hide(android.view.WindowInsets.Type.systemBars())
+            controller.systemBarsBehavior = android.view.WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+        
         setContentView(R.layout.activity_rules)
         
         // Get current rules from intent

@@ -56,6 +56,16 @@ class StatisticsActivity : AppCompatActivity() {
         applyLanguage()
         
         super.onCreate(savedInstanceState)
+        
+        // Hide action bar for fullscreen experience
+        supportActionBar?.hide()
+        
+        // Hide system navigation bar
+        window.insetsController?.let { controller ->
+            controller.hide(android.view.WindowInsets.Type.systemBars())
+            controller.systemBarsBehavior = android.view.WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+        
         setContentView(R.layout.activity_statistics)
         
         repository = JsonlFileRepository(this)
@@ -245,7 +255,8 @@ class StatisticsActivity : AppCompatActivity() {
         
         val totalGames = allGames.size
         val totalWins = wins.size
-        val totalFavorites = favorites.size
+        // 중복 제거: 같은 seed를 가진 게임들을 하나로 카운트
+        val totalFavorites = favorites.distinctBy { it.seed }.size
         
         val winRate = if (totalGames > 0) (totalWins * 100.0 / totalGames) else 0.0
         
