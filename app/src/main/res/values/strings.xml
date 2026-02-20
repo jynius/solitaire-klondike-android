@@ -83,6 +83,12 @@
     <string name="rules_cancel">취소</string>
     <string name="rules_save_button">규칙 저장</string>
     
+    <!-- Replay 확인 -->
+    <string name="replay_confirm_title">게임 다시 시작</string>
+    <string name="replay_confirm_message">현재 진행 중인 게임이 있습니다.\n\n현재 게임을 포기하고 선택한 게임으로 다시 시작하시겠습니까?</string>
+    <string name="replay_confirm_yes">다시 시작</string>
+    <string name="replay_confirm_no">취소</string>
+    
     <!-- 언어 설정 -->
     <string name="language_title">언어 설정</string>
     <string name="language_desc">앱 표시 언어를 선택합니다</string>
@@ -152,6 +158,12 @@
     <string name="state_solvable">✅</string>
     <string name="state_in_progress">🎮</string>
     <string name="state_won">🏆</string>
+    
+    <!-- Game Code -->
+    <string name="game_code_label">코드:</string>
+    <string name="copy_game_code">Deal ID 복사</string>
+    <string name="game_code_copied">Deal ID가 복사되었습니다</string>
+    <string name="play_count">%d회</string>
     
     <!-- Units -->
     <string name="unit_moves">수</string>

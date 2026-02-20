@@ -48,6 +48,12 @@
     <string name="debug_copy_deal">Copy Deal</string>
     <string name="debug_copy_json">Copy JSON</string>
     <string name="debug_toggle">Debug</string>
+    
+    <!-- Replay Confirmation -->
+    <string name="replay_confirm_title">Restart Game</string>
+    <string name="replay_confirm_message">You have a game in progress.\n\nAbandon current game and restart with selected game?</string>
+    <string name="replay_confirm_yes">Restart</string>
+    <string name="replay_confirm_no">Cancel</string>
     <string name="debug_stats">View Stats</string>
     <string name="debug_rules">Rules:</string>
     
@@ -151,6 +157,12 @@
     <string name="state_solvable">✅</string>
     <string name="state_in_progress">🎮</string>
     <string name="state_won">🏆</string>
+    
+    <!-- Game Code -->
+    <string name="game_code_label">Code:</string>
+    <string name="copy_game_code">Copy Deal ID</string>
+    <string name="game_code_copied">Deal ID copied</string>
+    <string name="play_count">%d plays</string>
     
     <!-- Units -->
     <string name="unit_moves"> moves</string>

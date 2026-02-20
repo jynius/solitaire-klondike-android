@@ -108,7 +108,10 @@ class GameActivity : AppCompatActivity() {
             viewModel.restoreStateString(data)
         } ?: false
 
-        if (!restored) {
+        // Check if this is a replay request
+        val isReplay = intent?.getBooleanExtra("IS_REPLAY", false) ?: false
+        
+        if (!restored && !isReplay) {
             // Try persistent save (process death restoration)
             val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             val persisted = prefs.getString(KEY_PERSISTED_GAME, null)
@@ -118,9 +121,16 @@ class GameActivity : AppCompatActivity() {
         }
 
         if (!restored) {
+            // Check if there are custom rules provided (replay mode)
+            val customRules = intent?.getSerializableExtra("RULES") as? Ruleset
             val seed = intent?.getLongExtra(EXTRA_SEED, Long.MIN_VALUE)
+            
             if (seed != null && seed != Long.MIN_VALUE) {
-                viewModel.startGame(seed.toULong())
+                if (customRules != null) {
+                    viewModel.startGame(seed.toULong(), customRules)
+                } else {
+                    viewModel.startGame(seed.toULong())
+                }
                 startNewGame(seed.toULong())
             } else {
                 // 저장된 상태도 없고 시드도 없으면 새 랜덤 게임 시작
@@ -1258,18 +1268,44 @@ class GameActivity : AppCompatActivity() {
         try {
             val finishTime = System.currentTimeMillis()
             val currentMoveCount = viewModel.getMoveCount()
+            val currentScore = viewModel.getScore()
+            val rules = viewModel.getRules()
+            
+            // Inherent Status 결정
+            val inherentReason = viewModel.checkInherentlyUnsolvable()
+            val inherentStatus = if (inherentReason != null) "unsolvable" else "solvable"
+            
+            // Winnable Status 결정
+            val winnableStatus = if (outcome == "win") {
+                "won"
+            } else {
+                val unsolvableReason = viewModel.checkUnsolvable()
+                when (unsolvableReason) {
+                    is us.jyni.game.klondike.solver.UnsolvableReason.DeadEnd -> "dead_end"
+                    is us.jyni.game.klondike.solver.UnsolvableReason.StateCycle -> "state_cycle"
+                    else -> "in_progress"
+                }
+            }
+            
+            // 게임 코드 생성
+            val gameCode = us.jyni.game.klondike.util.GameCode.encode(currentGameSeed, rules)
+            
             val stats = us.jyni.game.klondike.util.stats.SolveStats(
                 dealId = viewModel.dealId(),
                 seed = currentGameSeed,
-                rules = viewModel.getRules(),
+                rules = rules,
                 startedAt = gameStartTime,
                 finishedAt = finishTime,
                 durationMs = finishTime - gameStartTime,
                 moveCount = currentMoveCount,
-                outcome = outcome
+                outcome = outcome,
+                score = currentScore,
+                inherentStatus = inherentStatus,
+                winnableStatus = winnableStatus,
+                gameCode = gameCode
             )
             repository.appendPending(stats)
-            android.util.Log.d("GameActivity", "Game result saved: outcome=$outcome, moves=$currentMoveCount, duration=${finishTime - gameStartTime}ms")
+            android.util.Log.d("GameActivity", "Game result saved: outcome=$outcome, inherent=$inherentStatus, winnable=$winnableStatus, code=$gameCode, moves=$currentMoveCount, score=$currentScore, duration=${finishTime - gameStartTime}ms")
         } catch (e: Exception) {
             android.util.Log.e("GameActivity", "Failed to save game result", e)
         }

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#F5F5F5">
+
+    <LinearLayout
+        android:id="@+id/group_header_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:gravity="center_vertical">
+
+        <!-- 확장/축소 아이콘 -->
+        <TextView
+            android:id="@+id/expand_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="▼"
+            android:textSize="14sp"
+            android:textColor="#000000"
+            android:textStyle="bold"
+            android:layout_marginEnd="8dp"
+            android:clickable="false"
+            android:focusable="false" />
+
+        <!-- Inherent Status -->
+        <TextView
+            android:id="@+id/inherent_status_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="⭕"
+            android:textSize="16sp"
+            android:layout_marginEnd="8dp" />
+
+        <!-- Rules -->
+        <TextView
+            android:id="@+id/rules_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="D3"
+            android:textSize="12sp"
+            android:textColor="#000000"
+            android:textStyle="bold"
+            android:layout_marginEnd="8dp" />
+
+        <!-- 게임 코드 -->
+        <TextView
+            android:id="@+id/game_code_text"
+            android:layout_width="124dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            tools:text="zYWFhYWFhYWF"
+            android:textSize="13sp"
+            android:textColor="#FF000000"
+            android:fontFamily="monospace"
+            android:textStyle="bold"
+            android:visibility="visible" />
+
+        <!-- 즐겨찾기 버튼 -->
+        <ImageButton
+            android:id="@+id/favorite_button"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_star_outline"
+            android:contentDescription="@string/stats_favorites" />
+
+        <!-- 재생 버튼 -->
+        <ImageButton
+            android:id="@+id/replay_button"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginStart="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_restart"
+            app:tint="#000000"
+            android:contentDescription="@string/retry_description" />
+
+        <!-- 플레이 횟수 -->
+        <TextView
+            android:id="@+id/play_count_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:gravity="end"
+            tools:text="(3회)"
+            android:textSize="11sp"
+            android:textColor="#757575" />
+
+    </LinearLayout>
+
+    <!-- 구분선 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#CDCDCD" />
+
+</LinearLayout>

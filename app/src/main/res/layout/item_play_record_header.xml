@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingStart="40dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp"
+    android:background="#E8E8E8"
+    android:gravity="center_vertical">
+
+    <!-- Result Header -->
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.8"
+        android:text="결과"
+        android:textSize="10sp"
+        android:textColor="#757575"
+        android:textStyle="bold"
+        android:gravity="center" />
+
+    <!-- Date Header -->
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="2.0"
+        android:text="날짜"
+        android:textSize="10sp"
+        android:textColor="#757575"
+        android:textStyle="bold" />
+
+    <!-- Score Header -->
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1.0"
+        android:text="점수"
+        android:textSize="10sp"
+        android:textColor="#757575"
+        android:textStyle="bold" />
+
+    <!-- Moves Header -->
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1.0"
+        android:text="이동"
+        android:textSize="10sp"
+        android:textColor="#757575"
+        android:textStyle="bold"
+        android:gravity="end" />
+
+    <!-- Time Header -->
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1.0"
+        android:text="시간"
+        android:textSize="10sp"
+        android:textColor="#757575"
+        android:textStyle="bold"
+        android:gravity="end" />
+
+    <!-- Share Header (empty space) -->
+    <View
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_marginStart="8dp" />
+
+</LinearLayout>

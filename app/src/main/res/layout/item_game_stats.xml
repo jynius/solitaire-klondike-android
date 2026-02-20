@@ -38,14 +38,24 @@
         android:ellipsize="end"
         android:maxLines="1" />
 
-    <!-- Outcome Icon -->
+    <!-- Inherent Status Icon -->
+    <TextView
+        android:id="@+id/inherent_status_icon"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.5"
+        tools:text="⭕"
+        android:textSize="14sp"
+        android:gravity="center" />
+
+    <!-- Winnable Status Icon (was outcome_icon) -->
     <TextView
         android:id="@+id/outcome_icon"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="0.6"
-        tools:text="✅"
-        android:textSize="16sp"
+        android:layout_weight="0.5"
+        tools:text="🏆"
+        android:textSize="14sp"
         android:gravity="center" />
 
     <!-- Moves -->
@@ -102,18 +112,51 @@
         app:tint="#000000"
         android:contentDescription="@string/retry_description" />
 
-    <!-- Hidden TextViews for compatibility -->
-    <TextView
-        android:id="@+id/outcome_text"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone" />
-
     <TextView
         android:id="@+id/seed_text"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:visibility="gone" />
+
+    </LinearLayout>
+
+    <!-- Game Code Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="4dp"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/game_code_label"
+            android:textSize="11sp"
+            android:textColor="#666666" />
+
+        <TextView
+            android:id="@+id/game_code_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            tools:text="zYWFhYWFhYWF"
+            android:textSize="11sp"
+            android:textColor="#000000"
+            android:fontFamily="monospace"
+            android:textIsSelectable="true" />
+
+        <ImageButton
+            android:id="@+id/copy_code_button"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_share"
+            android:contentDescription="@string/copy_game_code" />
 
     </LinearLayout>
 

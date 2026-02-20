@@ -240,7 +240,7 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:background="?attr/selectableItemBackgroundBorderless"
-                            android:src="@drawable/ic_replay"
+                            android:src="@drawable/ic_restart"
                             app:tint="#000000"
                             android:contentDescription="@string/retry_description"
                             android:visibility="gone" />
@@ -282,7 +282,7 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:background="?attr/selectableItemBackgroundBorderless"
-                            android:src="@drawable/ic_replay"
+                            android:src="@drawable/ic_restart"
                             app:tint="#000000"
                             android:contentDescription="@string/retry_description"
                             android:visibility="gone" />
@@ -443,6 +443,7 @@
                     android:minWidth="80dp"
                     android:text="@string/stats_prev_page"
                     android:textSize="14sp"
+                    android:textColor="#FFFFFF"
                     app:autoSizeTextType="uniform"
                     app:autoSizeMinTextSize="12sp"
                     app:autoSizeMaxTextSize="14sp"
@@ -457,6 +458,7 @@
                     tools:text="1 / 1"
                     android:gravity="center"
                     android:textSize="14sp"
+                    android:textColor="#FFFFFF"
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp" />
 
@@ -467,6 +469,7 @@
                     android:minWidth="80dp"
                     android:text="@string/stats_next_page"
                     android:textSize="14sp"
+                    android:textColor="#FFFFFF"
                     app:autoSizeTextType="uniform"
                     app:autoSizeMinTextSize="12sp"
                     app:autoSizeMaxTextSize="14sp"

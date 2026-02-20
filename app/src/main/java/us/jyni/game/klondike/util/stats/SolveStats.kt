@@ -11,9 +11,13 @@ data class SolveStats(
     val durationMs: Long,
     val moveCount: Int,
     val outcome: String?, // win|resign|timeout|null
+    val score: Int = 0, // 게임 점수
     val layoutId: String? = null,
     val clientVersion: String? = null,
-    val platform: String? = null
+    val platform: String? = null,
+    val inherentStatus: String? = null, // "solvable" | "unsolvable"
+    val winnableStatus: String? = null, // "won" | "dead_end" | "state_cycle" | "in_progress"
+    val gameCode: String? = null  // Base64 공유 코드 (12자)
 )
 
 object SolveCodec {
@@ -32,6 +36,7 @@ object SolveCodec {
         append("dur=").append(s.durationMs).append(';')
         append("moves=").append(s.moveCount).append(';')
         append("outcome=").append(s.outcome ?: "").append(';')
+        append("score=").append(s.score).append(';')
         append("layoutId=").append(s.layoutId ?: "").append(';')
         append("client=").append(s.clientVersion ?: "").append(';')
         append("plat=").append(s.platform ?: "")
@@ -56,10 +61,11 @@ object SolveCodec {
         val dur = map["dur"]!!.toLong()
         val moves = map["moves"]!!.toInt()
         val outcome = map["outcome"].takeUnless { it.isNullOrEmpty() }
+        val score = map["score"]?.toIntOrNull() ?: 0
         val layoutId = map["layoutId"].takeUnless { it.isNullOrEmpty() }
         val client = map["client"].takeUnless { it.isNullOrEmpty() }
         val plat = map["plat"].takeUnless { it.isNullOrEmpty() }
         val rules = Ruleset(draw, redeals, recycle, f2t)
-        return SolveStats(dealId, seed, rules, started, finished, dur, moves, outcome, layoutId, client, plat)
+        return SolveStats(dealId, seed, rules, started, finished, dur, moves, outcome, score, layoutId, client, plat)
     }
 }
