@@ -111,7 +111,7 @@
     <string name="stats_overall">📊 전체 통계</string>
     <string name="stats_total_games">총 게임</string>
     <string name="stats_win_rate">승률</string>
-    <string name="stats_favorites">⭐ 즐겨찾기</string>
+    <string name="stats_favorites">즐겨찾기</string>
     <string name="stats_avg_moves">⚡ 평균 이동: %s수</string>
     <string name="stats_avg_time">🚀 평균 시간: %s</string>
     <string name="stats_best_records">🏆 최고 기록</string>

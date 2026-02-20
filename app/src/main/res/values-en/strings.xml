@@ -110,7 +110,7 @@
     <string name="stats_overall">📊 Overall Stats</string>
     <string name="stats_total_games">Total Games</string>
     <string name="stats_win_rate">Win Rate</string>
-    <string name="stats_favorites">⭐ Favorites</string>
+    <string name="stats_favorites">Favorites</string>
     <string name="stats_avg_moves">⚡ Avg Moves: %s</string>
     <string name="stats_avg_time">🚀 Avg Time: %s</string>
     <string name="stats_best_records">🏆 Best Records</string>
