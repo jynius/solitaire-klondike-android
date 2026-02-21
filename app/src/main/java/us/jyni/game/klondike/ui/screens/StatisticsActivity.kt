@@ -38,10 +38,13 @@ class StatisticsActivity : AppCompatActivity() {
     private lateinit var bestMovesDate: TextView
     private lateinit var bestTimeText: TextView
     private lateinit var bestTimeDate: TextView
+    private lateinit var bestScoreText: TextView
+    private lateinit var bestScoreDate: TextView
     private lateinit var bestStreakText: TextView
     private lateinit var bestStreakDate: TextView
     private lateinit var btnReplayBestMoves: ImageButton
     private lateinit var btnReplayBestTime: ImageButton
+    private lateinit var btnReplayBestScore: ImageButton
     private lateinit var gamesRecycler: RecyclerView
     private lateinit var pageInfoText: TextView
     private lateinit var btnPrevPage: Button
@@ -50,6 +53,7 @@ class StatisticsActivity : AppCompatActivity() {
     // Best records
     private var bestMovesGame: SolveStats? = null
     private var bestTimeGame: SolveStats? = null
+    private var bestScoreGame: SolveStats? = null
     
     override fun onCreate(savedInstanceState: Bundle?) {
         // Apply saved language before calling super.onCreate
@@ -92,10 +96,13 @@ class StatisticsActivity : AppCompatActivity() {
         bestMovesDate = findViewById(R.id.best_moves_date)
         bestTimeText = findViewById(R.id.best_time_text)
         bestTimeDate = findViewById(R.id.best_time_date)
+        bestScoreText = findViewById(R.id.best_score_text)
+        bestScoreDate = findViewById(R.id.best_score_date)
         bestStreakText = findViewById(R.id.best_streak_text)
         bestStreakDate = findViewById(R.id.best_streak_date)
         btnReplayBestMoves = findViewById(R.id.btn_replay_best_moves)
         btnReplayBestTime = findViewById(R.id.btn_replay_best_time)
+        btnReplayBestScore = findViewById(R.id.btn_replay_best_score)
         gamesRecycler = findViewById(R.id.games_recycler)
         pageInfoText = findViewById(R.id.page_info)
         btnPrevPage = findViewById(R.id.btn_prev_page)
@@ -115,6 +122,11 @@ class StatisticsActivity : AppCompatActivity() {
         btnReplayBestTime.setOnClickListener {
             android.util.Log.d("StatisticsActivity", "btnReplayBestTime clicked, bestTimeGame=$bestTimeGame")
             bestTimeGame?.let { replayGame(it) }
+        }
+        
+        btnReplayBestScore.setOnClickListener {
+            android.util.Log.d("StatisticsActivity", "btnReplayBestScore clicked, bestScoreGame=$bestScoreGame")
+            bestScoreGame?.let { replayGame(it) }
         }
     }
     
@@ -286,10 +298,13 @@ class StatisticsActivity : AppCompatActivity() {
             bestMovesDate.text = ""
             bestTimeText.text = getString(R.string.stats_min_time, getString(R.string.stats_no_record))
             bestTimeDate.text = ""
+            bestScoreText.text = getString(R.string.stats_max_score, getString(R.string.stats_no_record))
+            bestScoreDate.text = ""
             bestStreakDate.text = ""
             bestStreakText.text = getString(R.string.stats_longest_streak, getString(R.string.stats_no_record))
             btnReplayBestMoves.visibility = View.GONE
             btnReplayBestTime.visibility = View.GONE
+            btnReplayBestScore.visibility = View.GONE
             return
         }
         
@@ -313,6 +328,16 @@ class StatisticsActivity : AppCompatActivity() {
             bestTimeText.text = getString(R.string.stats_min_time, "$minutes:${String.format("%02d", seconds)}")
             bestTimeDate.text = dateStr
             btnReplayBestTime.visibility = View.VISIBLE
+        }
+        
+        // 최고 점수
+        bestScoreGame = wins.maxByOrNull { it.score }
+        bestScoreGame?.let { game ->
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+            val dateStr = dateFormat.format(Date(game.finishedAt ?: 0L))
+            bestScoreText.text = getString(R.string.stats_max_score, String.format("%,d", game.score))
+            bestScoreDate.text = dateStr
+            btnReplayBestScore.visibility = View.VISIBLE
         }
         
         // 최장 연승 계산
@@ -609,7 +634,7 @@ class GameStatsAdapter(
      */
     inner class GroupHeaderViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         private val groupHeaderLayout: LinearLayout = view.findViewById(R.id.group_header_layout)
-        private val expandIcon: TextView = view.findViewById(R.id.expand_icon)
+        private val expandIcon: ImageView = view.findViewById(R.id.expand_icon)
         private val gameCodeText: TextView = view.findViewById(R.id.game_code_text)
         private val playCountText: TextView = view.findViewById(R.id.play_count_text)
         private val rulesText: TextView = view.findViewById(R.id.rules_text)
@@ -619,7 +644,7 @@ class GameStatsAdapter(
         
         fun bind(group: GameGroup) {
             // 확장/축소 아이콘
-            expandIcon.text = if (group.isExpanded) "▼" else "▶"
+            expandIcon.isSelected = group.isExpanded
             
             // Inherent Status
             when (group.inherentStatus) {
@@ -667,7 +692,7 @@ class GameStatsAdapter(
             // 그룹 헤더 클릭 → 확장/축소
             groupHeaderLayout.setOnClickListener {
                 group.isExpanded = !group.isExpanded
-                expandIcon.text = if (group.isExpanded) "▼" else "▶"
+                expandIcon.isSelected = group.isExpanded
                 rebuildItems()
                 notifyDataSetChanged()
             }
@@ -675,7 +700,7 @@ class GameStatsAdapter(
             // 확장 아이콘도 클릭 가능
             expandIcon.setOnClickListener {
                 group.isExpanded = !group.isExpanded
-                expandIcon.text = if (group.isExpanded) "▼" else "▶"
+                expandIcon.isSelected = group.isExpanded
                 rebuildItems()
                 notifyDataSetChanged()
             }

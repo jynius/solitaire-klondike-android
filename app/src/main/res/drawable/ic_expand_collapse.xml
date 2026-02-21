@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 확장된 상태: 위쪽 화살표 -->
+    <item android:state_selected="true" android:drawable="@drawable/ic_expand_less"/>
+    <!-- 기본 상태(축소됨): 아래쪽 화살표 -->
+    <item android:drawable="@drawable/ic_expand_more"/>
+</selector>

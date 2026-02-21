@@ -224,7 +224,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/stats_min_moves"
-                            android:textSize="14sp"
+                            android:textSize="12sp"
                             android:paddingStart="4dp"
                             android:paddingEnd="2dp" />
 
@@ -244,8 +244,9 @@
 
                         <ImageButton
                             android:id="@+id/btn_replay_best_moves"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:scaleType="fitCenter"
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:src="@drawable/ic_restart"
                             app:tint="#000000"
@@ -266,7 +267,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/stats_min_time"
-                            android:textSize="14sp"
+                            android:textSize="12sp"
                             android:paddingStart="4dp"
                             android:paddingEnd="2dp" />
 
@@ -286,8 +287,52 @@
 
                         <ImageButton
                             android:id="@+id/btn_replay_best_time"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:scaleType="fitCenter"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:src="@drawable/ic_restart"
+                            app:tint="#000000"
+                            android:contentDescription="@string/retry_description"
+                            android:visibility="gone" />
+                    </LinearLayout>
+
+                    <!-- 최고 점수 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="4dp">
+
+                        <TextView
+                            android:id="@+id/best_score_text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/stats_max_score"
+                            android:textSize="12sp"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="2dp" />
+
+                        <TextView
+                            android:id="@+id/best_score_date"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text=""
+                            android:textSize="12sp"
+                            android:textColor="#666666"
+                            android:gravity="end"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
+                            android:ellipsize="end"
+                            android:maxLines="1" />
+
+                        <ImageButton
+                            android:id="@+id/btn_replay_best_score"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:scaleType="fitCenter"
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:src="@drawable/ic_restart"
                             app:tint="#000000"
@@ -307,7 +352,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/stats_longest_streak"
-                            android:textSize="14sp"
+                            android:textSize="12sp"
                             android:paddingStart="4dp"
                             android:paddingEnd="2dp" />
 
@@ -362,64 +407,77 @@
                 android:orientation="horizontal"
                 android:paddingTop="8dp"
                 android:paddingBottom="8dp"
-                android:paddingStart="12dp"
+                android:paddingStart="10dp"
                 android:paddingEnd="12dp"
                 android:background="#E0E0E0"
                 android:gravity="center_vertical">
 
+                <!-- 확장/축소 공간 -->
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1.8"
-                    android:text="@string/stats_date_time"
+                    android:text=""
+                    android:textSize="12sp"
+                    android:layout_marginEnd="8dp"
+                    android:minWidth="12dp" />
+
+                <!-- 결과 -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/stats_game"
                     android:textSize="12sp"
                     android:textStyle="bold"
+                    android:layout_marginEnd="8dp"
                     android:gravity="center" />
 
+                <!-- 규칙 -->
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0.8"
-                    android:text="@string/stats_result"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:gravity="end" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1.2"
-                    android:text="@string/stats_moves"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:gravity="end" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1.2"
-                    android:text="@string/stats_time"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:gravity="end" />
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.8"
                     android:text="@string/stats_rules"
                     android:textSize="12sp"
                     android:textStyle="bold"
+                    android:layout_marginEnd="8dp"
                     android:gravity="center" />
 
-                <!-- Favorite Button Space -->
-                <View
-                    android:layout_width="28dp"
-                    android:layout_height="1dp" />
+                <!-- 코드 -->
+                <TextView
+                    android:layout_width="125dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:text="@string/stats_code"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:gravity="center" />
 
-                <!-- Replay Button Space -->
-                <View
-                    android:layout_width="28dp"
-                    android:layout_height="1dp" />
+                <!-- 즐겨찾기 아이콘 -->
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_marginStart="8dp"
+                    android:src="@drawable/ic_star_outline"
+                    android:contentDescription="@string/stats_favorites" />
+
+                <!-- 다시 실행 아이콘 -->
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_marginStart="4dp"
+                    android:src="@drawable/ic_restart"
+                    app:tint="#000000"
+                    android:contentDescription="@string/retry_description" />
+
+                <!-- 횟수 -->
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/stats_count"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:gravity="end" />
 
             </LinearLayout>
 
@@ -427,7 +485,7 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/games_recycler"
                 android:layout_width="match_parent"
-                android:layout_height="280dp"
+                android:layout_height="348dp"
                 android:background="#FFFFFF"
                 android:clipToPadding="false"
                 android:paddingBottom="8dp" />
@@ -450,6 +508,7 @@
                     android:minWidth="80dp"
                     android:text="@string/stats_prev_page"
                     android:textSize="12sp"
+                    android:textColor="@color/pagination_button_text_color"
                     app:autoSizeTextType="uniform"
                     app:autoSizeMinTextSize="10sp"
                     app:autoSizeMaxTextSize="12sp"
@@ -464,6 +523,7 @@
                     tools:text="1 / 1"
                     android:gravity="center"
                     android:textSize="12sp"
+                    android:textColor="#FFFFFF"
                     android:layout_marginStart="8dp"
                     android:layout_marginEnd="8dp" />
 
@@ -474,6 +534,7 @@
                     android:minWidth="80dp"
                     android:text="@string/stats_next_page"
                     android:textSize="12sp"
+                    android:textColor="@color/pagination_button_text_color"
                     app:autoSizeTextType="uniform"
                     app:autoSizeMinTextSize="10sp"
                     app:autoSizeMaxTextSize="12sp"

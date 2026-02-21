@@ -138,8 +138,17 @@ class GameActivity : AppCompatActivity() {
                 startNewGame(viewModel.getSeed())
             }
         } else {
-            // 복원된 게임
-            startNewGame(viewModel.getSeed())
+            // 복원된 게임: GameEngine의 원래 startedAt 사용
+            currentGameSeed = viewModel.getSeed()
+            gameStartTime = viewModel.getStartedAt()
+            
+            // Inherent Status 복원
+            val inherentReason = viewModel.checkInherentlyUnsolvable()
+            inherentStatusEmoji = if (inherentReason != null) {
+                getString(R.string.state_inherently_unsolvable)
+            } else {
+                getString(R.string.state_inherently_solvable)
+            }
         }
     }
 

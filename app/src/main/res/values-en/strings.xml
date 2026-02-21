@@ -104,6 +104,7 @@
     <string name="auto_description">Auto</string>
     <string name="favorite_status">Favorite status</string>
     <string name="restart_description">Restart</string>
+    <string name="expand_collapse">Expand/Collapse</string>
 
     <!-- Statistics -->
     <string name="stats_title">Statistics</string>
@@ -116,13 +117,18 @@
     <string name="stats_best_records">🏆 Best Records</string>
     <string name="stats_min_moves">⚡ Min Moves: %s</string>
     <string name="stats_min_time">🚀 Min Time: %s</string>
+    <string name="stats_max_score">💯 Max Score: %s</string>
     <string name="stats_longest_streak">🔥 Longest Streak: %s</string>
     <string name="stats_no_record">No Record</string>
     <string name="stats_date_time">Date/Time</string>
+    <string name="stats_inherent">Type</string>
     <string name="stats_result">Result</string>
     <string name="stats_moves">Moves</string>
     <string name="stats_time">Time</string>
+    <string name="stats_game">Game</string>
     <string name="stats_rules">Rules</string>
+    <string name="stats_code">Code</string>
+    <string name="stats_count">Count</string>
     <string name="stats_prev_page">← Previous</string>
     <string name="stats_next_page">Next →</string>
     <string name="stats_favorite_added">⭐ Added to Favorites</string>

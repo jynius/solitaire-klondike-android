@@ -99,6 +99,7 @@
     <string name="auto_description">자동</string>
     <string name="favorite_status">즐겨찾기 상태</string>
     <string name="restart_description">다시시작</string>
+    <string name="expand_collapse">확장/축소</string>
 
     <!-- Statistics -->
     <string name="stats_title">통계</string>
@@ -111,13 +112,18 @@
     <string name="stats_best_records">🏆 최고 기록</string>
     <string name="stats_min_moves">⚡ 최소 이동: %s</string>
     <string name="stats_min_time">🚀 최단 시간: %s</string>
+    <string name="stats_max_score">💯 최고 점수: %s</string>
     <string name="stats_longest_streak">🔥 최장 연승: %s</string>
     <string name="stats_no_record">기록 없음</string>
     <string name="stats_date_time">날짜/시간</string>
+    <string name="stats_inherent">고유</string>
     <string name="stats_result">결과</string>
     <string name="stats_moves">이동</string>
     <string name="stats_time">시간</string>
+    <string name="stats_game">게임</string>
     <string name="stats_rules">규칙</string>
+    <string name="stats_code">코드</string>
+    <string name="stats_count">횟수</string>
     <string name="stats_prev_page">← 이전</string>
     <string name="stats_next_page">다음 →</string>
     <string name="stats_favorite_added">⭐ 즐겨찾기에 추가</string>

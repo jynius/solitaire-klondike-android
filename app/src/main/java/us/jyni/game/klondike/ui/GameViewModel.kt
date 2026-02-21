@@ -203,6 +203,7 @@ class GameViewModel : ViewModel() {
     fun getElapsedTimeMs(): Long = engine.getElapsedTimeMs()
     fun getScore(): Int = engine.getScore()
     fun getMoveCount(): Int = engine.getMoveCount()
+    fun getStartedAt(): Long = engine.getStartedAt()
     fun pause() = engine.pause()
     fun resume() = engine.resume()
     fun isPaused(): Boolean = engine.isPaused()
