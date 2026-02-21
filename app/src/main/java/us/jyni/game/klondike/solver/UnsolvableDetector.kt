@@ -77,17 +77,17 @@ class UnsolvableDetector(private val engine: GameEngine) {
         }
         log.appendLine("✓ No king irretrievable found")
         
-       현재 플레이 상태(Play State)를 검사합니다.
-     * 
-     * 이것은 게임 속성이 아니라 "현재 진행 상황에 따른 상태"를 검사합니다.
-     * 플레이어의 선택에 따라 매 이동마다 결과가 달라질 수 있습니다.
-     * 
-     * @param state 현재 게임 상태=== RESULT: SOLVABLE ===")
+        log.appendLine("\n=== RESULT: SOLVABLE ===")
         return Pair(null, log.toString())
     }
     
     /**
-     * Unwinnable State 검사 (게임 진행 중 호출)
+     * 현재 플레이 상태(Play State)를 검사합니다.
+     * 
+     * 이것은 게임 속성이 아니라 "현재 진행 상황에 따른 상태"를 검사합니다.
+     * 플레이어의 선택에 따라 매 이동마다 결과가 달라질 수 있습니다.
+     * 
+     * @param state 현재 게임 상태
      * @return UnsolvableReason if unwinnable, null if still winnable
      */
     fun checkUnwinnableState(state: GameState): UnsolvableReason? {

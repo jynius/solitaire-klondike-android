@@ -10,7 +10,7 @@ import java.util.PriorityQueue
  * A* 알고리즘 기반 솔리테어 Solver
  * 제약 기반 휴리스틱을 사용하여 효율적으로 승리 경로 탐색
  */
-class AStarSolver(private val engine: GameEngine) {
+class AStarSolver(private val engine: GameEngine) : Solver {
     
     companion object {
         private const val MAX_DEPTH = 150
@@ -21,7 +21,7 @@ class AStarSolver(private val engine: GameEngine) {
     /**
      * 현재 상태에서 승리까지의 경로 찾기
      */
-    fun solve(initialState: GameState): SolverResult {
+    override fun solve(initialState: GameState): SolverResult {
         val startTime = System.currentTimeMillis()
         
         // Inherently Unsolvable 체크 (게임 시작 시)
@@ -115,7 +115,7 @@ class AStarSolver(private val engine: GameEngine) {
     /**
      * 최선의 다음 이동 찾기 (힌트용)
      */
-    fun findBestMove(state: GameState): Move? {
+    override fun findBestMove(state: GameState): Move? {
         // 간단한 이동부터 시도
         val simpleMoves = getPrioritizedMoves(state)
         

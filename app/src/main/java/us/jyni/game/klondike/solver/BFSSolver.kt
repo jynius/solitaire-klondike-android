@@ -10,7 +10,7 @@ import java.util.Queue
  * 
  * 완전 정보 게임 탐색을 통해 승리 경로를 찾습니다.
  */
-class BFSSolver(private val engine: GameEngine) {
+class BFSSolver(private val engine: GameEngine) : Solver {
     
     /**
      * BFS 전용 탐색 노드
@@ -30,7 +30,7 @@ class BFSSolver(private val engine: GameEngine) {
      * 현재 상태에서 승리까지의 경로 찾기
      * @return SolverResult (승리 경로 또는 실패 이유)
      */
-    fun solve(initialState: GameState): SolverResult {
+    override fun solve(initialState: GameState): SolverResult {
         val startTime = System.currentTimeMillis()
         
         // Inherently Unsolvable 체크 (게임 시작 시)
@@ -106,7 +106,7 @@ class BFSSolver(private val engine: GameEngine) {
     /**
      * 최선의 다음 이동 찾기 (힌트용)
      */
-    fun findBestMove(state: GameState): Move? {
+    override fun findBestMove(state: GameState): Move? {
         val result = solve(state)
         return if (result is SolverResult.Success && result.moves.isNotEmpty()) {
             result.moves.first()

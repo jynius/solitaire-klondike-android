@@ -10,14 +10,24 @@ import us.jyni.game.klondike.model.GameState
 import us.jyni.game.klondike.util.sync.Ruleset
 import us.jyni.game.klondike.solver.UnsolvableDetector
 import us.jyni.game.klondike.solver.UnsolvableReason
+import us.jyni.game.klondike.solver.Solver
+import us.jyni.game.klondike.solver.SolverType
 import us.jyni.game.klondike.solver.BFSSolver
+import us.jyni.game.klondike.solver.AStarSolver
 import us.jyni.game.klondike.solver.SolverResult
 import us.jyni.game.klondike.solver.Move
 
-class GameViewModel : ViewModel() {
+class GameViewModel(
+    private val solverType: SolverType = SolverType.BFS
+) : ViewModel() {
     private val engine = GameEngine()
     private val unsolvableDetector = UnsolvableDetector(engine)
-    private val solver = BFSSolver(engine)
+    
+    // Solver 인터페이스 타입으로 선언
+    private val solver: Solver = when (solverType) {
+        SolverType.BFS -> BFSSolver(engine)
+        SolverType.ASTAR -> AStarSolver(engine)
+    }
 
     private val _state = MutableStateFlow(GameState())
     val state: StateFlow<GameState> = _state.asStateFlow()
@@ -105,6 +115,11 @@ class GameViewModel : ViewModel() {
         return moved
     }
 
+    /**
+     * 빠른 정리 (Greedy 알고리즘)
+     * Foundation으로 이동 가능한 카드만 빠르게 정리
+     * 주의: Solvable 게임도 중간에 멈출 수 있음
+     */
     fun autoComplete(): Int {
         var moveCount = 0
         var moved = true
@@ -145,6 +160,33 @@ class GameViewModel : ViewModel() {
         }
         
         return moveCount
+    }
+    
+    /**
+     * Move를 현재 게임에 적용
+     * @return 성공 여부
+     */
+    fun applyMove(move: Move): Boolean {
+        val moved = when (move) {
+            is Move.TableauToTableau -> 
+                engine.moveTableauToTableauFromIndex(move.fromCol, move.cardIndex, move.toCol)
+            is Move.TableauToFoundation -> 
+                engine.moveTableauToFoundation(move.fromCol, move.foundationIndex)
+            is Move.WasteToTableau -> 
+                engine.moveWasteToTableau(move.toCol)
+            is Move.WasteToFoundation -> 
+                engine.moveWasteToFoundation(move.foundationIndex)
+            is Move.FoundationToTableau -> 
+                engine.moveFoundationToTableau(move.foundationIndex, move.toCol)
+            is Move.Draw -> {
+                engine.draw()
+                true
+            }
+        }
+        if (moved) {
+            _state.value = engine.getGameState()
+        }
+        return moved
     }
 
     fun saveStateString(): String = engine.saveStateString()
@@ -229,6 +271,13 @@ class GameViewModel : ViewModel() {
         tempEngine.startGame(engine.getSeed(), engine.getRules())
         val initialState = tempEngine.getGameState()
         return unsolvableDetector.checkInherentlyUnsolvableWithDebug(initialState)
+    }
+    
+    /**
+     * 현재 사용 중인 Solver 타입 조회
+     */
+    fun getSolverType(): SolverType {
+        return solverType
     }
     
     // Solver

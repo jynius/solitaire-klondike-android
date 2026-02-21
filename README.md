@@ -2,14 +2,32 @@
 
 This project is a native Android application for playing the classic card game Solitaire, specifically the Klondike variant. 
 
-See also: [Klondike 시나리오](docs/SCENARIOS.md)
-
 ## Features
 
 - **Game Logic**: Implements the rules of Klondike Solitaire.
 - **User Interface**: A clean and intuitive UI for an engaging user experience.
 - **Undo Functionality**: Allows players to revert their last moves.
 - **Game State Management**: Tracks the current state of the game, including the deck, piles, and cards.
+- **Solver & Hints**: AI-powered solver with BFS and A* algorithms for finding optimal solutions.
+- **Statistics & Analytics**: Comprehensive game statistics with win rates, streaks, and performance tracking.
+- **Game Replay**: Save and replay game sessions for analysis.
+
+## Documentation
+
+### Game Design & Features
+- [시나리오](docs/SCENARIOS.md) - Game scenarios and use cases
+- [Favorites & Filtering](docs/FAVORITES_AND_FILTERING.md) - User preferences and game filtering
+- [Statistics Features](docs/STATISTICS_FEATURES.md) - Game statistics and analytics
+- [Statistics Implementation](docs/STATISTICS_IMPLEMENTATION.md) - Technical implementation details
+- [Game Replay Guide](docs/GAME_REPLAY_GUIDE.md) - Save and replay game sessions
+
+### Solver & AI
+- [Solver Design](docs/SOLVER_DESIGN.md) - Solver architecture and algorithm design
+- [Solver Usage](docs/SOLVER_USAGE.md) - How to use and extend the solver system
+
+### Development & Testing
+- [Test Guide](docs/TEST_GUIDE.md) - Testing strategies and guidelines
+- [Sync](docs/SYNC.md) - Data synchronization details
 
 ## Project Structure
 

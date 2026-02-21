@@ -155,26 +155,56 @@ sealed class UnsolvableReason(val message: String) {
 - State Cycle은 GameEngine의 상태 히스토리로 검출
 - Solver가 실패하면 "Proven Unwinnable"을 반환 (별도 타입 체크 아님)
 
-#### 5. ViewModel 통합 (100% 완료)
-- ✅ `GameViewModel.kt`: Solver 연결 완료
+#### 5. Solver 인터페이스 및 Strategy 패턴 (100% 완료)
+- ✅ `Solver.kt`: 공통 인터페이스 정의
+  - `solve()`: 승리 경로 찾기
+  - `findBestMove()`: 힌트 제공
+  - `SolverType` enum: BFS, ASTAR
+- ✅ `BFSSolver.kt`: Solver 인터페이스 구현
+- ✅ `AStarSolver.kt`: Solver 인터페이스 구현
+
+**Strategy 패턴 적용:**
+```kotlin
+class GameViewModel(
+    private val solverType: SolverType = SolverType.BFS
+) : ViewModel() {
+    private val solver: Solver = when (solverType) {
+        SolverType.BFS -> BFSSolver(engine)
+        SolverType.ASTAR -> AStarSolver(engine)
+    }
+}
+```
+
+**장점:**
+- ✅ 런타임에 Solver 교체 가능
+- ✅ 새로운 Solver 추가 용이
+- ✅ 확장성 및 유지보수성 향상
+
+#### 6. ViewModel 통합 (100% 완료)
+- ✅ `GameViewModel.kt`: Solver 인터페이스로 연결
 - ✅ `solve()`, `findHint()`, `checkUnsolvable()` 메서드 제공
+- ✅ `getSolverType()`: 현재 Solver 타입 조회
 
 ### ⚠️ 미완성 항목
 
-#### 1. UI 통합 (0% 완료)
-- ⏸️ 힌트 버튼 구현 및 카드 강조 표시
-- ⏸️ Auto Play 버튼 (순차 실행 + 애니메이션)
+#### 1. UI 통합 (50% 완료)
+- ✅ 힌트 버튼 구현 (Solver 기반)
+- ✅ Auto Play 버튼 (Solver 기반, 순차 실행 + 0.3초 간격 애니메이션)
+- ⏸️ 카드 강조 표시
 - ⏸️ 로딩 인디케이터
 - ⏸️ Unsolvable 상태 표시 UI
+- ⏸️ Solver 선택 설정 UI
 
-#### 2. Auto Play 기능 (0% 완료)
-- ⏸️ Solver 결과를 순차 실행
-- ⏸️ 이동 간 딜레이 + 애니메이션
-- ⏸️ 진행률 표시
+#### 2. Auto Play 기능 (100% 완료)
+- ✅ Solver 기반 자동 플레이
+- ✅ 이동 간 딜레이 + 애니메이션 (0.3초)
+- ✅ 진행률 Toast 메시지
+- ✅ 타임아웃/복잡도 초과 처리
 
-#### 3. AutoComplete와 Solver 통합 (0% 완료)
-- ❌ 현재 `autoComplete()`는 Solver를 사용하지 않음
-- ❌ 단순 Greedy 알고리즘으로 인한 한계 (아래 참조)
+#### 3. 빠른 정리 기능 (100% 완료)
+- ✅ `quickComplete()`: Greedy 알고리즘 (Foundation만)
+- ✅ `autoCompleteIfPossible()`: 모든 카드 공개 시 자동 정리
+- ⚠️ Solvable 게임도 중간에 멈출 수 있음 (known limitation)
 
 ---
 

@@ -42,6 +42,7 @@ import us.jyni.game.klondike.solver.Move
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import us.jyni.game.klondike.sync.JsonlFileRepository
 import java.util.Locale
@@ -677,14 +678,79 @@ class GameActivity : AppCompatActivity() {
             }
         }
         
-        // Auto button - 자동 완료
+        // Auto button - Solver 기반 자동 플레이
         findViewById<ImageButton>(R.id.auto_button).setOnClickListener {
-            val moveCount = viewModel.autoComplete()
-            if (moveCount > 0) {
-                Toast.makeText(this, getString(R.string.auto_complete_success, moveCount), Toast.LENGTH_SHORT).show()
-                persist()
-            } else {
-                Toast.makeText(this, getString(R.string.auto_complete_none), Toast.LENGTH_SHORT).show()
+            // 백그라운드에서 솔루션 찾기
+            solverScope.launch {
+                val result = viewModel.solve()
+                
+                withContext(Dispatchers.Main) {
+                    when (result) {
+                        is SolverResult.Success -> {
+                            // 솔루션을 찾았으면 순차 실행
+                            Toast.makeText(
+                                this@GameActivity,
+                                "자동 플레이 시작 (${result.moves.size}수)",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            
+                            // 각 move를 애니메이션과 함께 실행
+                            var moveCount = 0
+                            for (move in result.moves) {
+                                delay(300)  // 0.3초 간격
+                                val moved = viewModel.applyMove(move)
+                                if (moved) {
+                                    moveCount++
+                                } else {
+                                    // 이동 실패 시 중단
+                                    Toast.makeText(
+                                        this@GameActivity,
+                                        "자동 플레이 중단 ($moveCount/${result.moves.size})",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    break
+                                }
+                            }
+                            
+                            if (moveCount == result.moves.size) {
+                                Toast.makeText(
+                                    this@GameActivity,
+                                    "자동 플레이 완료!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            persist()
+                        }
+                        is SolverResult.Timeout -> {
+                            Toast.makeText(
+                                this@GameActivity,
+                                "게임이 너무 복잡합니다 (타임아웃)",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        is SolverResult.TooComplex -> {
+                            Toast.makeText(
+                                this@GameActivity,
+                                "게임이 너무 복잡합니다",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        is SolverResult.InherentlyUnsolvable -> {
+                            Toast.makeText(
+                                this@GameActivity,
+                                "해결 불가능한 게임입니다: ${result.reason.message}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                        is SolverResult.UnwinnableState -> {
+                            Toast.makeText(
+                                this@GameActivity,
+                                "현재 상태에서 승리 불가능: ${result.reason}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                }
             }
         }
         
@@ -1101,24 +1167,9 @@ class GameActivity : AppCompatActivity() {
         val stockAndWasteEmpty = state.stock.isEmpty() && state.waste.isEmpty()
         
         if (allCardsRevealed && stockAndWasteEmpty) {
-            // 자동 완료 가능 - 모든 카드를 Foundation으로 이동
-            var moved = true
-            while (moved) {
-                moved = false
-                // Tableau에서 Foundation으로 이동 가능한 카드 찾기
-                for (col in 0..6) {
-                    for (foundationIndex in 0..3) {
-                        if (viewModel.canMoveTableauToFoundation(col, foundationIndex)) {
-                            if (viewModel.moveTableauToFoundation(col, foundationIndex)) {
-                                moved = true
-                                break
-                            }
-                        }
-                    }
-                    if (moved) break
-                }
-            }
-            return true
+            // 빠른 정리 사용 (모든 카드를 Foundation으로 이동)
+            val moveCount = viewModel.autoComplete()
+            return moveCount > 0
         }
         return false
     }
