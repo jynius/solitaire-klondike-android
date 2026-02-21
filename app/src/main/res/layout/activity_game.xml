@@ -36,10 +36,6 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
-            android:layout_toStartOf="@id/right_buttons"
-            android:layout_toEndOf="@id/back_button"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
             android:orientation="vertical"
             android:gravity="center">
 
@@ -342,8 +338,8 @@
         android:orientation="horizontal"
         android:baselineAligned="false"
         android:gravity="center_vertical"
-        android:paddingStart="@dimen/padding_large"
-        android:paddingEnd="@dimen/padding_large"
+        android:paddingStart="@dimen/padding_small"
+        android:paddingEnd="@dimen/padding_small"
         android:paddingTop="8dp"
         android:paddingBottom="8dp"
         android:background="@drawable/bottom_bar_elevated"
@@ -353,69 +349,69 @@
         <!-- Hint -->
         <ImageButton
             android:id="@+id/hint_button"
+            android:contentDescription="@string/hint_description"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_hint"
             android:layout_width="0dp"
             android:layout_height="40dp"
             android:layout_weight="1"
-            android:layout_gravity="center"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/hint_description"
-            android:src="@drawable/ic_hint" />
+            android:layout_gravity="center" />
 
         <!-- Auto -->
         <ImageButton
             android:id="@+id/auto_button"
+            android:contentDescription="@string/auto_description"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_auto_awesome"
             android:layout_width="0dp"
             android:layout_height="40dp"
             android:layout_weight="1"
-            android:layout_gravity="center"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/auto_description"
-            android:src="@drawable/ic_auto_play" />
+            android:layout_gravity="center" />
 
         <!-- New Game -->
         <ImageButton
             android:id="@+id/reset_button"
+            android:contentDescription="@string/restart"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_skip_next"
             android:layout_width="0dp"
             android:layout_height="40dp"
             android:layout_weight="1"
-            android:layout_gravity="center"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/restart"
-            android:src="@drawable/ic_new_game_plus" />
+            android:layout_gravity="center" />
 
         <!-- Favorite Status Indicator (not clickable) -->
         <ImageView
             android:id="@+id/favorite_indicator"
+            android:contentDescription="@string/favorite_status"
+            android:src="@drawable/ic_favorite"
             android:layout_width="0dp"
             android:layout_height="40dp"
             android:layout_weight="1"
             android:layout_gravity="center"
-            android:contentDescription="@string/favorite_status"
-            android:src="@drawable/ic_star_outline"
-            android:scaleType="centerInside"
+            android:scaleType="fitCenter"
             android:padding="8dp" />
 
         <!-- Restart -->
         <ImageButton
             android:id="@+id/restart_button"
+            android:contentDescription="@string/restart_description"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_skip_previous"
             android:layout_width="0dp"
             android:layout_height="40dp"
             android:layout_weight="1"
-            android:layout_gravity="center"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/restart_description"
-            android:src="@drawable/ic_restart" />
+            android:layout_gravity="center" />
 
         <!-- Undo -->
         <ImageButton
             android:id="@+id/undo_button"
+            android:contentDescription="@string/undo"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_undo"
             android:layout_width="0dp"
             android:layout_height="40dp"
             android:layout_weight="1"
-            android:layout_gravity="center"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/undo"
-            android:src="@drawable/ic_undo" />
+            android:layout_gravity="center" />
     </LinearLayout>
 
 </RelativeLayout>

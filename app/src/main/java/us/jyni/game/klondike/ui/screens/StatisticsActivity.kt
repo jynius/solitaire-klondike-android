@@ -665,17 +665,13 @@ class GameStatsAdapter(
             playCountText.text = "(${context.getString(R.string.play_count, group.plays.size)})"
             
             // 즐겨찾기
-            favoriteButton.setImageResource(
-                if (group.isFavorite) R.drawable.ic_star_filled else R.drawable.ic_star_outline
-            )
+            favoriteButton.isSelected = group.isFavorite
             favoriteButton.setOnClickListener {
                 group.plays.forEach { play ->
                     repository.toggleFavorite(play)
                 }
                 group.isFavorite = !group.isFavorite
-                favoriteButton.setImageResource(
-                    if (group.isFavorite) R.drawable.ic_star_filled else R.drawable.ic_star_outline
-                )
+                favoriteButton.isSelected = group.isFavorite
                 val message = if (group.isFavorite) 
                     context.getString(R.string.stats_favorite_added) 
                 else 

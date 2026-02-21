@@ -248,7 +248,7 @@
                             android:layout_height="16dp"
                             android:scaleType="fitCenter"
                             android:background="?attr/selectableItemBackgroundBorderless"
-                            android:src="@drawable/ic_restart"
+                            android:src="@drawable/ic_replay"
                             app:tint="#000000"
                             android:contentDescription="@string/retry_description"
                             android:visibility="gone" />
@@ -291,7 +291,7 @@
                             android:layout_height="16dp"
                             android:scaleType="fitCenter"
                             android:background="?attr/selectableItemBackgroundBorderless"
-                            android:src="@drawable/ic_restart"
+                            android:src="@drawable/ic_replay"
                             app:tint="#000000"
                             android:contentDescription="@string/retry_description"
                             android:visibility="gone" />
@@ -334,7 +334,7 @@
                             android:layout_height="16dp"
                             android:scaleType="fitCenter"
                             android:background="?attr/selectableItemBackgroundBorderless"
-                            android:src="@drawable/ic_restart"
+                            android:src="@drawable/ic_replay"
                             app:tint="#000000"
                             android:contentDescription="@string/retry_description"
                             android:visibility="gone" />
@@ -443,7 +443,7 @@
 
                 <!-- 코드 -->
                 <TextView
-                    android:layout_width="125dp"
+                    android:layout_width="128dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4dp"
                     android:text="@string/stats_code"
@@ -464,7 +464,7 @@
                     android:layout_width="16dp"
                     android:layout_height="16dp"
                     android:layout_marginStart="4dp"
-                    android:src="@drawable/ic_restart"
+                    android:src="@drawable/ic_replay"
                     app:tint="#000000"
                     android:contentDescription="@string/retry_description" />
 

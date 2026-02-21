@@ -69,6 +69,7 @@ class GameActivity : AppCompatActivity() {
     private var lastClickTime: Long = 0
     private var lastClickedCard: Pair<Int, Int>? = null // (column, cardIndex)
     private var victoryShown = false
+    private var gameSaved = false  // 게임 결과 저장 여부
     
     // 게임 기록 관련 변수들
     private var gameStartTime: Long = 0
@@ -168,7 +169,7 @@ class GameActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 while (true) {
                     kotlinx.coroutines.delay(1000)
-                    if (!viewModel.isPaused()) {
+                    if (!viewModel.isPaused() && !viewModel.state.value.isGameOver) {
                         // Update timer display only
                         updateTimer()
                     }
@@ -930,6 +931,9 @@ class GameActivity : AppCompatActivity() {
         if (victoryShown) return
         victoryShown = true
         
+        // 최종 시간 업데이트 (타이머가 멈추기 전에)
+        updateTimer()
+        
         // 승리 기록 저장
         saveGameResult("win")
         
@@ -1255,14 +1259,16 @@ class GameActivity : AppCompatActivity() {
         val gamesWithSameSeed = allStats.filter { it.seed == currentGameSeed }
         val hasFavorite = gamesWithSameSeed.any { repository.isFavorite(it) }
         
-        indicator.setImageResource(
-            if (hasFavorite) R.drawable.ic_star_filled else R.drawable.ic_star_outline
-        )
+        indicator.isSelected = hasFavorite
     }
     
     private fun startNewGame(seed: ULong) {
         gameStartTime = System.currentTimeMillis()
         currentGameSeed = seed
+        
+        // 새 게임 시작 시 플래그 초기화
+        gameSaved = false
+        victoryShown = false
         
         // Check Inherent Status (게임 시작 시 한 번만)
         val inherentReason = viewModel.checkInherentlyUnsolvable()
@@ -1274,6 +1280,12 @@ class GameActivity : AppCompatActivity() {
     }
     
     private fun saveGameResult(outcome: String) {
+        // 이미 저장된 게임이면 중복 저장하지 않음
+        if (gameSaved) {
+            android.util.Log.d("GameActivity", "Game already saved, skipping duplicate save")
+            return
+        }
+        
         try {
             val finishTime = System.currentTimeMillis()
             val currentMoveCount = viewModel.getMoveCount()
@@ -1314,6 +1326,7 @@ class GameActivity : AppCompatActivity() {
                 gameCode = gameCode
             )
             repository.appendPending(stats)
+            gameSaved = true  // 저장 완료 표시
             android.util.Log.d("GameActivity", "Game result saved: outcome=$outcome, inherent=$inherentStatus, winnable=$winnableStatus, code=$gameCode, moves=$currentMoveCount, score=$currentScore, duration=${finishTime - gameStartTime}ms")
         } catch (e: Exception) {
             android.util.Log.e("GameActivity", "Failed to save game result", e)
