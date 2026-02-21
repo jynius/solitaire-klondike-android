@@ -1271,11 +1271,33 @@ class GameActivity : AppCompatActivity() {
         victoryShown = false
         
         // Check Inherent Status (게임 시작 시 한 번만)
-        val inherentReason = viewModel.checkInherentlyUnsolvable()
-        inherentStatusEmoji = if (inherentReason != null) {
-            getString(R.string.state_inherently_unsolvable)
+        val rules = viewModel.getRules()
+        val gameCode = us.jyni.game.klondike.util.GameCode.encode(seed, rules)
+        
+        // 모든 게임 시작 시 게임 코드 로그 출력
+        android.util.Log.d("GameActivity", "=== Game Started ===")
+        android.util.Log.d("GameActivity", "Game Code: $gameCode")
+        android.util.Log.d("GameActivity", "Seed: $seed")
+        android.util.Log.d("GameActivity", "Rules: $rules")
+        
+        // 디버그 모드: 특정 게임 코드일 때 상세 정보 출력
+        val debugGameCodes = listOf("YpUzGOpDYWg", "YpUzGOpD-YWg")
+        if (debugGameCodes.contains(gameCode)) {
+            val (inherentReason, debugLog) = viewModel.checkInherentlyUnsolvableWithDebug()
+            android.util.Log.d("GameActivity", "=== MATCHED DEBUG GAME CODE ===")
+            android.util.Log.d("GameActivity", debugLog)
+            inherentStatusEmoji = if (inherentReason != null) {
+                getString(R.string.state_inherently_unsolvable)
+            } else {
+                getString(R.string.state_inherently_solvable)
+            }
         } else {
-            getString(R.string.state_inherently_solvable)
+            val inherentReason = viewModel.checkInherentlyUnsolvable()
+            inherentStatusEmoji = if (inherentReason != null) {
+                getString(R.string.state_inherently_unsolvable)
+            } else {
+                getString(R.string.state_inherently_solvable)
+            }
         }
     }
     
@@ -1292,7 +1314,7 @@ class GameActivity : AppCompatActivity() {
             val currentScore = viewModel.getScore()
             val rules = viewModel.getRules()
             
-            // Inherent Status 결정
+            // Inherent Status 결정 (게임의 초기 배치 속성 - 언제 체크해도 동일)
             val inherentReason = viewModel.checkInherentlyUnsolvable()
             val inherentStatus = if (inherentReason != null) "unsolvable" else "solvable"
             

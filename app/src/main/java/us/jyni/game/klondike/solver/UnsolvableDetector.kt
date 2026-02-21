@@ -15,7 +15,14 @@ import kotlin.math.min
 class UnsolvableDetector(private val engine: GameEngine) {
     
     /**
-     * Inherently Unsolvable 완전 검사 (게임 시작 시 호출)
+     * 게임의 Inherent 속성(Game Property)을 검사합니다.
+     * 
+     * 이것은 "현재 플레이 상태"가 아니라 "게임 속성"을 검사합니다.
+     * Seed + Rules가 동일하면 언제 호출해도 결과가 같습니다.
+     * 
+     * @param state 초기 배치 정보를 담은 GameState (보통 초기 상태)
+     *              주의: 이 검사는 state 객체를 받지만, 실제로는 "게임 속성"을 판단합니다.
+     *                   같은 seed + rules로 생성된 게임이라면 언제 체크해도 항상 동일한 결과를 반환합니다.
      * @return UnsolvableReason if inherently unsolvable, null if solvable
      */
     fun checkInherentlyUnsolvable(state: GameState): UnsolvableReason? {
@@ -32,6 +39,51 @@ class UnsolvableDetector(private val engine: GameEngine) {
         }
         
         return null  // Solvable!
+    }
+    
+    /**
+     * 게임의 Inherent 속성(Game Property)을 검사합니다 (디버깅 정보 포함)
+     * 
+     * 이것은 "현재 플레이 상태"가 아니라 "게임 속성"을 검사합니다.
+     * Seed + Rules가 동일하면 언제 호출해도 결과가 같습니다.
+     * 
+     * @param state 초기 배치 정보를 담은 GameState (보통 초기 상태)
+     * @return Pair<UnsolvableReason?, String> - 결과와 디버그 로그
+     */
+    fun checkInherentlyUnsolvableWithDebug(state: GameState): Pair<UnsolvableReason?, String> {
+        val log = StringBuilder()
+        log.appendLine("=== Unsolvable Detector Debug ===")
+        
+        // 1. N-Pile Irretrievable (N=1부터 N=5까지)
+        for (n in 1..5) {
+            log.appendLine("\n[Checking $n-Pile Irretrievable]")
+            val nPileReason = checkNPileIrretrievable(state, n)
+            if (nPileReason != null) {
+                log.appendLine("✗ FOUND: $nPileReason")
+                return Pair(nPileReason, log.toString())
+            } else {
+                log.appendLine("✓ No $n-pile irretrievable found")
+            }
+        }
+        
+        // 2. King Irretrievable (특수 케이스)
+        log.appendLine("\n[Checking King Irretrievable]")
+        for (i in state.tableau.indices) {
+            val kingReason = checkKingIrretrievable(state, i)
+            if (kingReason != null) {
+                log.appendLine("✗ FOUND: $kingReason")
+                return Pair(kingReason, log.toString())
+            }
+        }
+        log.appendLine("✓ No king irretrievable found")
+        
+       현재 플레이 상태(Play State)를 검사합니다.
+     * 
+     * 이것은 게임 속성이 아니라 "현재 진행 상황에 따른 상태"를 검사합니다.
+     * 플레이어의 선택에 따라 매 이동마다 결과가 달라질 수 있습니다.
+     * 
+     * @param state 현재 게임 상태=== RESULT: SOLVABLE ===")
+        return Pair(null, log.toString())
     }
     
     /**
@@ -101,33 +153,42 @@ class UnsolvableDetector(private val engine: GameEngine) {
         val combinations = generateCombinations(meaningfulPiles, n)
         
         for (combo in combinations) {
-            // 이 조합의 모든 face-down 합치기
+            // N개 pile의 face-up 맨 밑 카드 가져오기
+            val cards = combo.mapNotNull { i ->
+                val pile = state.tableau[i]
+                val faceUpCards = pile.filter { it.isFaceUp }
+                faceUpCards.firstOrNull()?.let { card -> Pair(card, i) }
+            }
+            
+            // N개 카드가 모두 있어야 함
+            if (cards.size != n) continue
+            
+            // N개 카드의 필요 카드 합집합 계산
+            val allRequired = cards.flatMap { (card, _) ->
+                getRequiredForFoundation(card, state) + getRequiredForTableau(card)
+            }.distinctBy { "${it.suit}_${it.rank}" }
+            
+            // 합집합이 비어있으면 스킵 (모든 카드가 이동 가능)
+            if (allRequired.isEmpty()) continue
+            
+            // N개 pile의 combinedFaceDown
             val combinedFaceDown = combo.flatMap { i ->
                 state.tableau[i].filter { !it.isFaceUp }
             }
             
-            // 이 조합의 각 pile의 face-up 카드들 검사
-            for (pileIndex in combo) {
-                val pile = state.tableau[pileIndex]
-                val faceUpCards = pile.filter { it.isFaceUp }
-                
-                if (faceUpCards.isEmpty()) continue
-                
-                // 맨 위부터 순차 검사 (최대 4장)
-                val cardsToCheck = min(faceUpCards.size, 4)
-                for (k in 0 until cardsToCheck) {
-                    val cardIndex = faceUpCards.size - 1 - k  // 맨 위부터
-                    val card = faceUpCards[cardIndex]
-                    
-                    if (isCardIrretrievable(card, combinedFaceDown, state, pileIndex)) {
-                        // Irretrievable 발견!
-                        val cardStr = "${card.suit} ${card.rank}"
-                        return when (n) {
-                            1 -> UnsolvableReason.NPileIrretrievable.Single(pileIndex, cardStr)
-                            2 -> UnsolvableReason.NPileIrretrievable.Pair(combo, listOf(cardStr))
-                            else -> UnsolvableReason.NPileIrretrievable.Group(n, combo, listOf(cardStr))
-                        }
-                    }
+            // 합집합이 모두 combinedFaceDown에 있는지 확인
+            // Stock/Waste 무관: Tableau pile 내부만 검사 (문서 참조)
+            val allBlocked = allRequired.all { required ->
+                combinedFaceDown.any { it.suit == required.suit && it.rank == required.rank }
+            }
+            
+            if (allBlocked) {
+                // N-Pile Irretrievable 발견!
+                val cardStrList = cards.map { (card, _) -> "${card.suit} ${card.rank}" }
+                return when (n) {
+                    1 -> UnsolvableReason.NPileIrretrievable.Single(combo[0], cardStrList[0])
+                    2 -> UnsolvableReason.NPileIrretrievable.Pair(combo, cardStrList)
+                    else -> UnsolvableReason.NPileIrretrievable.Group(n, combo, cardStrList)
                 }
             }
         }
@@ -157,23 +218,41 @@ class UnsolvableDetector(private val engine: GameEngine) {
         
         // 3. Foundation 경로 가능성 확인
         // 필요한 카드가 없으면 바로 갈 수 있음 (blocked = false)
-        // 필요한 카드가 있으면 모두 face-down에 있을 때만 blocked
+        // 필요한 카드가 있으면 모두 face-down에 있고 Stock/Waste에도 없을 때만 blocked
         val foundationBlocked = requiredForFoundation.isNotEmpty() && requiredForFoundation.all { required ->
-            faceDownBelow.any { it.suit == required.suit && it.rank == required.rank }
+            val inFaceDown = faceDownBelow.any { it.suit == required.suit && it.rank == required.rank }
+            val inStock = state.stock.any { it.suit == required.suit && it.rank == required.rank }
+            val inWaste = state.waste.any { it.suit == required.suit && it.rank == required.rank }
+            
+            // face-down에 있고 Stock/Waste에 없으면 접근 불가
+            inFaceDown && !inStock && !inWaste
         }
         
         // 4. Tableau 경로 가능성 확인
         // 필요한 카드 중 하나라도 접근 가능하면 blocked = false
         val tableauBlocked = requiredForTableau.all { required ->
-            // face-down에 있거나, 다른 접근 가능한 pile에 없음
+            // face-down에 있는지 확인
             val inFaceDown = faceDownBelow.any { it.suit == required.suit && it.rank == required.rank }
-            if (inFaceDown) return@all true
+            if (inFaceDown) {
+                // face-down에 있어도 Stock/Waste에서 접근 가능하면 OK
+                val inStock = state.stock.any { it.suit == required.suit && it.rank == required.rank }
+                val inWaste = state.waste.any { it.suit == required.suit && it.rank == required.rank }
+                if (inStock || inWaste) return@all false
+                
+                return@all true  // face-down에만 있음
+            }
             
             // 다른 pile에서 접근 가능한지 확인
             val accessibleInOtherPile = state.tableau.withIndex().any { (index, pile) ->
                 index != cardPileIndex && pile.any { it.isFaceUp && it.suit == required.suit && it.rank == required.rank }
             }
-            !accessibleInOtherPile
+            
+            // Stock/Waste에서 접근 가능한지 확인
+            val inStock = state.stock.any { it.suit == required.suit && it.rank == required.rank }
+            val inWaste = state.waste.any { it.suit == required.suit && it.rank == required.rank }
+            
+            // 어디에도 없으면 blocked
+            !accessibleInOtherPile && !inStock && !inWaste
         }
         
         // 두 경로 모두 차단되면 irretrievable

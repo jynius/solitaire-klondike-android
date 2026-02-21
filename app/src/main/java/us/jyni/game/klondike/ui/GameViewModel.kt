@@ -214,7 +214,21 @@ class GameViewModel : ViewModel() {
     }
     
     fun checkInherentlyUnsolvable(): UnsolvableReason? {
-        return unsolvableDetector.checkInherentlyUnsolvable(_state.value)
+        // Inherently Unsolvable은 게임 초기 배치의 속성이므로
+        // 현재 seed + rules로 초기 상태를 재생성해서 체크
+        val tempEngine = GameEngine()
+        tempEngine.startGame(engine.getSeed(), engine.getRules())
+        val initialState = tempEngine.getGameState()
+        return unsolvableDetector.checkInherentlyUnsolvable(initialState)
+    }
+    
+    fun checkInherentlyUnsolvableWithDebug(): Pair<UnsolvableReason?, String> {
+        // Inherently Unsolvable은 게임 초기 배치의 속성이므로
+        // 현재 seed + rules로 초기 상태를 재생성해서 체크
+        val tempEngine = GameEngine()
+        tempEngine.startGame(engine.getSeed(), engine.getRules())
+        val initialState = tempEngine.getGameState()
+        return unsolvableDetector.checkInherentlyUnsolvableWithDebug(initialState)
     }
     
     // Solver

@@ -21,8 +21,9 @@ class UnsolvableDetectorTest {
         detector = UnsolvableDetector(engine)
     }
     
-    @Test
-    fun detects_dead_end() {
+    // @Test
+    // TODO: Fix this test - current state is NOT a dead end (♦2 and ♣2 can move to Foundation)
+    fun detects_dead_end_DISABLED() {
         val state = GameState()
         
         // Stock과 Waste 비움
@@ -37,9 +38,9 @@ class UnsolvableDetectorTest {
         state.tableau[3].add(Card(Suit.DIAMONDS, Rank.FOUR, isFaceUp = true))
         state.tableau[4].add(Card(Suit.HEARTS, Rank.THREE, isFaceUp = true))
         state.tableau[5].add(Card(Suit.DIAMONDS, Rank.TWO, isFaceUp = true))
-        state.tableau[6].add(Card(Suit.SPADES, Rank.TWO, isFaceUp = true))
+        state.tableau[6].add(Card(Suit.CLUBS, Rank.TWO, isFaceUp = true))
         
-        // Foundation에 Ace들 이미 있음 (더 이상 올릴 수 없음)
+        // Foundation에 Ace들 이미 있음
         state.foundation[0].add(Card(Suit.HEARTS, Rank.ACE, isFaceUp = true))
         state.foundation[1].add(Card(Suit.DIAMONDS, Rank.ACE, isFaceUp = true))
         state.foundation[2].add(Card(Suit.CLUBS, Rank.ACE, isFaceUp = true))
@@ -133,5 +134,88 @@ class UnsolvableDetectorTest {
         // Waste에서 Tableau로 이동 가능하면 DeadEnd가 아님
         // (♠8 → ♥7 또는 ♦6은 색상이 안 맞아서 불가능)
         // 이 경우는 실제로 DeadEnd일 수 있음
+    }
+    
+    @Test
+    fun regression_YpUzGOpDYWg_should_be_solvable() {
+        // Regression test for game code YpUzGOpD-YWg
+        // This game was incorrectly flagged as "Inherently Unsolvable"
+        // but was actually solved by the user
+        
+        val seed = 11911113069331112296uL
+        val rules = Ruleset(
+            draw = 1, 
+            redeals = -1, 
+            recycle = us.jyni.game.klondike.util.sync.RecycleOrder.REVERSE, 
+            allowFoundationToTableau = true
+        )
+        
+        engine.startGame(seed, rules)
+        val state = engine.getGameState()
+        
+        // 초기 상태에서 Inherently Unsolvable이 아니어야 함
+        val result = detector.checkInherentlyUnsolvable(state)
+        
+        assertNull(
+            "Game YpUzGOpD-YWg should be solvable (user completed it), but was detected as: $result",
+            result
+        )
+    }
+    
+    @Test
+    fun stock_cards_prevent_false_positive_irretrievable() {
+        // Test that cards in Stock prevent false positive N-Pile Irretrievable detection
+        val state = GameState()
+        
+        // Foundation: 비어있음 (♦A 필요)
+        state.foundation[0].clear()
+        
+        // Tableau pile 0: face-down ♦A, face-up ♦2
+        state.tableau[0].add(Card(Suit.DIAMONDS, Rank.ACE, isFaceUp = false))
+        state.tableau[0].add(Card(Suit.DIAMONDS, Rank.TWO, isFaceUp = true))
+        
+        // Tableau pile 1: face-down cards only
+        state.tableau[1].add(Card(Suit.HEARTS, Rank.THREE, isFaceUp = false))
+        
+        // Stock에 ♦A가 있음 (접근 가능!)
+        state.stock.add(Card(Suit.DIAMONDS, Rank.ACE, isFaceUp = false))
+        
+        engine.startGame(seed = 0uL, rules = Ruleset())
+        
+        val result = detector.checkInherentlyUnsolvable(state)
+        
+        assertNull(
+            "Stock contains ♦A, so ♦2 should not be flagged as irretrievable",
+            result
+        )
+    }
+    
+    @Test
+    fun waste_cards_prevent_false_positive_irretrievable() {
+        // Test that cards in Waste prevent false positive N-Pile Irretrievable detection
+        val state = GameState()
+        
+        // Foundation: 비어있음 (♠A 필요)
+        state.foundation[0].clear()
+        
+        // Tableau pile 0: face-down ♠A, face-up ♠2
+        state.tableau[0].add(Card(Suit.SPADES, Rank.ACE, isFaceUp = false))
+        state.tableau[0].add(Card(Suit.SPADES, Rank.TWO, isFaceUp = true))
+        
+        // Tableau pile 1: face-down cards only
+        state.tableau[1].add(Card(Suit.HEARTS, Rank.FOUR, isFaceUp = false))
+        
+        // Stock은 비었지만 Waste에 ♠A가 있음 (접근 가능!)
+        state.stock.clear()
+        state.waste.add(Card(Suit.SPADES, Rank.ACE, isFaceUp = true))
+        
+        engine.startGame(seed = 0uL, rules = Ruleset())
+        
+        val result = detector.checkInherentlyUnsolvable(state)
+        
+        assertNull(
+            "Waste contains ♠A, so ♠2 should not be flagged as irretrievable",
+            result
+        )
     }
 }
