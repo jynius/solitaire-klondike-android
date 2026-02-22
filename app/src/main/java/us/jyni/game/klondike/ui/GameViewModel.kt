@@ -10,24 +10,17 @@ import us.jyni.game.klondike.model.GameState
 import us.jyni.game.klondike.util.sync.Ruleset
 import us.jyni.game.klondike.solver.UnsolvableDetector
 import us.jyni.game.klondike.solver.UnsolvableReason
-import us.jyni.game.klondike.solver.Solver
-import us.jyni.game.klondike.solver.SolverType
-import us.jyni.game.klondike.solver.BFSSolver
-import us.jyni.game.klondike.solver.AStarSolver
-import us.jyni.game.klondike.solver.SolverResult
 import us.jyni.game.klondike.solver.Move
 
-class GameViewModel(
-    private val solverType: SolverType = SolverType.BFS
-) : ViewModel() {
+/**
+ * 게임 상태와 로직을 관리하는 ViewModel
+ * 
+ * Solver는 보조 기능이므로 GameViewModel과 분리되어 있습니다.
+ * 외부에서 Solver가 필요하면 getEngine()으로 GameEngine을 받아 직접 생성하세요.
+ */
+class GameViewModel : ViewModel() {
     private val engine = GameEngine()
     private val unsolvableDetector = UnsolvableDetector(engine)
-    
-    // Solver 인터페이스 타입으로 선언
-    private val solver: Solver = when (solverType) {
-        SolverType.BFS -> BFSSolver(engine)
-        SolverType.ASTAR -> AStarSolver(engine)
-    }
 
     private val _state = MutableStateFlow(GameState())
     val state: StateFlow<GameState> = _state.asStateFlow()
@@ -274,18 +267,10 @@ class GameViewModel(
     }
     
     /**
-     * 현재 사용 중인 Solver 타입 조회
+     * GameEngine 접근자 (읽기 전용)
+     * 
+     * 외부에서 Solver 생성 등의 목적으로 GameEngine이 필요할 때 사용합니다.
+     * GameEngine을 직접 수정하지 말고, GameViewModel의 메서드를 통해 조작하세요.
      */
-    fun getSolverType(): SolverType {
-        return solverType
-    }
-    
-    // Solver
-    fun solve(): SolverResult {
-        return solver.solve(_state.value)
-    }
-    
-    fun findHint(): Move? {
-        return solver.findBestMove(_state.value)
-    }
+    fun getEngine(): GameEngine = engine
 }

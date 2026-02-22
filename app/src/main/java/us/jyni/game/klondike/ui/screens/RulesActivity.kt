@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import us.jyni.R
 import us.jyni.game.klondike.util.sync.Ruleset
 import us.jyni.game.klondike.util.sync.RecycleOrder
+import us.jyni.game.klondike.solver.SolverType
 import java.util.Locale
 
 class RulesActivity : AppCompatActivity() {
@@ -19,6 +20,7 @@ class RulesActivity : AppCompatActivity() {
     private lateinit var redealsRadioGroup: RadioGroup
     private lateinit var foundationToTableauSwitch: androidx.appcompat.widget.SwitchCompat
     private lateinit var languageRadioGroup: RadioGroup
+    private lateinit var solverRadioGroup: RadioGroup
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Apply saved language before calling super.onCreate
@@ -57,11 +59,13 @@ class RulesActivity : AppCompatActivity() {
         redealsRadioGroup = findViewById(R.id.redeals_radio_group)
         foundationToTableauSwitch = findViewById(R.id.foundation_to_tableau_switch)
         languageRadioGroup = findViewById(R.id.language_radio_group)
+        solverRadioGroup = findViewById(R.id.solver_radio_group)
         val saveButton = findViewById<Button>(R.id.save_rules_button)
         
         // Load current settings
         loadCurrentLanguage()
         loadCurrentRules()
+        loadCurrentSolver()
         
         // Language change listener
         languageRadioGroup.setOnCheckedChangeListener { _, checkedId ->
@@ -80,8 +84,33 @@ class RulesActivity : AppCompatActivity() {
         }
         
         saveButton.setOnClickListener {
+            saveSolver()
             saveRulesAndFinish()
         }
+    }
+    
+    private fun loadCurrentSolver() {
+        val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        val solverType = prefs.getString("solver_type", SolverType.BFS.name) ?: SolverType.BFS.name
+        
+        when (solverType) {
+            SolverType.BFS.name -> solverRadioGroup.check(R.id.solver_bfs)
+            SolverType.ASTAR.name -> solverRadioGroup.check(R.id.solver_astar)
+            else -> solverRadioGroup.check(R.id.solver_bfs)
+        }
+    }
+    
+    private fun saveSolver() {
+        val selectedSolver = when (solverRadioGroup.checkedRadioButtonId) {
+            R.id.solver_bfs -> SolverType.BFS.name
+            R.id.solver_astar -> SolverType.ASTAR.name
+            else -> SolverType.BFS.name
+        }
+        
+        getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+            .edit()
+            .putString("solver_type", selectedSolver)
+            .apply()
     }
     
     private fun loadCurrentLanguage() {

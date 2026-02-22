@@ -176,6 +176,12 @@
     <string name="unit_game_singular">게임</string>
     <string name="unit_game_plural">게임</string>
     
+    <!-- Solver Settings -->
+    <string name="solver_algorithm_title">솔버 알고리즘</string>
+    <string name="solver_algorithm_desc">힌트와 자동 플레이에 사용할 알고리즘을 선택하세요</string>
+    <string name="solver_bfs">BFS - 최적 경로 보장 (안정적, 메모리 사용)</string>
+    <string name="solver_astar">A* - 빠른 실행 (휴리스틱 기반)</string>
+    
     <!-- Debug (MainActivity) -->
     <string name="debug_status">status</string>
     <string name="debug_enable_upload">Enable Upload</string>

@@ -37,6 +37,10 @@ import us.jyni.R
 import us.jyni.game.klondike.ui.GameViewModel
 import us.jyni.game.klondike.ui.components.CardView
 import us.jyni.game.klondike.util.sync.Ruleset
+import us.jyni.game.klondike.solver.Solver
+import us.jyni.game.klondike.solver.SolverType
+import us.jyni.game.klondike.solver.BFSSolver
+import us.jyni.game.klondike.solver.AStarSolver
 import us.jyni.game.klondike.solver.SolverResult
 import us.jyni.game.klondike.solver.Move
 import kotlinx.coroutines.CoroutineScope
@@ -648,7 +652,9 @@ class GameActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.hint_button).setOnClickListener {
             // 백그라운드에서 힌트 찾기
             solverScope.launch {
-                val hint = viewModel.findHint()
+                // 현재 설정에서 Solver 생성
+                val solver = createSolverFromSettings()
+                val hint = solver.findBestMove(viewModel.getState())
                 
                 withContext(Dispatchers.Main) {
                     if (hint != null) {
@@ -682,7 +688,9 @@ class GameActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.auto_button).setOnClickListener {
             // 백그라운드에서 솔루션 찾기
             solverScope.launch {
-                val result = viewModel.solve()
+                // 현재 설정에서 Solver 생성
+                val solver = createSolverFromSettings()
+                val result = solver.solve(viewModel.getState())
                 
                 withContext(Dispatchers.Main) {
                     when (result) {
@@ -1416,6 +1424,31 @@ class GameActivity : AppCompatActivity() {
         val config = Configuration(resources.configuration)
         config.setLocale(locale)
         resources.updateConfiguration(config, resources.displayMetrics)
+    }
+    
+    /**
+     * 현재 설정에서 Solver 생성
+     * 
+     * SharedPreferences에서 사용자가 선택한 Solver 타입을 읽어서
+     * 적절한 Solver 인스턴스를 생성합니다.
+     * GameViewModel은 Solver를 소유하지 않고, GameActivity가 직접 생성합니다.
+     */
+    private fun createSolverFromSettings(): Solver {
+        val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        val solverTypeName = prefs.getString("solver_type", SolverType.BFS.name) ?: SolverType.BFS.name
+        
+        val solverType = try {
+            SolverType.valueOf(solverTypeName)
+        } catch (e: IllegalArgumentException) {
+            SolverType.BFS  // 기본값
+        }
+        
+        // GameActivity가 직접 Solver 생성
+        val engine = viewModel.getEngine()
+        return when (solverType) {
+            SolverType.BFS -> BFSSolver(engine)
+            SolverType.ASTAR -> AStarSolver(engine)
+        }
     }
 
     companion object {
