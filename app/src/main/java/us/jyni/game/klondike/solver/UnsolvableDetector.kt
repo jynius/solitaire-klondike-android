@@ -162,45 +162,43 @@ class UnsolvableDetector(
         if (meaningfulPiles.size < n) return null
         
         // N개 pile 조합 생성
-        val combinations = generateCombinations(meaningfulPiles, n)
+        val pileCombinations = generateCombinations(meaningfulPiles, n)
         
-        for (combo in combinations) {
-            // N개 pile의 face-up 맨 밑 카드 가져오기
-            val cards = combo.mapNotNull { i ->
-                val pile = state.tableau[i]
-                val faceUpCards = pile.filter { it.isFaceUp }
-                faceUpCards.firstOrNull()?.let { card -> Pair(card, i) }
+        for (pileCombo in pileCombinations) {
+            // 각 pile의 face-down 카드들 중 맨 위(다음에 뒤집힐) 카드만 추출
+            val topFaceDownCards = pileCombo.mapNotNull { pileIndex ->
+                state.tableau[pileIndex]
+                    .filter { !it.isFaceUp }
+                    .lastOrNull()  // face-down 중 맨 위 (list의 마지막)
             }
             
-            // N개 카드가 모두 있어야 함
-            if (cards.size != n) continue
+            // 모든 pile에 face-down 카드가 있는지 확인
+            if (topFaceDownCards.size != pileCombo.size) continue
             
-            // N개 카드의 필요 카드 합집합 계산
-            val allRequired = cards.flatMap { (card, _) ->
-                getRequiredForFoundation(card, state) + getRequiredForTableau(card)
-            }.distinctBy { "${it.suit}_${it.rank}" }
+            // combinedFaceDown 계산:
+            // 선택한 N개 pile이 아닌 **다른 pile들**의 face-down 카드만 포함
+            // (선택한 pile의 카드들은 게임 진행 시 접근 가능하므로 제외)
+            val combinedFaceDown = state.tableau.indices
+                .filter { it !in pileCombo }  // 선택한 pile 제외
+                .flatMap { pileIndex ->
+                    state.tableau[pileIndex].filter { !it.isFaceUp }
+                }
             
-            // 합집합이 비어있으면 스킵 (모든 카드가 이동 가능)
-            if (allRequired.isEmpty()) continue
-            
-            // N개 pile의 combinedFaceDown
-            val combinedFaceDown = combo.flatMap { i ->
-                state.tableau[i].filter { !it.isFaceUp }
+            // DEBUG
+            if (topFaceDownCards.any { it.suit == Suit.HEARTS && it.rank == Rank.NINE }) {
+                println("  [$n-Pile ${pileCombo.joinToString(",")}] Selected cards: ${topFaceDownCards.map { "${it.suit}-${it.rank}" }}")
+                println("    combinedFaceDown (${combinedFaceDown.size}): ${combinedFaceDown.map { "${it.suit}-${it.rank}" }}")
             }
             
-            // 합집합이 모두 combinedFaceDown에 있는지 확인
-            // Stock/Waste 무관: Tableau pile 내부만 검사 (문서 참조)
-            val allBlocked = allRequired.all { required ->
-                combinedFaceDown.any { it.suit == required.suit && it.rank == required.rank }
-            }
-            
-            if (allBlocked) {
+            // 이 N개 카드 조합이 N-Pile Irretrievable인지 확인
+            // N개 카드가 필요로 하는 최대 3N개 카드가 모두 combinedFaceDown에 있는지 검사
+            if (isCardSetIrretrievable(topFaceDownCards, combinedFaceDown, state)) {
                 // N-Pile Irretrievable 발견!
-                val cardStrList = cards.map { (card, _) -> "${card.suit} ${card.rank}" }
+                val cardStrings = topFaceDownCards.map { "${it.suit} ${it.rank}" }
                 return when (n) {
-                    1 -> UnsolvableReason.NPileIrretrievable.Single(combo[0], cardStrList[0])
-                    2 -> UnsolvableReason.NPileIrretrievable.Pair(combo, cardStrList)
-                    else -> UnsolvableReason.NPileIrretrievable.Group(n, combo, cardStrList)
+                    1 -> UnsolvableReason.NPileIrretrievable.Single(pileCombo[0], cardStrings[0])
+                    2 -> UnsolvableReason.NPileIrretrievable.Pair(pileCombo, cardStrings)
+                    else -> UnsolvableReason.NPileIrretrievable.Group(n, pileCombo, cardStrings)
                 }
             }
         }
@@ -208,69 +206,59 @@ class UnsolvableDetector(
         return null
     }
     
+    
     /**
-     * 카드가 Irretrievable인지 확인
+     * N개 카드 세트가 Irretrievable인지 확인
+     * 
+     * 가정: 선택한 N개 카드는 게임 진행 중에 face-up이 되어 맨 위에 올라온 상황
+     * 
+     * N개 카드가 필요로 하는 모든 카드(최대 3N개)가 combinedFaceDown에 있는지 검사
+     * - Foundation 경로: N개 카드 각각이 필요로 하는 작은 카드들 (OR 조건)
+     * - Tableau 경로: N개 카드 각각이 필요로 하는 반대색 rank+1 카드들 (AND 조건)
+     * 
+     * @param cards N개 pile에서 각각 선택한 카드들
+     * @param combinedFaceDown N개 pile의 face-down 카드들 (선택한 N개 카드 제외)
+     * @param state 현재 게임 상태
+     * @return 두 경로 모두 차단되면 true
      */
-    private fun isCardIrretrievable(
-        card: Card,
-        faceDownBelow: List<Card>,
-        state: GameState,
-        cardPileIndex: Int
+    private fun isCardSetIrretrievable(
+        cards: List<Card>,
+        combinedFaceDown: List<Card>,
+        state: GameState
     ): Boolean {
-        // King은 별도 처리
-        if (card.rank == Rank.KING) {
-            return false  // King Irretrievable은 별도 함수에서 처리
+        // King은 제외 (별도 처리)
+        if (cards.any { it.rank == Rank.KING }) return false
+        
+        // 각 카드가 필요로 하는 카드들 수집
+        val allRequiredForFoundation = mutableListOf<Card>()
+        val allRequiredForTableau = mutableListOf<Card>()
+        
+        for (card in cards) {
+            allRequiredForFoundation.addAll(getRequiredForFoundation(card, state))
+            allRequiredForTableau.addAll(getRequiredForTableau(card))
         }
         
-        // 1. Foundation 이동에 필요한 카드
-        val requiredForFoundation = getRequiredForFoundation(card, state)
+        // 중복 제거
+        val uniqueRequiredForFoundation = allRequiredForFoundation.distinctBy { "${it.suit}-${it.rank}" }
+        val uniqueRequiredForTableau = allRequiredForTableau.distinctBy { "${it.suit}-${it.rank}" }
         
-        // 2. Tableau 이동에 필요한 카드
-        val requiredForTableau = getRequiredForTableau(card)
-        
-        // 3. Foundation 경로 가능성 확인
-        // 필요한 카드가 없으면 바로 갈 수 있음 (blocked = false)
-        // 필요한 카드가 있으면 모두 face-down에 있고 Stock/Waste에도 없을 때만 blocked
-        val foundationBlocked = requiredForFoundation.isNotEmpty() && requiredForFoundation.all { required ->
-            val inFaceDown = faceDownBelow.any { it.suit == required.suit && it.rank == required.rank }
-            val inStock = state.stock.any { it.suit == required.suit && it.rank == required.rank }
-            val inWaste = state.waste.any { it.suit == required.suit && it.rank == required.rank }
-            
-            // face-down에 있고 Stock/Waste에 없으면 접근 불가
-            inFaceDown && !inStock && !inWaste
-        }
-        
-        // 4. Tableau 경로 가능성 확인
-        // 필요한 카드 중 하나라도 접근 가능하면 blocked = false
-        val tableauBlocked = requiredForTableau.all { required ->
-            // face-down에 있는지 확인
-            val inFaceDown = faceDownBelow.any { it.suit == required.suit && it.rank == required.rank }
-            if (inFaceDown) {
-                // face-down에 있어도 Stock/Waste에서 접근 가능하면 OK
-                val inStock = state.stock.any { it.suit == required.suit && it.rank == required.rank }
-                val inWaste = state.waste.any { it.suit == required.suit && it.rank == required.rank }
-                if (inStock || inWaste) return@all false
-                
-                return@all true  // face-down에만 있음
+        // Foundation 경로 확인: 필요한 카드 중 적어도 하나라도 combinedFaceDown에 있으면 blocked
+        val foundationBlocked = uniqueRequiredForFoundation.isNotEmpty() && 
+            uniqueRequiredForFoundation.any { required ->
+                combinedFaceDown.any { it.suit == required.suit && it.rank == required.rank }
             }
-            
-            // 다른 pile에서 접근 가능한지 확인
-            val accessibleInOtherPile = state.tableau.withIndex().any { (index, pile) ->
-                index != cardPileIndex && pile.any { it.isFaceUp && it.suit == required.suit && it.rank == required.rank }
+        
+        // Tableau 경로 확인: 필요한 카드가 모두 combinedFaceDown에 있을 때만 blocked
+        val tableauBlocked = uniqueRequiredForTableau.isNotEmpty() &&
+            uniqueRequiredForTableau.all { required ->
+                combinedFaceDown.any { it.suit == required.suit && it.rank == required.rank }
             }
-            
-            // Stock/Waste에서 접근 가능한지 확인
-            val inStock = state.stock.any { it.suit == required.suit && it.rank == required.rank }
-            val inWaste = state.waste.any { it.suit == required.suit && it.rank == required.rank }
-            
-            // 어디에도 없으면 blocked
-            !accessibleInOtherPile && !inStock && !inWaste
-        }
         
         // 두 경로 모두 차단되면 irretrievable
         return foundationBlocked && tableauBlocked
     }
     
+
     /**
      * Foundation 이동에 필요한 모든 카드 반환
      */
@@ -355,7 +343,27 @@ class UnsolvableDetector(
         
         // 모든 face-up 카드가 irretrievable인지 확인
         for (card in faceUpCards) {
-            if (!isCardIrretrievable(card, combinedFaceDown, state, pileIndex)) {
+            if (card.rank == Rank.KING) continue  // King은 별도 처리
+            
+            // Foundation 이동에 필요한 카드
+            val requiredForFoundation = getRequiredForFoundation(card, state)
+            
+            // Tableau 이동에 필요한 카드
+            val requiredForTableau = getRequiredForTableau(card)
+            
+            // Foundation 경로 확인: 적어도 하나라도 faceDown에 있으면 blocked
+            val foundationBlocked = requiredForFoundation.any { required ->
+                combinedFaceDown.any { it.suit == required.suit && it.rank == required.rank }
+            }
+            
+            // Tableau 경로 확인: 모두 faceDown에 있을 때만 blocked
+            val tableauBlocked = requiredForTableau.all { required ->
+                combinedFaceDown.any { it.suit == required.suit && it.rank == required.rank }
+            }
+            
+            val irretrievable = foundationBlocked && tableauBlocked
+            
+            if (!irretrievable) {
                 return true  // 하나라도 retrievable이면 pile을 비울 수 있음
             }
         }

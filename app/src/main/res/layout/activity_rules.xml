@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <ImageButton
+        android:id="@+id/back_button"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:contentDescription="Back" />
+
+    <RadioGroup
+        android:id="@+id/draw_radio_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <RadioButton
+            android:id="@+id/draw_1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Draw 1" />
+        <RadioButton
+            android:id="@+id/draw_3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Draw 3" />
+    </RadioGroup>
+
+    <RadioGroup
+        android:id="@+id/recycle_radio_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <RadioButton
+            android:id="@+id/recycle_keep"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Keep" />
+        <RadioButton
+            android:id="@+id/recycle_reverse"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reverse" />
+    </RadioGroup>
+
+    <RadioGroup
+        android:id="@+id/redeals_radio_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <RadioButton
+            android:id="@+id/redeals_unlimited"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Unlimited" />
+        <RadioButton
+            android:id="@+id/redeals_0"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0" />
+    </RadioGroup>
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/foundation_to_tableau_switch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Foundation to Tableau" />
+
+    <RadioGroup
+        android:id="@+id/language_radio_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <RadioButton
+            android:id="@+id/language_korean"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="한국어" />
+        <RadioButton
+            android:id="@+id/language_english"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="English" />
+    </RadioGroup>
+
+    <ImageButton
+        android:id="@+id/solver_info_button"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:contentDescription="Info" />
+
+    <Spinner
+        android:id="@+id/solver_spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/save_rules_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Save" />
+
+</LinearLayout>

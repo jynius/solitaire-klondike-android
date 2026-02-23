@@ -21,6 +21,7 @@ class StatisticsActivity : AppCompatActivity() {
     
     companion object {
         private const val REQUEST_CODE_IMPORT = 1001
+        private const val REQUEST_CODE_EXPORT = 1002
     }
     
     private lateinit var repository: JsonlFileRepository
@@ -520,29 +521,13 @@ class StatisticsActivity : AppCompatActivity() {
 
     
     private fun exportStatistics() {
-        try {
-            val jsonData = repository.exportToJson()
-            val filename = "solitaire_stats_${System.currentTimeMillis()}.json"
-            val file = java.io.File(getExternalFilesDir(null), filename)
-            file.writeText(jsonData)
-            
-            // 파일 공유
-            val intent = Intent(Intent.ACTION_SEND)
-            intent.type = "application/json"
-            val uri = androidx.core.content.FileProvider.getUriForFile(
-                this,
-                "${applicationContext.packageName}.provider",
-                file
-            )
-            intent.putExtra(Intent.EXTRA_STREAM, uri)
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            startActivity(Intent.createChooser(intent, getString(R.string.stats_export)))
-            
-            Toast.makeText(this, getString(R.string.stats_export_success), Toast.LENGTH_SHORT).show()
-        } catch (e: Exception) {
-            android.util.Log.e("StatisticsActivity", "Export failed", e)
-            Toast.makeText(this, getString(R.string.stats_export_failed), Toast.LENGTH_SHORT).show()
+        val filename = "solitaire_stats_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}.json"
+        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "application/json"
+            putExtra(Intent.EXTRA_TITLE, filename)
         }
+        startActivityForResult(intent, REQUEST_CODE_EXPORT)
     }
     
     private fun importStatistics() {
@@ -554,10 +539,34 @@ class StatisticsActivity : AppCompatActivity() {
     
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_CODE_IMPORT && resultCode == RESULT_OK) {
-            data?.data?.let { uri ->
-                showImportConfirmDialog(uri)
+        when (requestCode) {
+            REQUEST_CODE_EXPORT -> {
+                if (resultCode == RESULT_OK) {
+                    data?.data?.let { uri ->
+                        performExport(uri)
+                    }
+                }
             }
+            REQUEST_CODE_IMPORT -> {
+                if (resultCode == RESULT_OK) {
+                    data?.data?.let { uri ->
+                        showImportConfirmDialog(uri)
+                    }
+                }
+            }
+        }
+    }
+    
+    private fun performExport(uri: android.net.Uri) {
+        try {
+            val jsonData = repository.exportToJson()
+            contentResolver.openOutputStream(uri)?.use { outputStream ->
+                outputStream.write(jsonData.toByteArray())
+            }
+            Toast.makeText(this, getString(R.string.stats_export_success), Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            android.util.Log.e("StatisticsActivity", "Export failed", e)
+            Toast.makeText(this, getString(R.string.stats_export_failed), Toast.LENGTH_SHORT).show()
         }
     }
     

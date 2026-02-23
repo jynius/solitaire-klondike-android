@@ -9,6 +9,7 @@ import us.jyni.game.klondike.model.GameState
 import us.jyni.game.klondike.model.Rank
 import us.jyni.game.klondike.model.Suit
 import us.jyni.game.klondike.util.sync.Ruleset
+import us.jyni.game.klondike.util.GameCode
 
 class UnsolvableDetectorTest {
     
@@ -153,6 +154,23 @@ class UnsolvableDetectorTest {
         engine.startGame(seed, rules)
         val state = engine.getGameState()
         
+        // DEBUG: Pile 4-5-6 초기 상태 출력
+        println("\n=== YpUzGOpD-YWg Initial State ===")
+        for (i in 4..6) {
+            println("Pile $i:")
+            state.tableau[i].forEachIndexed { idx, card ->
+                val fd = if (card.isFaceUp) "FU" else "FD"
+                println("  [$idx] $fd ${card.suit}-${card.rank}")
+            }
+        }
+        println("Foundation:")
+        state.foundation.forEachIndexed { idx, pile ->
+            if (pile.isNotEmpty()) {
+                println("  Pile $idx: ${pile.map { "${it.suit}-${it.rank}" }}")
+            }
+        }
+        println()
+        
         // 초기 상태에서 Inherently Unsolvable이 아니어야 함
         val result = detector.checkInherentlyUnsolvable(state)
         
@@ -217,5 +235,192 @@ class UnsolvableDetectorTest {
             "Waste contains ♠A, so ♠2 should not be flagged as irretrievable",
             result
         )
+    }
+    
+    @Test
+    fun `test game YYxQSt3-oDyg - 2-pile irretrievable case`() {
+        // 게임 코드: YYxQSt3-oDyg
+        // 문제: 2개의 검은색 Q 파일 밑에 빨간색 K들이 숨어 있고,
+        // 스페이드4와 클로버6이 숨어 있어서 2-pile Irretrievable이어야 함
+        
+        val gameCode = "YYxQSt3-oDyg"
+        val decoded = GameCode.decode(gameCode)
+        
+        assertNotNull("게임 코드가 유효해야 함", decoded)
+        
+        val (seed, rules) = decoded!!
+        println("\n=== Game YYxQSt3-oDyg Analysis ===")
+        println("Seed: $seed")
+        println("Rules: Draw=${rules.draw}, Redeals=${rules.redeals}")
+        
+        // 게임 시작
+        engine.startGame(seed, rules)
+        val state = engine.getGameState()
+        
+        // Tableau 상태 출력 (상세)
+        println("\nTableau State (맨 밑부터):")
+        state.tableau.forEachIndexed { i, pile ->
+            println("\nPile $i (총 ${pile.size}장):")
+            pile.forEachIndexed { idx, card ->
+                val pos = if (card.isFaceUp) "FU" else "FD"
+                println("  [$idx] $pos ${card.suit}-${card.rank}")
+            }
+        }
+        
+        // 스페이드 Q, 클로버 Q 찾기
+        println("\n=== QUEEN 위치 확인 ===")
+        state.tableau.forEachIndexed { i, pile ->
+            pile.forEachIndexed { idx, card ->
+                if (card.rank == Rank.QUEEN) {
+                    val pos = if (card.isFaceUp) "FU" else "FD"
+                    println("Pile $i[$idx] ($pos): ${card.suit}-QUEEN")
+                    
+                    // 그 밑에 있는 카드들 출력
+                    if (idx > 0) {
+                        println("  → 그 밑 카드들:")
+                        for (j in 0 until idx) {
+                            val below = pile[j]
+                            val belowPos = if (below.isFaceUp) "FU" else "FD"
+                            println("    [$j] $belowPos ${below.suit}-${below.rank}")
+                        }
+                    }
+                }
+            }
+        }
+        
+        // JACK 위치 찾기 (QUEEN을 Foundation으로 보내는데 필요)
+        println("\n=== JACK 위치 확인 ===")
+        state.tableau.forEachIndexed { i, pile ->
+            pile.forEachIndexed { idx, card ->
+                if (card.rank == Rank.JACK) {
+                    val pos = if (card.isFaceUp) "FU" else "FD"
+                    println("Pile $i[$idx] ($pos): ${card.suit}-JACK")
+                }
+            }
+        }
+        
+        // Stock 확인
+        println("\n=== Stock (${state.stock.size}장) ===")
+        state.stock.forEachIndexed { idx, card ->
+            println("  [$idx] ${card.suit}-${card.rank}")
+            if (card.rank == Rank.JACK) {
+                println("    ^^^ JACK 발견!")
+            }
+        }
+        
+        // Waste 확인
+        println("\n=== Waste (${state.waste.size}장) ===")
+        state.waste.forEachIndexed { idx, card ->
+            println("  [$idx] ${card.suit}-${card.rank}")
+        }
+        
+        // 스페이드 Q와 클로버 Q의 Foundation 경로 분석
+        println("\n=== Foundation 경로 분석 ===")
+        
+        // SPADES-Q를 Foundation으로 보내려면
+        println("\n[SPADES-QUEEN → Foundation 경로]")
+        println("필요한 순서: SPADES-J → SPADES-10 → SPADES-9 → ... → SPADES-ACE")
+        val spadesNeeded = listOf(Rank.JACK, Rank.TEN, Rank.NINE, Rank.EIGHT, Rank.SEVEN, 
+                                  Rank.SIX, Rank.FIVE, Rank.FOUR, Rank.THREE, Rank.TWO, Rank.ACE)
+        spadesNeeded.forEach { rank ->
+            val card = Card(Suit.SPADES, rank, false)
+            // Pile 5-6에 있는지 확인
+            val inPile5 = state.tableau[5].any { it.suit == card.suit && it.rank == card.rank }
+            val inPile6 = state.tableau[6].any { it.suit == card.suit && it.rank == card.rank }
+            
+            if (inPile5) {
+                val pile5Card = state.tableau[5].find { it.suit == card.suit && it.rank == card.rank }!!
+                val pos = if (pile5Card.isFaceUp) "FU" else "FD"
+                println("  SPADES-${rank}: Pile 5 ($pos) ← ⚠️ Pile 5-6 조합 안에!")
+            } else if (inPile6) {
+                val pile6Card = state.tableau[6].find { it.suit == card.suit && it.rank == card.rank }!!
+                val pos = if (pile6Card.isFaceUp) "FU" else "FD"
+                println("  SPADES-${rank}: Pile 6 ($pos) ← ⚠️ Pile 5-6 조합 안에!")
+            } else {
+                // 다른 곳에 있는지 확인
+                var found = false
+                state.tableau.forEachIndexed { i, pile ->
+                    if (pile.any { it.suit == card.suit && it.rank == card.rank }) {
+                        val c = pile.find { it.suit == card.suit && it.rank == card.rank }!!
+                        val pos = if (c.isFaceUp) "FU" else "FD"
+                        println("  SPADES-${rank}: Pile $i ($pos)")
+                        found = true
+                    }
+                }
+                if (!found) {
+                    if (state.stock.any { it.suit == card.suit && it.rank == card.rank }) {
+                        println("  SPADES-${rank}: Stock (접근 가능)")
+                    } else if (state.waste.any { it.suit == card.suit && it.rank == card.rank }) {
+                        println("  SPADES-${rank}: Waste (접근 가능)")
+                    }
+                }
+            }
+        }
+        
+        // CLUBS-Q를 Foundation으로 보내려면
+        println("\n[CLUBS-QUEEN → Foundation 경로]")
+        println("필요한 순서: CLUBS-J → CLUBS-10 → CLUBS-9 → ... → CLUBS-ACE")
+        val clubsNeeded = listOf(Rank.JACK, Rank.TEN, Rank.NINE, Rank.EIGHT, Rank.SEVEN, 
+                                 Rank.SIX, Rank.FIVE, Rank.FOUR, Rank.THREE, Rank.TWO, Rank.ACE)
+        clubsNeeded.forEach { rank ->
+            val card = Card(Suit.CLUBS, rank, false)
+            // Pile 5-6에 있는지 확인
+            val inPile5 = state.tableau[5].any { it.suit == card.suit && it.rank == card.rank }
+            val inPile6 = state.tableau[6].any { it.suit == card.suit && it.rank == card.rank }
+            
+            if (inPile5) {
+                val pile5Card = state.tableau[5].find { it.suit == card.suit && it.rank == card.rank }!!
+                val pos = if (pile5Card.isFaceUp) "FU" else "FD"
+                println("  CLUBS-${rank}: Pile 5 ($pos) ← ⚠️ Pile 5-6 조합 안에!")
+            } else if (inPile6) {
+                val pile6Card = state.tableau[6].find { it.suit == card.suit && it.rank == card.rank }!!
+                val pos = if (pile6Card.isFaceUp) "FU" else "FD"
+                println("  CLUBS-${rank}: Pile 6 ($pos) ← ⚠️ Pile 5-6 조합 안에!")
+            } else {
+                // 다른 곳에 있는지 확인
+                var found = false
+                state.tableau.forEachIndexed { i, pile ->
+                    if (pile.any { it.suit == card.suit && it.rank == card.rank }) {
+                        val c = pile.find { it.suit == card.suit && it.rank == card.rank }!!
+                        val pos = if (c.isFaceUp) "FU" else "FD"
+                        println("  CLUBS-${rank}: Pile $i ($pos)")
+                        found = true
+                    }
+                }
+                if (!found) {
+                    if (state.stock.any { it.suit == card.suit && it.rank == card.rank }) {
+                        println("  CLUBS-${rank}: Stock (접근 가능)")
+                    } else if (state.waste.any { it.suit == card.suit && it.rank == card.rank }) {
+                        println("  CLUBS-${rank}: Waste (접근 가능)")
+                    }
+                }
+            }
+        }
+        
+        // Unsolvable 검사 (디버그 모드)
+        val (result, debugLog) = detector.checkInherentlyUnsolvableWithDebug(state)
+        
+        println("\n$debugLog")
+        
+        if (result == null) {
+            println("\n❌ DETECTOR RESULT: SOLVABLE (Unsolvable 패턴을 감지하지 못함)")
+        } else {
+            println("\n✓ DETECTOR RESULT: UNSOLVABLE - ${result.message}")
+        }
+        
+        // 2-pile Irretrievable이어야 함
+        assertNotNull(
+            "이 게임은 2-pile Irretrievable으로 Unsolvable이어야 함\n" +
+            "실제: Detector가 Solvable로 판정\n" +
+            "디버그 로그:\n$debugLog",
+            result
+        )
+        
+        assertTrue(
+            "2-pile Irretrievable 패턴이어야 함, 실제: ${result?.message}",
+            result is UnsolvableReason.NPileIrretrievable.Pair
+        )
+        
+        println("\n✓ 테스트 통과: ${result?.message}")
     }
 }

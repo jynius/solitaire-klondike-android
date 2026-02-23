@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import us.jyni.R
@@ -37,7 +38,7 @@ class RulesActivity : AppCompatActivity() {
             controller.systemBarsBehavior = android.view.WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
         
-        setContentView(R.layout.activity_rules)
+        setContentView(R.layout.activity_settings)
         
         // Get current rules from intent
         currentRules = intent.getSerializableExtra(GameActivity.EXTRA_RULES) as? Ruleset ?: Ruleset()
