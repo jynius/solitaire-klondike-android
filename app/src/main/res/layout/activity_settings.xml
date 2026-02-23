@@ -111,6 +111,7 @@
                 android:id="@+id/solver_info_button"
                 android:layout_width="16dp"
                 android:layout_height="16dp"
+                android:scaleType="fitCenter"
                 android:src="@android:drawable/ic_menu_info_details"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/solver_algorithm_desc"
@@ -123,7 +124,7 @@
             android:id="@+id/solver_spinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="12dp"
             android:background="@android:drawable/btn_dropdown"
             android:spinnerMode="dropdown" />
 
@@ -133,7 +134,7 @@
             android:layout_height="1dp"
             android:background="@color/text_color"
             android:alpha="0.2"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="12dp"
             android:layout_marginBottom="24dp" />
 
         <!-- Draw Rules -->
@@ -151,7 +152,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:scrollbars="none"
-            android:layout_marginBottom="32dp">
+            android:layout_marginBottom="24dp">
 
             <RadioGroup
                 android:id="@+id/draw_radio_group"
@@ -193,7 +194,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:scrollbars="none"
-            android:layout_marginBottom="32dp">
+            android:layout_marginBottom="24dp">
 
             <RadioGroup
                 android:id="@+id/recycle_radio_group"
@@ -235,7 +236,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:scrollbars="none"
-            android:layout_marginBottom="32dp">
+            android:layout_marginBottom="24dp">
 
             <RadioGroup
                 android:id="@+id/redeals_radio_group"

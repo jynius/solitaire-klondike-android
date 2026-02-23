@@ -19,6 +19,10 @@ import java.util.*
 
 class StatisticsActivity : AppCompatActivity() {
     
+    companion object {
+        private const val REQUEST_CODE_IMPORT = 1001
+    }
+    
     private lateinit var repository: JsonlFileRepository
     private lateinit var adapter: GameStatsAdapter
     
@@ -111,6 +115,21 @@ class StatisticsActivity : AppCompatActivity() {
         // Back button
         findViewById<ImageButton>(R.id.back_button).setOnClickListener {
             finish()
+        }
+        
+        // Sync button
+        findViewById<ImageButton>(R.id.sync_button).setOnClickListener {
+            syncToServer()
+        }
+        
+        // Export button
+        findViewById<ImageButton>(R.id.export_button).setOnClickListener {
+            exportStatistics()
+        }
+        
+        // Import button
+        findViewById<ImageButton>(R.id.import_button).setOnClickListener {
+            importStatistics()
         }
         
         // Replay best records buttons
@@ -499,6 +518,96 @@ class StatisticsActivity : AppCompatActivity() {
         finish() // 통계 화면 닫기
     }
 
+    
+    private fun exportStatistics() {
+        try {
+            val jsonData = repository.exportToJson()
+            val filename = "solitaire_stats_${System.currentTimeMillis()}.json"
+            val file = java.io.File(getExternalFilesDir(null), filename)
+            file.writeText(jsonData)
+            
+            // 파일 공유
+            val intent = Intent(Intent.ACTION_SEND)
+            intent.type = "application/json"
+            val uri = androidx.core.content.FileProvider.getUriForFile(
+                this,
+                "${applicationContext.packageName}.provider",
+                file
+            )
+            intent.putExtra(Intent.EXTRA_STREAM, uri)
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            startActivity(Intent.createChooser(intent, getString(R.string.stats_export)))
+            
+            Toast.makeText(this, getString(R.string.stats_export_success), Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            android.util.Log.e("StatisticsActivity", "Export failed", e)
+            Toast.makeText(this, getString(R.string.stats_export_failed), Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun importStatistics() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+        intent.type = "application/json"
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        startActivityForResult(intent, REQUEST_CODE_IMPORT)
+    }
+    
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_CODE_IMPORT && resultCode == RESULT_OK) {
+            data?.data?.let { uri ->
+                showImportConfirmDialog(uri)
+            }
+        }
+    }
+    
+    private fun showImportConfirmDialog(uri: android.net.Uri) {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle(getString(R.string.stats_import_confirm_title))
+            .setMessage(getString(R.string.stats_import_confirm_message))
+            .setPositiveButton(getString(R.string.stats_import_replace)) { _, _ ->
+                performImport(uri, clearExisting = true)
+            }
+            .setNeutralButton(getString(R.string.stats_import_merge)) { _, _ ->
+                performImport(uri, clearExisting = false)
+            }
+            .setNegativeButton(getString(R.string.rules_cancel), null)
+            .show()
+    }
+    
+    private fun performImport(uri: android.net.Uri, clearExisting: Boolean) {
+        try {
+            val inputStream = contentResolver.openInputStream(uri)
+            val jsonData = inputStream?.bufferedReader()?.use { it.readText() } ?: ""
+            
+            val importedCount = repository.importFromJson(jsonData, clearExisting)
+            
+            Toast.makeText(
+                this,
+                getString(R.string.stats_import_success, importedCount),
+                Toast.LENGTH_SHORT
+            ).show()
+            
+            // 화면 갱신
+            updateOverallStats()
+            updateBestRecords()
+            loadPage(0)
+        } catch (e: Exception) {
+            android.util.Log.e("StatisticsActivity", "Import failed", e)
+            Toast.makeText(this, getString(R.string.stats_import_failed), Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun syncToServer() {
+        try {
+            us.jyni.game.klondike.sync.UploadScheduler.triggerOnce(this)
+            Toast.makeText(this, getString(R.string.stats_sync_success), Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            android.util.Log.e("StatisticsActivity", "Sync failed", e)
+            Toast.makeText(this, getString(R.string.stats_sync_failed), Toast.LENGTH_SHORT).show()
+        }
+    }
+    
     private fun applyLanguage() {
         val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
         val languageCode = prefs.getString("language", "ko") ?: "ko"

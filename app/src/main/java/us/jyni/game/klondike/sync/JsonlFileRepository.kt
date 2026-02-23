@@ -3,6 +3,7 @@ package us.jyni.game.klondike.sync
 import android.content.Context
 import us.jyni.game.klondike.util.stats.SolveCodec
 import us.jyni.game.klondike.util.stats.SolveStats
+import us.jyni.game.klondike.util.sync.Ruleset
 import java.io.File
 
 /**
@@ -271,4 +272,131 @@ class JsonlFileRepository(private val baseDir: File) {
         val hasNext: Boolean,
         val hasPrevious: Boolean
     )
+    
+    // ==================== 데이터 내보내기/불러오기 ====================
+    
+    /**
+     * 모든 통계 데이터를 JSON으로 내보내기 (즐겨찾기 포함)
+     */
+    @Synchronized
+    fun exportToJson(): String {
+        val allStats = readAllStats()
+        val favoriteIds = readFavoriteIds()
+        
+        val data = mapOf(
+            "version" to "1.0",
+            "exportedAt" to System.currentTimeMillis(),
+            "stats" to allStats.map { stats ->
+                mapOf(
+                    "dealId" to stats.dealId,
+                    "seed" to stats.seed.toString(),
+                    "rules" to mapOf(
+                        "draw" to stats.rules.draw,
+                        "redeals" to stats.rules.redeals,
+                        "recycle" to stats.rules.recycle.name,
+                        "allowFoundationToTableau" to stats.rules.allowFoundationToTableau
+                    ),
+                    "startedAt" to stats.startedAt,
+                    "finishedAt" to stats.finishedAt,
+                    "durationMs" to stats.durationMs,
+                    "moveCount" to stats.moveCount,
+                    "outcome" to stats.outcome,
+                    "clientVersion" to stats.clientVersion,
+                    "platform" to stats.platform,
+                    "isFavorite" to favoriteIds.contains(getFavoriteId(stats))
+                )
+            }
+        )
+        
+        return org.json.JSONObject(data).toString(2)
+    }
+    
+    /**
+     * JSON에서 통계 데이터 불러오기 (병합 모드)
+     * @param jsonString JSON 문자열
+     * @param clearExisting true면 기존 데이터 삭제 후 불러오기
+     * @return 불러온 게임 수
+     */
+    @Synchronized
+    fun importFromJson(jsonString: String, clearExisting: Boolean = false): Int {
+        try {
+            val jsonObj = org.json.JSONObject(jsonString)
+            val statsArray = jsonObj.getJSONArray("stats")
+            
+            // 기존 데이터 삭제
+            if (clearExisting) {
+                filePending().writeText("")
+                fileUploaded().writeText("")
+                fileFavorites().writeText("")
+            }
+            
+            val existingDealIds = readAllStats().map { it.dealId }.toSet()
+            val newFavorites = mutableSetOf<String>()
+            var importedCount = 0
+            
+            for (i in 0 until statsArray.length()) {
+                val item = statsArray.getJSONObject(i)
+                val dealId = item.getString("dealId")
+                
+                // 중복 체크 (병합 모드일 때만)
+                if (!clearExisting && existingDealIds.contains(dealId)) {
+                    // 즐겨찾기 정보만 업데이트
+                    if (item.optBoolean("isFavorite", false)) {
+                        newFavorites.add(dealId)
+                    }
+                    continue
+                }
+                
+                // SolveStats 복원
+                val rulesObj = item.getJSONObject("rules")
+                val rules = Ruleset(
+                    draw = rulesObj.getInt("draw"),
+                    redeals = rulesObj.getInt("redeals"),
+                    recycle = us.jyni.game.klondike.util.sync.RecycleOrder.valueOf(
+                        rulesObj.getString("recycle")
+                    ),
+                    allowFoundationToTableau = rulesObj.getBoolean("allowFoundationToTableau")
+                )
+                
+                val stats = SolveStats(
+                    dealId = dealId,
+                    seed = item.getString("seed").toULong(),
+                    rules = rules,
+                    startedAt = item.getLong("startedAt"),
+                    finishedAt = item.optLong("finishedAt", 0L).takeIf { it > 0 },
+                    durationMs = item.getLong("durationMs"),
+                    moveCount = item.getInt("moveCount"),
+                    outcome = item.optString("outcome", null),
+                    clientVersion = item.optString("clientVersion", "unknown"),
+                    platform = item.optString("platform", "android")
+                )
+                
+                // uploaded 파일에 추가 (이미 완료된 게임이므로)
+                fileUploaded().appendText(SolveCodec.encode(stats) + "\n")
+                
+                // 즐겨찾기 체크
+                if (item.optBoolean("isFavorite", false)) {
+                    newFavorites.add(dealId)
+                }
+                
+                importedCount++
+            }
+            
+            // 즐겨찾기 업데이트
+            if (newFavorites.isNotEmpty()) {
+                val currentFavorites = if (clearExisting) {
+                    mutableSetOf()
+                } else {
+                    readFavoriteIds().toMutableSet()
+                }
+                currentFavorites.addAll(newFavorites)
+                writeFavoriteIds(currentFavorites)
+            }
+            
+            return importedCount
+        } catch (e: Exception) {
+            android.util.Log.e("JsonlFileRepository", "Failed to import data", e)
+            throw e
+        }
+    }
 }

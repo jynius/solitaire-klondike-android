@@ -14,7 +14,6 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.util.Log
@@ -62,6 +61,9 @@ class GameActivity : AppCompatActivity() {
     private val viewModel: GameViewModel by viewModels()
     private val solverScope = CoroutineScope(Dispatchers.Default + Job())
     private lateinit var repository: JsonlFileRepository
+    private var solverJob: Job? = null
+    private lateinit var hintButton: ImageButton
+    private lateinit var autoButton: ImageButton
     
     // 선택 상태 관리 변수들
     private var selectedTableau: Int? = null
@@ -165,15 +167,7 @@ class GameActivity : AppCompatActivity() {
     }
 
     private fun setupObservers() {
-        val statusText = findViewById<TextView>(R.id.status_text)
-        val rulesText = findViewById<TextView>(R.id.rules_text)
-        val layoutText = findViewById<TextView>(R.id.layout_text)
         val board = findViewById<GridLayout>(R.id.game_board)
-        val debugCopyDeal = findViewById<Button>(R.id.debug_copy_deal)
-        val debugCopyLayout = findViewById<Button>(R.id.debug_copy_layout)
-        
-        // Layout Message 폰트 크기를 작게 설정
-        layoutText.textSize = 10f
         
         // Timer coroutine - updates every second
         lifecycleScope.launch {
@@ -190,46 +184,6 @@ class GameActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                // Enable long-press to copy Deal ID
-                statusText.setOnLongClickListener {
-                    val deal = viewModel.dealId()
-                    val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    cm.setPrimaryClip(ClipData.newPlainText("Deal ID", deal))
-                    Toast.makeText(this@GameActivity, getString(R.string.deal_copied), Toast.LENGTH_SHORT).show()
-                    true
-                }
-
-                // Copy buttons
-                debugCopyDeal.setOnClickListener {
-                    val deal = viewModel.dealId()
-                    val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    cm.setPrimaryClip(ClipData.newPlainText("Deal ID", deal))
-                    Toast.makeText(this@GameActivity, getString(R.string.deal_copied), Toast.LENGTH_SHORT).show()
-                }
-                
-                debugCopyLayout.setOnClickListener {
-                    val gameStateJson = viewModel.getGameStateJson()
-                    val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    cm.setPrimaryClip(ClipData.newPlainText("Game State JSON", gameStateJson))
-                    Toast.makeText(this@GameActivity, getString(R.string.json_copied), Toast.LENGTH_SHORT).show()
-                }
-                
-                // Check stats button
-                findViewById<Button>(R.id.debug_check_stats).setOnClickListener {
-                    val allStats = repository.readAllStats()
-                    android.util.Log.d("GameActivity", "=== Stats Check ===")
-                    android.util.Log.d("GameActivity", "Total games: ${allStats.size}")
-                    android.util.Log.d("GameActivity", "Current moveCount: ${viewModel.getMoveCount()}")
-                    android.util.Log.d("GameActivity", "Current seed: $currentGameSeed")
-                    android.util.Log.d("GameActivity", "Victory shown: $victoryShown")
-                    
-                    allStats.takeLast(5).forEach { stat ->
-                        android.util.Log.d("GameActivity", "  - ${stat.outcome}: seed=${stat.seed}, moves=${stat.moveCount}, time=${stat.durationMs}ms")
-                    }
-                    
-                    Toast.makeText(this@GameActivity, getString(R.string.stats_total, allStats.size), Toast.LENGTH_LONG).show()
-                }
-
                 // Observe state and render
                 viewModel.state.collectLatest { s ->
                     // 게임 완료 체크 및 축하 메시지
@@ -247,19 +201,11 @@ class GameActivity : AppCompatActivity() {
                     val r = viewModel.getRules()
                     val redealsTxt = if (r.redeals < 0) "∞" else r.redeals.toString()
                     
-                    // Line 1: Rules
-                    val rulesStr = "Rules: D${r.draw} R:${r.recycle.name.take(3)} Redeals:$redealsTxt F→T:${if (r.allowFoundationToTableau) "on" else "off"}"
-                    rulesText.text = rulesStr
-                    
                     // Update game state indicator (moves with emoji)
                     updateGameStateIndicator()
                     
                     // Update score and card counts
                     updateScoreAndCounts()
-                    
-                    // Line 3: Game State JSON
-                    val gameStateJson = viewModel.getGameStateJson()
-                    layoutText.text = gameStateJson
                     
                     // Update button states
                     findViewById<ImageButton>(R.id.undo_button).isEnabled = viewModel.canUndo()
@@ -609,6 +555,12 @@ class GameActivity : AppCompatActivity() {
         fun persist() {
             val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             prefs.edit().putString(KEY_PERSISTED_GAME, viewModel.saveStateString()).apply()
+            
+            // 첫 이동 후 힌트/자동 버튼 활성화
+            if (!hintButton.isEnabled && viewModel.getMoveCount() > 0) {
+                hintButton.isEnabled = true
+                autoButton.isEnabled = true
+            }
         }
         // 하단 컨트롤 버튼들
         
@@ -655,14 +607,25 @@ class GameActivity : AppCompatActivity() {
         }
         
         // Hint button - Solver 기반 힌트
-        findViewById<ImageButton>(R.id.hint_button).setOnClickListener {
+        hintButton = findViewById<ImageButton>(R.id.hint_button)
+        hintButton.setOnClickListener {
+            // 버튼 비활성화 및 로딩 표시
+            hintButton.isEnabled = false
+            autoButton.isEnabled = false
+            Toast.makeText(this@GameActivity, "힌트 찾는 중...", Toast.LENGTH_SHORT).show()
+            
             // 백그라운드에서 힌트 찾기
-            solverScope.launch {
+            solverJob = solverScope.launch {
                 // 현재 설정에서 Solver 생성
                 val solver = createSolverFromSettings()
                 val hint = solver.findBestMove(viewModel.getState())
                 
                 withContext(Dispatchers.Main) {
+                    // 버튼 다시 활성화
+                    hintButton.isEnabled = true
+                    autoButton.isEnabled = true
+                    solverJob = null
+                    
                     if (hint != null) {
                         Toast.makeText(
                             this@GameActivity, 
@@ -691,14 +654,25 @@ class GameActivity : AppCompatActivity() {
         }
         
         // Auto button - Solver 기반 자동 플레이
-        findViewById<ImageButton>(R.id.auto_button).setOnClickListener {
+        autoButton = findViewById<ImageButton>(R.id.auto_button)
+        autoButton.setOnClickListener {
+            // 버튼 비활성화 및 로딩 표시
+            hintButton.isEnabled = false
+            autoButton.isEnabled = false
+            Toast.makeText(this@GameActivity, "해법 찾는 중...", Toast.LENGTH_SHORT).show()
+            
             // 백그라운드에서 솔루션 찾기
-            solverScope.launch {
+            solverJob = solverScope.launch {
                 // 현재 설정에서 Solver 생성
                 val solver = createSolverFromSettings()
                 val result = solver.solve(viewModel.getState())
                 
                 withContext(Dispatchers.Main) {
+                    // 버튼 다시 활성화
+                    hintButton.isEnabled = true
+                    autoButton.isEnabled = true
+                    solverJob = null
+                    
                     when (result) {
                         is SolverResult.Success -> {
                             // 솔루션을 찾았으면 순차 실행
@@ -802,7 +776,7 @@ class GameActivity : AppCompatActivity() {
         
         // 규칙 설정 버튼
         findViewById<ImageButton>(R.id.rules_button).setOnClickListener {
-            val intent = Intent(this, RulesActivity::class.java)
+            val intent = Intent(this, SettingsActivity::class.java)
             intent.putExtra(EXTRA_RULES, viewModel.getRules())
             startActivityForResult(intent, REQUEST_CODE_RULES)
         }
@@ -1198,19 +1172,11 @@ class GameActivity : AppCompatActivity() {
     }
     
     private fun updateScoreAndCounts() {
-        val statusText = findViewById<TextView>(R.id.status_text)
         val s = viewModel.state.value
-        val stock = s.stock.size
-        val waste = s.waste.size
-        val fnd = s.foundation.sumOf { it.size }
         val score = viewModel.getScore()
         
         // Update score
         findViewById<TextView>(R.id.score_text)?.text = String.format("%,d", score)
-        
-        // Update card counts
-        val countsStr = "Stock:$stock  Waste:$waste  Foundation:$fnd  Tableau:${52 - stock - waste - fnd}"
-        statusText.text = countsStr
     }
     
     private fun updateGameStateIndicator() {
@@ -1335,34 +1301,19 @@ class GameActivity : AppCompatActivity() {
         gameSaved = false
         victoryShown = false
         
+        // 힌트/자동 버튼 초기 비활성화 (아직 이동 없음)
+        hintButton.isEnabled = false
+        autoButton.isEnabled = false
+        
         // Check Inherent Status (게임 시작 시 한 번만)
         val rules = viewModel.getRules()
         val gameCode = us.jyni.game.klondike.util.GameCode.encode(seed, rules)
         
-        // 모든 게임 시작 시 게임 코드 로그 출력
-        android.util.Log.d("GameActivity", "=== Game Started ===")
-        android.util.Log.d("GameActivity", "Game Code: $gameCode")
-        android.util.Log.d("GameActivity", "Seed: $seed")
-        android.util.Log.d("GameActivity", "Rules: $rules")
-        
-        // 디버그 모드: 특정 게임 코드일 때 상세 정보 출력
-        val debugGameCodes = listOf("YpUzGOpDYWg", "YpUzGOpD-YWg")
-        if (debugGameCodes.contains(gameCode)) {
-            val (inherentReason, debugLog) = checkInherentlyUnsolvableWithDebug()
-            android.util.Log.d("GameActivity", "=== MATCHED DEBUG GAME CODE ===")
-            android.util.Log.d("GameActivity", debugLog)
-            inherentStatusEmoji = if (inherentReason != null) {
-                getString(R.string.state_inherently_unsolvable)
-            } else {
-                getString(R.string.state_inherently_solvable)
-            }
+        val inherentReason = checkInherentlyUnsolvable()
+        inherentStatusEmoji = if (inherentReason != null) {
+            getString(R.string.state_inherently_unsolvable)
         } else {
-            val inherentReason = checkInherentlyUnsolvable()
-            inherentStatusEmoji = if (inherentReason != null) {
-                getString(R.string.state_inherently_unsolvable)
-            } else {
-                getString(R.string.state_inherently_solvable)
-            }
+            getString(R.string.state_inherently_solvable)
         }
     }
     

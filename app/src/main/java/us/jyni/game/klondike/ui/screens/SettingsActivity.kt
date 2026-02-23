@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import us.jyni.R
@@ -12,7 +13,7 @@ import us.jyni.game.klondike.util.sync.RecycleOrder
 import us.jyni.game.klondike.solver.SolverType
 import java.util.Locale
 
-class RulesActivity : AppCompatActivity() {
+class SettingsActivity : AppCompatActivity() {
     
     private lateinit var currentRules: Ruleset
     private lateinit var drawRadioGroup: RadioGroup
@@ -37,7 +38,7 @@ class RulesActivity : AppCompatActivity() {
             controller.systemBarsBehavior = android.view.WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
         
-        setContentView(R.layout.activity_rules)
+        setContentView(R.layout.activity_settings)
         
         // Get current rules from intent
         currentRules = intent.getSerializableExtra(GameActivity.EXTRA_RULES) as? Ruleset ?: Ruleset()

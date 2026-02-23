@@ -59,7 +59,7 @@
     
     <!-- Rules Settings -->
     <string name="rules_button">Settings</string>
-    <string name="rules_title">Game Rules Settings</string>
+    <string name="rules_title">Settings</string>
     <string name="back_button">Back</string>
     <string name="rules_draw_title">Card Draw</string>
     <string name="rules_draw_desc">Set the number of cards to draw from stock at once</string>
@@ -133,6 +133,19 @@
     <string name="stats_next_page">Next →</string>
     <string name="stats_favorite_added">⭐ Added to Favorites</string>
     <string name="stats_favorite_removed">☆ Removed from Favorites</string>
+    <string name="stats_sync">Sync to Server</string>
+    <string name="stats_sync_success">Sync started</string>
+    <string name="stats_sync_failed">Sync failed</string>
+    <string name="stats_export">Export Statistics</string>
+    <string name="stats_import">Import Statistics</string>
+    <string name="stats_export_success">Statistics exported</string>
+    <string name="stats_import_success">Imported %d games</string>
+    <string name="stats_import_confirm_title">Import Statistics</string>
+    <string name="stats_import_confirm_message">Clear existing data before importing?\n\n- Merge: Keep existing + Add new\n- Replace: Delete existing + New only</string>
+    <string name="stats_import_merge">Merge</string>
+    <string name="stats_import_replace">Replace</string>
+    <string name="stats_export_failed">Export failed</string>
+    <string name="stats_import_failed">Import failed</string>
 
     <!-- Filter options -->
     <string name="filter_all">All</string>

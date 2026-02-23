@@ -53,7 +53,7 @@
     
     <!-- 룰 설정 -->
     <string name="rules_button">설정</string>
-    <string name="rules_title">게임 규칙 설정</string>
+    <string name="rules_title">설정</string>
     <string name="back_button">뒤로가기</string>
     <string name="rules_draw_title">카드 뽑기</string>
     <string name="rules_draw_desc">스톡에서 한 번에 뽑을 카드 수를 설정합니다</string>
@@ -133,6 +133,19 @@
     <string name="stats_next_page">다음 →</string>
     <string name="stats_favorite_added">⭐ 즐겨찾기에 추가</string>
     <string name="stats_favorite_removed">☆ 즐겨찾기에서 제거</string>
+    <string name="stats_sync">서버 동기화</string>
+    <string name="stats_sync_success">동기화를 시작했습니다</string>
+    <string name="stats_sync_failed">동기화 실패</string>
+    <string name="stats_export">통계 내보내기</string>
+    <string name="stats_import">통계 불러오기</string>
+    <string name="stats_export_success">통계가 저장되었습니다</string>
+    <string name="stats_import_success">%d개 게임을 불러왔습니다</string>
+    <string name="stats_import_confirm_title">통계 불러오기</string>
+    <string name="stats_import_confirm_message">기존 데이터를 삭제하고 불러오시겠습니까?\n\n- 병합: 기존 데이터 유지 + 새 데이터 추가\n- 교체: 기존 데이터 삭제 + 새 데이터만</string>
+    <string name="stats_import_merge">병합</string>
+    <string name="stats_import_replace">교체</string>
+    <string name="stats_export_failed">내보내기 실패</string>
+    <string name="stats_import_failed">불러오기 실패</string>
 
     <!-- Filter options -->
     <string name="filter_all">전체</string>
