@@ -14,7 +14,7 @@ import us.jyni.game.klondike.engine.GameEngine
  */
 class AutoPlayTest {
     
-    private val solver = AStarSolver(GameEngine())
+    private val solver = AStarSolver()
     
     @Test
     fun solve_simple_win_scenario() {

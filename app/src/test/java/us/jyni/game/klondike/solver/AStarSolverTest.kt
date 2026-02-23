@@ -15,8 +15,7 @@ class AStarSolverTest {
     
     @Before
     fun setup() {
-        val mockEngine = GameEngine()
-        solver = AStarSolver(mockEngine)
+        solver = AStarSolver()
     }
     
     @Test

@@ -16,9 +16,10 @@ class DrawRecycleRulesTest {
         val beforeStock = s1.stock.size
         val moved1 = e1.draw()
         assertEquals(1, moved1)
-        assertEquals(beforeStock - 1, s1.stock.size)
-        assertEquals(1, s1.waste.size)
-        assertTrue(s1.waste.last().isFaceUp)
+        val s1After = e1.getGameState()
+        assertEquals(beforeStock - 1, s1After.stock.size)
+        assertEquals(1, s1After.waste.size)
+        assertTrue(s1After.waste.last().isFaceUp)
 
         val e3 = GameEngine()
         e3.startGame(seed = 2uL, rules = Ruleset(draw = 3))
@@ -26,9 +27,10 @@ class DrawRecycleRulesTest {
         val beforeStock3 = s3.stock.size
         val moved3 = e3.draw()
         assertEquals(3, moved3)
-        assertEquals(beforeStock3 - 3, s3.stock.size)
-        assertEquals(3, s3.waste.size)
-        assertTrue(s3.waste.all { it.isFaceUp })
+        val s3After = e3.getGameState()
+        assertEquals(beforeStock3 - 3, s3After.stock.size)
+        assertEquals(3, s3After.waste.size)
+        assertTrue(s3After.waste.all { it.isFaceUp })
     }
 
     @Test
@@ -36,9 +38,9 @@ class DrawRecycleRulesTest {
         val rules = Ruleset(draw = 3, redeals = 1, recycle = RecycleOrder.KEEP)
         val e = GameEngine()
         e.startGame(seed = 3uL, rules = rules)
-        val s = e.getGameState()
     // Exhaust stock without triggering recycle
-    while (s.stock.isNotEmpty()) { e.draw() }
+    while (e.getGameState().stock.isNotEmpty()) { e.draw() }
+    val s = e.getGameState()
     assertTrue(s.stock.isEmpty())
     assertTrue(s.waste.isNotEmpty())
     val wasteTop = s.waste.last()
@@ -46,8 +48,9 @@ class DrawRecycleRulesTest {
     val moved = e.draw()
     assertTrue(moved > 0)
     // After recycle(KEEP), waste was cleared; the first newly drawn card equals previous waste top
-    assertTrue(s.waste.isNotEmpty())
-    val firstNew = s.waste.first()
+    val s2 = e.getGameState()
+    assertTrue(s2.waste.isNotEmpty())
+    val firstNew = s2.waste.first()
     assertEquals(wasteTop, firstNew)
     assertTrue(firstNew.isFaceUp)
     }
@@ -57,16 +60,17 @@ class DrawRecycleRulesTest {
         val rules = Ruleset(draw = 3, redeals = 1, recycle = RecycleOrder.REVERSE)
         val e = GameEngine()
         e.startGame(seed = 4uL, rules = rules)
-        val s = e.getGameState()
-    while (s.stock.isNotEmpty()) { e.draw() }
+    while (e.getGameState().stock.isNotEmpty()) { e.draw() }
+    val s = e.getGameState()
     assertTrue(s.stock.isEmpty())
     assertTrue(s.waste.isNotEmpty())
     val wasteBottom = s.waste.first()
     val moved = e.draw()
     assertTrue(moved > 0)
     // After recycle(REVERSE), waste was cleared; the first newly drawn card equals previous waste bottom
-    assertTrue(s.waste.isNotEmpty())
-    val firstNew = s.waste.first()
+    val s2 = e.getGameState()
+    assertTrue(s2.waste.isNotEmpty())
+    val firstNew = s2.waste.first()
     assertEquals(wasteBottom, firstNew)
     assertTrue(firstNew.isFaceUp)
     }

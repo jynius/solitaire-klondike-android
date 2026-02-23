@@ -43,6 +43,9 @@ import us.jyni.game.klondike.solver.BFSSolver
 import us.jyni.game.klondike.solver.AStarSolver
 import us.jyni.game.klondike.solver.SolverResult
 import us.jyni.game.klondike.solver.Move
+import us.jyni.game.klondike.solver.UnsolvableDetector
+import us.jyni.game.klondike.solver.UnsolvableReason
+import us.jyni.game.klondike.engine.GameEngine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -149,7 +152,7 @@ class GameActivity : AppCompatActivity() {
             gameStartTime = viewModel.getStartedAt()
             
             // Inherent Status 복원
-            val inherentReason = viewModel.checkInherentlyUnsolvable()
+            val inherentReason = checkInherentlyUnsolvable()
             inherentStatusEmoji = if (inherentReason != null) {
                 getString(R.string.state_inherently_unsolvable)
             } else {
@@ -665,7 +668,7 @@ class GameActivity : AppCompatActivity() {
                         ).show()
                     } else {
                         // Unsolvable 체크
-                        val unsolvableReason = viewModel.checkUnsolvable()
+                        val unsolvableReason = checkUnsolvable()
                         if (unsolvableReason != null) {
                             Toast.makeText(
                                 this@GameActivity, 
@@ -1220,7 +1223,7 @@ class GameActivity : AppCompatActivity() {
             // 게임 완료 시 승리 표시
             getString(R.string.state_won)
         } else {
-            val unsolvableReason = viewModel.checkUnsolvable()
+            val unsolvableReason = checkUnsolvable()
             when (unsolvableReason) {
                 is us.jyni.game.klondike.solver.UnsolvableReason.NPileIrretrievable,
                 is us.jyni.game.klondike.solver.UnsolvableReason.KingIrretrievable,
@@ -1342,7 +1345,7 @@ class GameActivity : AppCompatActivity() {
         // 디버그 모드: 특정 게임 코드일 때 상세 정보 출력
         val debugGameCodes = listOf("YpUzGOpDYWg", "YpUzGOpD-YWg")
         if (debugGameCodes.contains(gameCode)) {
-            val (inherentReason, debugLog) = viewModel.checkInherentlyUnsolvableWithDebug()
+            val (inherentReason, debugLog) = checkInherentlyUnsolvableWithDebug()
             android.util.Log.d("GameActivity", "=== MATCHED DEBUG GAME CODE ===")
             android.util.Log.d("GameActivity", debugLog)
             inherentStatusEmoji = if (inherentReason != null) {
@@ -1351,7 +1354,7 @@ class GameActivity : AppCompatActivity() {
                 getString(R.string.state_inherently_solvable)
             }
         } else {
-            val inherentReason = viewModel.checkInherentlyUnsolvable()
+            val inherentReason = checkInherentlyUnsolvable()
             inherentStatusEmoji = if (inherentReason != null) {
                 getString(R.string.state_inherently_unsolvable)
             } else {
@@ -1374,14 +1377,14 @@ class GameActivity : AppCompatActivity() {
             val rules = viewModel.getRules()
             
             // Inherent Status 결정 (게임의 초기 배치 속성 - 언제 체크해도 동일)
-            val inherentReason = viewModel.checkInherentlyUnsolvable()
+            val inherentReason = checkInherentlyUnsolvable()
             val inherentStatus = if (inherentReason != null) "unsolvable" else "solvable"
             
             // Winnable Status 결정
             val winnableStatus = if (outcome == "win") {
                 "won"
             } else {
-                val unsolvableReason = viewModel.checkUnsolvable()
+                val unsolvableReason = checkUnsolvable()
                 when (unsolvableReason) {
                     is us.jyni.game.klondike.solver.UnsolvableReason.DeadEnd -> "dead_end"
                     is us.jyni.game.klondike.solver.UnsolvableReason.StateCycle -> "state_cycle"
@@ -1426,6 +1429,41 @@ class GameActivity : AppCompatActivity() {
         resources.updateConfiguration(config, resources.displayMetrics)
     }
     
+    // ========== Unsolvable Detection Helpers ==========
+    
+    /**
+     * 현재 게임 상태가 Unsolvable인지 검사
+     * UnsolvableDetector는 stateless이므로 매번 생성해도 성능 문제 없음 (7ms)
+     */
+    private fun checkUnsolvable(): UnsolvableReason? {
+        val detector = UnsolvableDetector()  // 독립적으로 동작
+        return detector.check(viewModel.getState())
+    }
+    
+    /**
+     * 게임 초기 배치가 Inherently Unsolvable인지 검사
+     */
+    private fun checkInherentlyUnsolvable(): UnsolvableReason? {
+        val tempEngine = GameEngine()
+        tempEngine.startGame(viewModel.getSeed(), viewModel.getRules())
+        val initialState = tempEngine.getGameState()
+        val detector = UnsolvableDetector()  // 독립적으로 동작
+        return detector.checkInherentlyUnsolvable(initialState)
+    }
+    
+    /**
+     * 디버그 정보 포함하여 Inherently Unsolvable 검사
+     */
+    private fun checkInherentlyUnsolvableWithDebug(): Pair<UnsolvableReason?, String> {
+        val tempEngine = GameEngine()
+        tempEngine.startGame(viewModel.getSeed(), viewModel.getRules())
+        val initialState = tempEngine.getGameState()
+        val detector = UnsolvableDetector()  // 독립적으로 동작
+        return detector.checkInherentlyUnsolvableWithDebug(initialState)
+    }
+    
+    // ========== Solver Helpers ==========
+    
     /**
      * 현재 설정에서 Solver 생성
      * 
@@ -1443,11 +1481,11 @@ class GameActivity : AppCompatActivity() {
             SolverType.BFS  // 기본값
         }
         
-        // GameActivity가 직접 Solver 생성
-        val engine = viewModel.getEngine()
+        // GameActivity가 직접 Solver 생성 (GameEngine 의존성 제거, Ruleset만 사용)
+        val rules = viewModel.getEngine().getRules()
         return when (solverType) {
-            SolverType.BFS -> BFSSolver(engine)
-            SolverType.ASTAR -> AStarSolver(engine)
+            SolverType.BFS -> BFSSolver(rules)
+            SolverType.ASTAR -> AStarSolver(rules)
         }
     }
 

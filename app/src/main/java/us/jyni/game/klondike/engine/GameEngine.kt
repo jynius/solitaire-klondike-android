@@ -56,7 +56,6 @@ class GameEngine {
      */
     fun startGame(seed: ULong = 0xCAFEBABE_uL, rules: Ruleset = Ruleset())
     {
-        android.util.Log.d("GameEngine", "startGame called with seed: $seed")
         this.rules = rules
         this.redealsRemaining = rules.redeals
         this.currentSeed = seed
@@ -220,34 +219,34 @@ class GameEngine {
         val dst = gameState.tableau[toCol]
         
         if (cardIndex < 0 || cardIndex >= src.size) {
-            android.util.Log.d("GameEngine", "moveTableauToTableauFromIndex: Invalid cardIndex=$cardIndex, src.size=${src.size}")
+        // android.util.Log.d("GameEngine", "moveTableauToTableauFromIndex: Invalid cardIndex=$cardIndex, src.size=${src.size}")
             return false
         }
         
         // 선택된 인덱스부터 끝까지의 카드들을 부분 리스트로 생성
         val partialPile = src.subList(cardIndex, src.size)
-        android.util.Log.d("GameEngine", "moveTableauToTableauFromIndex: from=$fromCol, cardIndex=$cardIndex, to=$toCol")
-        android.util.Log.d("GameEngine", "partialPile size: ${partialPile.size}, cards: ${partialPile.map { "${it.rank}${it.suit}" }}")
+        // android.util.Log.d("GameEngine", "moveTableauToTableauFromIndex: from=$fromCol, cardIndex=$cardIndex, to=$toCol")
+        // android.util.Log.d("GameEngine", "partialPile size: ${partialPile.size}, cards: ${partialPile.map { "${it.rank}${it.suit}" }}")
         
         val movableSequence = rulesEngine.getMovableSequence(partialPile)
-        android.util.Log.d("GameEngine", "movableSequence size: ${movableSequence.size}, cards: ${movableSequence.map { "${it.rank}${it.suit}" }}")
+        // android.util.Log.d("GameEngine", "movableSequence size: ${movableSequence.size}, cards: ${movableSequence.map { "${it.rank}${it.suit}" }}")
         
         if (movableSequence.isEmpty()) {
-            android.util.Log.d("GameEngine", "moveTableauToTableauFromIndex: No movable sequence")
+        // android.util.Log.d("GameEngine", "moveTableauToTableauFromIndex: No movable sequence")
             return false
         }
         
         // Check if the sequence can be moved to the target
         if (dst.isNotEmpty()) {
-            android.util.Log.d("GameEngine", "Target top card: ${dst.last().rank} ${dst.last().suit}")
+        // android.util.Log.d("GameEngine", "Target top card: ${dst.last().rank} ${dst.last().suit}")
         } else {
-            android.util.Log.d("GameEngine", "Target is empty")
+        // android.util.Log.d("GameEngine", "Target is empty")
         }
         
         val canMove = rulesEngine.canMoveSequenceToTableau(movableSequence, dst)
-        android.util.Log.d("GameEngine", "canMoveSequenceToTableau: $canMove, dst.size=${dst.size}")
+        // android.util.Log.d("GameEngine", "canMoveSequenceToTableau: $canMove, dst.size=${dst.size}")
         if (!canMove) {
-            android.util.Log.d("GameEngine", "moveTableauToTableauFromIndex: Move not allowed")
+        // android.util.Log.d("GameEngine", "moveTableauToTableauFromIndex: Move not allowed")
             return false
         }
 
@@ -263,7 +262,7 @@ class GameEngine {
         // Add cards to destination
         dst.addAll(movingCards)
         
-        android.util.Log.d("GameEngine", "moveTableauToTableauFromIndex: Move successful! Moved ${cardsToMove} cards")
+        // android.util.Log.d("GameEngine", "moveTableauToTableauFromIndex: Move successful! Moved ${cardsToMove} cards")
         
         // flip rule: reveal new top if facedown
         if (src.isNotEmpty()) {
@@ -319,20 +318,20 @@ class GameEngine {
         if (toCol !in 0..6) return false
         val src = gameState.waste
         if (src.isEmpty()) {
-            android.util.Log.d("GameEngine", "moveWasteToTableau: waste is empty")
+        // android.util.Log.d("GameEngine", "moveWasteToTableau: waste is empty")
             return false
         }
         val dst = gameState.tableau[toCol]
         
-        android.util.Log.d("GameEngine", "moveWasteToTableau: to=$toCol, waste card: ${src.last().rank} ${src.last().suit}, dst.size=${dst.size}")
+        // android.util.Log.d("GameEngine", "moveWasteToTableau: to=$toCol, waste card: ${src.last().rank} ${src.last().suit}, dst.size=${dst.size}")
         if (dst.isNotEmpty()) {
-            android.util.Log.d("GameEngine", "Target top card: ${dst.last().rank} ${dst.last().suit}")
+        // android.util.Log.d("GameEngine", "Target top card: ${dst.last().rank} ${dst.last().suit}")
         } else {
-            android.util.Log.d("GameEngine", "Target is empty")
+        // android.util.Log.d("GameEngine", "Target is empty")
         }
         
         val canMove = rulesEngine.canMoveTableauToTableau(src, dst)
-        android.util.Log.d("GameEngine", "moveWasteToTableau canMove: $canMove")
+        // android.util.Log.d("GameEngine", "moveWasteToTableau canMove: $canMove")
         if (!canMove) return false
 
         val moving = src.removeAt(src.lastIndex)
@@ -393,24 +392,24 @@ class GameEngine {
         val movableSequence = rulesEngine.getMovableSequence(src)
         val canMove = movableSequence.isNotEmpty() && rulesEngine.canMoveSequenceToTableau(movableSequence, dst)
         
-        android.util.Log.d("GameEngine", "canMoveTableauToTableau: from=$fromCol to=$toCol, src.size=${src.size}, dst.size=${dst.size}, movableSequence.size=${movableSequence.size}, canMove=$canMove")
+        // android.util.Log.d("GameEngine", "canMoveTableauToTableau: from=$fromCol to=$toCol, src.size=${src.size}, dst.size=${dst.size}, movableSequence.size=${movableSequence.size}, canMove=$canMove")
         
         if (movableSequence.isNotEmpty()) {
-            android.util.Log.d("GameEngine", "First movable card: ${movableSequence.first().rank} ${movableSequence.first().suit}")
+        // android.util.Log.d("GameEngine", "First movable card: ${movableSequence.first().rank} ${movableSequence.first().suit}")
             
             // 자세한 규칙 검사 로그
             if (dst.isEmpty()) {
-                android.util.Log.d("GameEngine", "Target is empty, need KING: ${movableSequence.first().rank == Rank.KING}")
+        // android.util.Log.d("GameEngine", "Target is empty, need KING: ${movableSequence.first().rank == Rank.KING}")
             } else {
                 val targetCard = dst.last()
-                android.util.Log.d("GameEngine", "Target top card: ${targetCard.rank} ${targetCard.suit}")
+        // android.util.Log.d("GameEngine", "Target top card: ${targetCard.rank} ${targetCard.suit}")
                 val movingCard = movableSequence.first()
                 val oppositeColor = rulesEngine.oppositeColor(movingCard, targetCard)
                 val oneRankLower = rulesEngine.oneRankLower(movingCard, targetCard)
-                android.util.Log.d("GameEngine", "Rule check - oppositeColor: $oppositeColor, oneRankLower: $oneRankLower")
+        // android.util.Log.d("GameEngine", "Rule check - oppositeColor: $oppositeColor, oneRankLower: $oneRankLower")
             }
         } else {
-            android.util.Log.d("GameEngine", "No movable sequence found")
+        // android.util.Log.d("GameEngine", "No movable sequence found")
         }
         
         return canMove
@@ -492,7 +491,7 @@ class GameEngine {
             undo.saveState(snapshot())
             true
         } catch (e: Exception) {
-            android.util.Log.e("GameEngine", "Failed to restore state", e)
+        // android.util.Log.e("GameEngine", "Failed to restore state", e)
             false
         }
     }
@@ -629,14 +628,14 @@ class GameEngine {
     fun getElapsedTimeMs(): Long {
         // 타이머가 아직 시작되지 않았으면 0 반환
         if (startedAt == 0L) {
-            android.util.Log.d("GameEngine", "getElapsedTimeMs: startedAt is 0")
+        // android.util.Log.d("GameEngine", "getElapsedTimeMs: startedAt is 0")
             return 0L
         }
         
         val now = System.currentTimeMillis()
         val endTime = finishedAt ?: pausedAt ?: now
         val elapsed = endTime - startedAt - totalPausedMs
-        android.util.Log.d("GameEngine", "getElapsedTimeMs: now=$now, startedAt=$startedAt, elapsed=$elapsed, totalPausedMs=$totalPausedMs")
+        // android.util.Log.d("GameEngine", "getElapsedTimeMs: now=$now, startedAt=$startedAt, elapsed=$elapsed, totalPausedMs=$totalPausedMs")
         return maxOf(0, elapsed)
     }
     
@@ -648,10 +647,10 @@ class GameEngine {
     private fun incrementMoveCount() {
         if (moveCount == 0) {
             startedAt = System.currentTimeMillis()
-            android.util.Log.d("GameEngine", "Timer started at: $startedAt")
+        // android.util.Log.d("GameEngine", "Timer started at: $startedAt")
         }
         moveCount += 1
-        android.util.Log.d("GameEngine", "Move count: $moveCount, startedAt: $startedAt")
+        // android.util.Log.d("GameEngine", "Move count: $moveCount, startedAt: $startedAt")
     }
     
     /**

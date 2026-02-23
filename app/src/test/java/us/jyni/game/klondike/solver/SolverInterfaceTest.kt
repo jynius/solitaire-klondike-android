@@ -3,10 +3,12 @@ package us.jyni.game.klondike.solver
 import org.junit.Assert.*
 import org.junit.Test
 import us.jyni.game.klondike.engine.GameEngine
-import us.jyni.game.klondike.ui.GameViewModel
 
 /**
  * Solver 인터페이스 및 Strategy 패턴 테스트
+ * 
+ * GameViewModel은 더 이상 Solver를 소유하지 않으므로,
+ * Solver 인터페이스 자체의 동작만 테스트합니다.
  */
 class SolverInterfaceTest {
     
@@ -17,31 +19,27 @@ class SolverInterfaceTest {
         val state = engine.getGameState()
         
         // BFSSolver
-        val bfsSolver: Solver = BFSSolver(engine)
+        val bfsSolver: Solver = BFSSolver()
         val bfsResult = bfsSolver.solve(state)
         assertNotNull("BFS Solver가 결과를 반환해야 함", bfsResult)
         
         // AStarSolver
-        val astarSolver: Solver = AStarSolver(engine)
+        val astarSolver: Solver = AStarSolver()
         val astarResult = astarSolver.solve(state)
         assertNotNull("A* Solver가 결과를 반환해야 함", astarResult)
     }
     
     @Test
-    fun `GameViewModel은 SolverType에 따라 다른 Solver를 사용`() {
-        // BFS Solver 사용
-        val bfsViewModel = GameViewModel(SolverType.BFS)
-        assertEquals("BFS Solver 타입이어야 함", SolverType.BFS, bfsViewModel.getSolverType())
+    fun `BFS와 A* 모두 동일한 GameEngine을 사용할 수 있음`() {
+        // 동일한 GameEngine으로 두 Solver 생성 가능
+        val engine = GameEngine()
+        engine.startGame(5678uL)
         
-        // A* Solver 사용
-        val astarViewModel = GameViewModel(SolverType.ASTAR)
-        assertEquals("A* Solver 타입이어야 함", SolverType.ASTAR, astarViewModel.getSolverType())
-    }
-    
-    @Test
-    fun `기본 SolverType은 BFS`() {
-        val viewModel = GameViewModel()  // 기본값
-        assertEquals("기본 Solver는 BFS여야 함", SolverType.BFS, viewModel.getSolverType())
+        val bfsSolver: Solver = BFSSolver()
+        val astarSolver: Solver = AStarSolver()
+        
+        assertNotNull("BFS Solver가 생성되어야 함", bfsSolver)
+        assertNotNull("A* Solver가 생성되어야 함", astarSolver)
     }
     
     @Test
@@ -50,8 +48,8 @@ class SolverInterfaceTest {
         engine.startGame(1234uL)
         val state = engine.getGameState()
         
-        val bfsSolver: Solver = BFSSolver(engine)
-        val astarSolver: Solver = AStarSolver(engine)
+        val bfsSolver: Solver = BFSSolver()
+        val astarSolver: Solver = AStarSolver()
         
         // 둘 다 findBestMove 호출 가능
         val bfsMove = bfsSolver.findBestMove(state)
@@ -68,8 +66,8 @@ class SolverInterfaceTest {
         val engine = GameEngine()
         
         val solvers: List<Solver> = listOf(
-            BFSSolver(engine),
-            AStarSolver(engine)
+            BFSSolver(),
+            AStarSolver()
         )
         
         assertEquals("2개의 Solver가 리스트에 있어야 함", 2, solvers.size)

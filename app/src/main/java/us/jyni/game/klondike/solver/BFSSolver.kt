@@ -1,7 +1,8 @@
 package us.jyni.game.klondike.solver
 
-import us.jyni.game.klondike.engine.GameEngine
+import us.jyni.game.klondike.engine.KlondikeRules
 import us.jyni.game.klondike.model.GameState
+import us.jyni.game.klondike.util.sync.Ruleset
 import java.util.LinkedList
 import java.util.Queue
 
@@ -9,8 +10,11 @@ import java.util.Queue
  * BFS 기반 솔리테어 Solver
  * 
  * 완전 정보 게임 탐색을 통해 승리 경로를 찾습니다.
+ * GameEngine 없이 독립적으로 동작합니다.
  */
-class BFSSolver(private val engine: GameEngine) : Solver {
+class BFSSolver(private val rules: Ruleset = Ruleset()) : Solver {
+    
+    private val rulesEngine = KlondikeRules()
     
     /**
      * BFS 전용 탐색 노드
@@ -32,13 +36,6 @@ class BFSSolver(private val engine: GameEngine) : Solver {
      */
     override fun solve(initialState: GameState): SolverResult {
         val startTime = System.currentTimeMillis()
-        
-        // Inherently Unsolvable 체크 (게임 시작 시)
-        val unsolvableDetector = UnsolvableDetector(engine)
-        val inherentlyUnsolvable = unsolvableDetector.checkInherentlyUnsolvable(initialState)
-        if (inherentlyUnsolvable != null) {
-            return SolverResult.InherentlyUnsolvable(inherentlyUnsolvable)
-        }
         
         val queue: Queue<BFSNode> = LinkedList()
         val visited = mutableSetOf<String>()
@@ -126,7 +123,7 @@ class BFSSolver(private val engine: GameEngine) : Solver {
         // 1. Tableau → Foundation
         for (col in 0..6) {
             for (f in 0..3) {
-                if (engine.canMoveTableauToFoundation(col, f)) {
+                if (rulesEngine.canMoveTableauToFoundation(state.tableau[col], state.foundation[f])) {
                     moves.add(Move.TableauToFoundation(col, f))
                 }
             }
@@ -134,14 +131,14 @@ class BFSSolver(private val engine: GameEngine) : Solver {
         
         // 2. Waste → Foundation
         for (f in 0..3) {
-            if (engine.canMoveWasteToFoundation(f)) {
+            if (rulesEngine.canMoveTableauToFoundation(state.waste, state.foundation[f])) {
                 moves.add(Move.WasteToFoundation(f))
             }
         }
         
         // 3. Waste → Tableau
         for (col in 0..6) {
-            if (engine.canMoveWasteToTableau(col)) {
+            if (rulesEngine.canMoveTableauToTableau(state.waste, state.tableau[col])) {
                 moves.add(Move.WasteToTableau(col))
             }
         }
@@ -168,10 +165,10 @@ class BFSSolver(private val engine: GameEngine) : Solver {
         }
         
         // 5. Foundation → Tableau (규칙에 따라)
-        if (engine.getRules().allowFoundationToTableau) {
+        if (rules.allowFoundationToTableau) {
             for (f in 0..3) {
                 for (col in 0..6) {
-                    if (engine.canMoveFoundationToTableau(f, col)) {
+                    if (rulesEngine.canMoveFoundationToTableau(state.foundation[f], state.tableau[col])) {
                         moves.add(Move.FoundationToTableau(f, col))
                     }
                 }
@@ -203,10 +200,10 @@ class BFSSolver(private val engine: GameEngine) : Solver {
         if (cardIndex < 0 || cardIndex >= src.size) return false
         
         val partialPile = src.subList(cardIndex, src.size)
-        val movableSequence = engine.rulesEngine.getMovableSequence(partialPile)
+        val movableSequence = rulesEngine.getMovableSequence(partialPile)
         
         if (movableSequence.isEmpty()) return false
         
-        return engine.rulesEngine.canMoveSequenceToTableau(movableSequence, dst)
+        return rulesEngine.canMoveSequenceToTableau(movableSequence, dst)
     }
 }

@@ -1,16 +1,17 @@
 package us.jyni.game.klondike.solver
 
-import us.jyni.game.klondike.engine.GameEngine
 import us.jyni.game.klondike.model.Card
 import us.jyni.game.klondike.model.GameState
 import us.jyni.game.klondike.model.Rank
+import us.jyni.game.klondike.util.sync.Ruleset
 import java.util.PriorityQueue
 
 /**
  * A* 알고리즘 기반 솔리테어 Solver
  * 제약 기반 휴리스틱을 사용하여 효율적으로 승리 경로 탐색
+ * GameEngine 없이 독립적으로 동작합니다.
  */
-class AStarSolver(private val engine: GameEngine) : Solver {
+class AStarSolver(private val rules: Ruleset = Ruleset()) : Solver {
     
     companion object {
         private const val MAX_DEPTH = 150
@@ -23,13 +24,6 @@ class AStarSolver(private val engine: GameEngine) : Solver {
      */
     override fun solve(initialState: GameState): SolverResult {
         val startTime = System.currentTimeMillis()
-        
-        // Inherently Unsolvable 체크 (게임 시작 시)
-        val unsolvableDetector = UnsolvableDetector(engine)
-        val inherentlyUnsolvable = unsolvableDetector.checkInherentlyUnsolvable(initialState)
-        if (inherentlyUnsolvable != null) {
-            return SolverResult.InherentlyUnsolvable(inherentlyUnsolvable)
-        }
         
         // Priority Queue: f(n) = g(n) + h(n) 기준 정렬
         val openSet = PriorityQueue<SearchNode>(compareBy { it.fCost })

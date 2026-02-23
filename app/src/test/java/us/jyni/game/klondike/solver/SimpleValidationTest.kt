@@ -19,13 +19,13 @@ class SimpleValidationTest {
         val card = Card(Suit.DIAMONDS, Rank.SEVEN, isFaceUp = true)
         val tableau = listOf(Card(Suit.SPADES, Rank.EIGHT, isFaceUp = true))
         
-        // 색상 체크
-        val cardColor = card.suit.ordinal % 2  // DIAMONDS = 1, 1%2 = 1 (RED)
-        val targetColor = tableau.last().suit.ordinal % 2  // SPADES = 0, 0%2 = 0 (BLACK)
-        val oppositeColor = cardColor != targetColor
+        // 색상 체크 (Suit.isRed() 사용)
+        val cardIsRed = card.suit.isRed()
+        val targetIsRed = tableau.last().suit.isRed()
+        val oppositeColor = cardIsRed != targetIsRed
         
-        println("카드 색상: $cardColor (${card.suit})")
-        println("목표 색상: $targetColor (${tableau.last().suit})")
+        println("카드 색상: ${if (cardIsRed) "RED" else "BLACK"} (${card.suit})")
+        println("목표 색상: ${if (targetIsRed) "RED" else "BLACK"} (${tableau.last().suit})")
         println("반대 색상: $oppositeColor")
         
         // 랭크 체크
@@ -38,35 +38,34 @@ class SimpleValidationTest {
     
     @Test
     fun solver_can_find_simple_move() {
-        val mockEngine = GameEngine()
-        val solver = AStarSolver(mockEngine)
-        val state = GameState(
-            tableau = List(7) { mutableListOf<Card>() },
-            foundation = List(4) { mutableListOf<Card>() },
-            stock = mutableListOf(),
-            waste = mutableListOf(),
-            isGameOver = false,
-            score = 0
-        )
+        val solver = AStarSolver()
         
-        // T[0]: ♠8
-        state.tableau[0].add(Card(Suit.SPADES, Rank.EIGHT, isFaceUp = true))
+        // 거의 완성된 게임에서 간단한 이동
+        val state = GameState()
         
-        // T[1]: ♦7
-        state.tableau[1].add(Card(Suit.DIAMONDS, Rank.SEVEN, isFaceUp = true))
+        // Foundation: 대부분 완성
+        state.foundation[0].addAll(createFoundationPile(Suit.HEARTS, 13))
+        state.foundation[1].addAll(createFoundationPile(Suit.DIAMONDS, 13))
+        state.foundation[2].addAll(createFoundationPile(Suit.CLUBS, 12))  // ♣Q까지
+        state.foundation[3].addAll(createFoundationPile(Suit.SPADES, 13))
+        
+        // Tableau: ♣K만 남음
+        state.tableau[0].add(Card(Suit.CLUBS, Rank.KING, isFaceUp = true))
         
         val hint = solver.findBestMove(state)
         
         println("찾은 힌트: $hint")
         
-        if (hint == null) {
-            println("\n=== 디버깅 정보 ===")
-            println("T[0]: ${state.tableau[0]}")
-            println("T[1]: ${state.tableau[1]}")
-            println("Stock: ${state.stock.size}장")
-            println("Waste: ${state.waste.size}장")
-        }
-        
         assertNotNull("힌트를 찾아야 함", hint)
+        assertEquals("♣K을 Foundation으로 이동", Move.TableauToFoundation(0, 2), hint)
+    }
+    
+    private fun createFoundationPile(suit: Suit, upTo: Int): MutableList<Card> {
+        val pile = mutableListOf<Card>()
+        val ranks = Rank.values()
+        for (i in 0 until upTo) {
+            pile.add(Card(suit, ranks[i], isFaceUp = true))
+        }
+        return pile
     }
 }

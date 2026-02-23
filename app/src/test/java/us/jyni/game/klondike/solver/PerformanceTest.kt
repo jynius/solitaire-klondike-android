@@ -19,7 +19,7 @@ class PerformanceTest {
     @Before
     fun setup() {
         engine = GameEngine()
-        detector = UnsolvableDetector(engine)
+        detector = UnsolvableDetector()
         engine.startGame(seed = 0uL, rules = Ruleset())
     }
     

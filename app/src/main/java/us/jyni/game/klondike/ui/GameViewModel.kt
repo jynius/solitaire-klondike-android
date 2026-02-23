@@ -8,19 +8,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import us.jyni.game.klondike.engine.GameEngine
 import us.jyni.game.klondike.model.GameState
 import us.jyni.game.klondike.util.sync.Ruleset
-import us.jyni.game.klondike.solver.UnsolvableDetector
-import us.jyni.game.klondike.solver.UnsolvableReason
 import us.jyni.game.klondike.solver.Move
 
 /**
  * 게임 상태와 로직을 관리하는 ViewModel
  * 
- * Solver는 보조 기능이므로 GameViewModel과 분리되어 있습니다.
- * 외부에서 Solver가 필요하면 getEngine()으로 GameEngine을 받아 직접 생성하세요.
+ * Solver와 UnsolvableDetector는 보조 기능이므로 GameViewModel과 분리되어 있습니다.
+ * 외부에서 필요하면 getEngine()으로 GameEngine을 받아 직접 생성하세요.
  */
 class GameViewModel : ViewModel() {
     private val engine = GameEngine()
-    private val unsolvableDetector = UnsolvableDetector(engine)
 
     private val _state = MutableStateFlow(GameState())
     val state: StateFlow<GameState> = _state.asStateFlow()
@@ -242,29 +239,6 @@ class GameViewModel : ViewModel() {
     fun pause() = engine.pause()
     fun resume() = engine.resume()
     fun isPaused(): Boolean = engine.isPaused()
-    
-    // Unsolvable detection
-    fun checkUnsolvable(): UnsolvableReason? {
-        return unsolvableDetector.check(_state.value)
-    }
-    
-    fun checkInherentlyUnsolvable(): UnsolvableReason? {
-        // Inherently Unsolvable은 게임 초기 배치의 속성이므로
-        // 현재 seed + rules로 초기 상태를 재생성해서 체크
-        val tempEngine = GameEngine()
-        tempEngine.startGame(engine.getSeed(), engine.getRules())
-        val initialState = tempEngine.getGameState()
-        return unsolvableDetector.checkInherentlyUnsolvable(initialState)
-    }
-    
-    fun checkInherentlyUnsolvableWithDebug(): Pair<UnsolvableReason?, String> {
-        // Inherently Unsolvable은 게임 초기 배치의 속성이므로
-        // 현재 seed + rules로 초기 상태를 재생성해서 체크
-        val tempEngine = GameEngine()
-        tempEngine.startGame(engine.getSeed(), engine.getRules())
-        val initialState = tempEngine.getGameState()
-        return unsolvableDetector.checkInherentlyUnsolvableWithDebug(initialState)
-    }
     
     /**
      * GameEngine 접근자 (읽기 전용)

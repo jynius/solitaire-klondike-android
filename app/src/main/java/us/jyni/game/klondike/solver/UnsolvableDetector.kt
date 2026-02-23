@@ -1,18 +1,24 @@
 package us.jyni.game.klondike.solver
 
+import us.jyni.game.klondike.engine.KlondikeRules
 import us.jyni.game.klondike.model.GameState
 import us.jyni.game.klondike.model.Card
 import us.jyni.game.klondike.model.Suit
 import us.jyni.game.klondike.model.Rank
-import us.jyni.game.klondike.engine.GameEngine
 import kotlin.math.min
 
 /**
  * N-Pile Irretrievable 프레임워크를 사용한 Unsolvable 검사기
  * 
  * 게임 시작 시 7ms 이내에 Inherently Unsolvable을 완전히 판단합니다.
+ * GameEngine 없이 독립적으로 동작합니다.
+ * 
+ * @param stateHistory 선택적 상태 히스토리 (State Cycle 검사용)
  */
-class UnsolvableDetector(private val engine: GameEngine) {
+class UnsolvableDetector(
+    private val stateHistory: MutableSet<String>? = null
+) {
+    private val rulesEngine = KlondikeRules()
     
     /**
      * 게임의 Inherent 속성(Game Property)을 검사합니다.
@@ -97,7 +103,7 @@ class UnsolvableDetector(private val engine: GameEngine) {
         }
         
         // 2. State Cycle: 이전에 방문한 상태로 돌아옴
-        val stateCycle = checkStateCycle()
+        val stateCycle = checkStateCycle(state)
         if (stateCycle != null) return stateCycle
         
         return null
@@ -105,20 +111,26 @@ class UnsolvableDetector(private val engine: GameEngine) {
     
     /**
      * State Cycle 검사
-     * GameEngine의 상태 히스토리를 사용하여 순환 검출
+     * 제공된 상태 히스토리를 사용하여 순환 검출
+     * @param state 검사할 게임 상태
      * @return UnsolvableReason.StateCycle if cycle detected, null otherwise
      */
-    fun checkStateCycle(): UnsolvableReason? {
-        // 현재 상태가 이미 히스토리에 있는지 확인
-        val isInHistory = engine.isStateInHistory()
+    fun checkStateCycle(state: GameState): UnsolvableReason? {
+        if (stateHistory == null) {
+            // 히스토리가 없으면 검사 불가
+            return null
+        }
         
-        if (isInHistory) {
+        // 현재 상태의 해시 계산
+        val stateHash = GameStateUtils.stateHash(state)
+        
+        if (stateHistory.contains(stateHash)) {
             // 이전에 방문한 상태 → Cycle 감지
             return UnsolvableReason.StateCycle("이전 상태로 돌아왔습니다 (무한 루프)")
         }
         
         // 새로운 상태면 히스토리에 추가
-        engine.recordCurrentState()
+        stateHistory.add(stateHash)
         
         return null
     }
@@ -363,14 +375,14 @@ class UnsolvableDetector(private val engine: GameEngine) {
         if (state.waste.isNotEmpty()) {
             // Waste → Foundation
             for (foundationIndex in 0..3) {
-                if (engine.canMoveWasteToFoundation(foundationIndex)) {
+                if (rulesEngine.canMoveTableauToFoundation(state.waste, state.foundation[foundationIndex])) {
                     return false
                 }
             }
             
             // Waste → Tableau
             for (col in 0..6) {
-                if (engine.canMoveWasteToTableau(col)) {
+                if (rulesEngine.canMoveTableauToTableau(state.waste, state.tableau[col])) {
                     return false
                 }
             }
@@ -379,7 +391,7 @@ class UnsolvableDetector(private val engine: GameEngine) {
         // 3. Tableau → Foundation
         for (col in 0..6) {
             for (foundationIndex in 0..3) {
-                if (engine.canMoveTableauToFoundation(col, foundationIndex)) {
+                if (rulesEngine.canMoveTableauToFoundation(state.tableau[col], state.foundation[foundationIndex])) {
                     return false
                 }
             }
@@ -388,8 +400,12 @@ class UnsolvableDetector(private val engine: GameEngine) {
         // 4. Tableau → Tableau
         for (fromCol in 0..6) {
             for (toCol in 0..6) {
-                if (fromCol != toCol && engine.canMoveTableauToTableau(fromCol, toCol)) {
-                    return false
+                if (fromCol != toCol) {
+                    val movableSeq = rulesEngine.getMovableSequence(state.tableau[fromCol])
+                    if (movableSeq.isNotEmpty() && 
+                        rulesEngine.canMoveSequenceToTableau(movableSeq, state.tableau[toCol])) {
+                        return false
+                    }
                 }
             }
         }
@@ -398,7 +414,7 @@ class UnsolvableDetector(private val engine: GameEngine) {
         if (state.rules.allowFoundationToTableau) {
             for (foundationIndex in 0..3) {
                 for (col in 0..6) {
-                    if (engine.canMoveFoundationToTableau(foundationIndex, col)) {
+                    if (rulesEngine.canMoveFoundationToTableau(state.foundation[foundationIndex], state.tableau[col])) {
                         return false
                     }
                 }

@@ -127,12 +127,15 @@ class GameStateUtilsTest {
         val newState = GameStateUtils.applyMove(state, move)
         
         assertNotNull("Move should succeed (recycle)", newState)
-        assertEquals("Stock should have 2 cards (recycled)", 2, newState!!.stock.size)
-        assertEquals("Waste should be empty initially", 0, newState.waste.size)
+        // Recycle 후 바로 1장 Draw하므로 Stock에 1장, Waste에 1장
+        assertEquals("Stock should have 1 card (recycled and drew 1)", 1, newState!!.stock.size)
+        assertEquals("Waste should have 1 card (drew from recycled stock)", 1, newState.waste.size)
         
         // Stock의 카드들이 뒷면이어야 함
         assertTrue("Stock cards should be face down", 
             newState.stock.all { !it.isFaceUp })
+        // Waste의 카드는 앞면
+        assertTrue("Waste card should be face up", newState.waste.last().isFaceUp)
     }
     
     @Test

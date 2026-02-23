@@ -18,7 +18,7 @@ class UnsolvableDetectorTest {
     @Before
     fun setup() {
         engine = GameEngine()
-        detector = UnsolvableDetector(engine)
+        detector = UnsolvableDetector()
     }
     
     // @Test
