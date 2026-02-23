@@ -20,7 +20,7 @@ class RulesActivity : AppCompatActivity() {
     private lateinit var redealsRadioGroup: RadioGroup
     private lateinit var foundationToTableauSwitch: androidx.appcompat.widget.SwitchCompat
     private lateinit var languageRadioGroup: RadioGroup
-    private lateinit var solverRadioGroup: RadioGroup
+    private lateinit var solverSpinner: Spinner
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Apply saved language before calling super.onCreate
@@ -59,8 +59,20 @@ class RulesActivity : AppCompatActivity() {
         redealsRadioGroup = findViewById(R.id.redeals_radio_group)
         foundationToTableauSwitch = findViewById(R.id.foundation_to_tableau_switch)
         languageRadioGroup = findViewById(R.id.language_radio_group)
-        solverRadioGroup = findViewById(R.id.solver_radio_group)
+        solverSpinner = findViewById(R.id.solver_spinner)
         val saveButton = findViewById<Button>(R.id.save_rules_button)
+        
+        // Setup solver spinner
+        setupSolverSpinner()
+        
+        // Solver info button tooltip
+        findViewById<ImageButton>(R.id.solver_info_button).setOnClickListener {
+            android.app.AlertDialog.Builder(this)
+                .setTitle(getString(R.string.solver_algorithm_title))
+                .setMessage(getString(R.string.solver_algorithm_desc))
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
+        }
         
         // Load current settings
         loadCurrentLanguage()
@@ -89,22 +101,48 @@ class RulesActivity : AppCompatActivity() {
         }
     }
     
+    private fun setupSolverSpinner() {
+        val solverNames = arrayOf(
+            getString(R.string.solver_bfs),
+            getString(R.string.solver_backward),
+            getString(R.string.solver_heuristic),
+            getString(R.string.solver_astar),
+            getString(R.string.solver_greedy)
+        )
+        
+        val adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            solverNames
+        )
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        solverSpinner.adapter = adapter
+    }
+    
     private fun loadCurrentSolver() {
         val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-        val solverType = prefs.getString("solver_type", SolverType.BFS.name) ?: SolverType.BFS.name
+        val solverType = prefs.getString("solver_type", SolverType.ASTAR.name) ?: SolverType.ASTAR.name
         
-        when (solverType) {
-            SolverType.BFS.name -> solverRadioGroup.check(R.id.solver_bfs)
-            SolverType.ASTAR.name -> solverRadioGroup.check(R.id.solver_astar)
-            else -> solverRadioGroup.check(R.id.solver_bfs)
+        val position = when (solverType) {
+            SolverType.BFS.name -> 0
+            SolverType.BACKWARD.name -> 1
+            SolverType.HEURISTIC.name -> 2
+            SolverType.ASTAR.name -> 3
+            SolverType.GREEDY.name -> 4
+            else -> 3 // Default to A*
         }
+        
+        solverSpinner.setSelection(position)
     }
     
     private fun saveSolver() {
-        val selectedSolver = when (solverRadioGroup.checkedRadioButtonId) {
-            R.id.solver_bfs -> SolverType.BFS.name
-            R.id.solver_astar -> SolverType.ASTAR.name
-            else -> SolverType.BFS.name
+        val selectedSolver = when (solverSpinner.selectedItemPosition) {
+            0 -> SolverType.BFS.name
+            1 -> SolverType.BACKWARD.name
+            2 -> SolverType.HEURISTIC.name
+            3 -> SolverType.ASTAR.name
+            4 -> SolverType.GREEDY.name
+            else -> SolverType.ASTAR.name
         }
         
         getSharedPreferences("app_prefs", Context.MODE_PRIVATE)

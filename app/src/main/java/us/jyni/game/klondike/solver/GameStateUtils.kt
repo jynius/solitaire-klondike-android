@@ -167,24 +167,28 @@ object GameStateUtils {
         
         sb.append("//")
         
-        // Foundation
+        // Foundation - normalize by suit to avoid duplicate states
+        // Count cards in each suit's foundation
+        val suitCounts = Array(4) { 0 }
         for (pile in state.foundation) {
-            sb.append(pile.size)
-            sb.append(",")
+            if (pile.isNotEmpty()) {
+                val suit = pile.last().suit
+                suitCounts[suit.ordinal] = pile.size
+            }
         }
+        // Hash in sorted suit order (always HEARTS, DIAMONDS, CLUBS, SPADES)
+        sb.append(suitCounts.joinToString(","))
         
         sb.append("//")
         
-        // Stock size (순서는 변하지 않으므로 크기만)
+        // Stock - 크기만 (순서는 게임 규칙상 고정되어 있음)
         sb.append(state.stock.size)
         
         sb.append("//")
         
-        // Waste
-        if (state.waste.isNotEmpty()) {
-            val top = state.waste.last()
-            sb.append("${top.suit.ordinal}${top.rank.value}")
-        }
+        // Waste - 보이는 카드들만 (Draw 3이면 최대 3장)
+        val visibleWaste = state.waste.takeLast(minOf(3, state.waste.size))
+        sb.append(visibleWaste.joinToString(",") { "${it.suit.ordinal}${it.rank.value}" })
         
         return sb.toString()
     }

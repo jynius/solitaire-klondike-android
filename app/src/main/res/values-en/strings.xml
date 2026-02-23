@@ -175,6 +175,17 @@
     <string name="unit_game_singular"> game</string>
     <string name="unit_game_plural"> games</string>
     
+    <!-- Solver Settings -->
+    <string name="settings_app_group_title">App Settings</string>
+    <string name="settings_game_rules_group_title">Game Rules</string>
+    <string name="solver_algorithm_title">Solver Algorithm</string>
+    <string name="solver_algorithm_desc">Choose algorithm for hints and auto-play</string>
+    <string name="solver_bfs">BFS - Optimal Path (Stable, Memory)</string>
+    <string name="solver_backward">Backward - Reverse Search (Specific Cases)</string>
+    <string name="solver_heuristic">Heuristic - Priority-based (Fast)</string>
+    <string name="solver_astar">A* - Recommended (Heuristic, Complex Games)</string>
+    <string name="solver_greedy">Greedy - Rule-based (Fast, Simple Games)</string>
+    
     <!-- Debug (MainActivity) -->
     <string name="debug_status">status</string>
     <string name="debug_enable_upload">Enable Upload</string>

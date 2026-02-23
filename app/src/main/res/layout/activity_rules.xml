@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:background="@color/background_color">
 
@@ -53,7 +54,7 @@
             android:layout_marginBottom="16dp"
             android:orientation="vertical">
 
-        <!-- Language Settings (맨 위로 이동) -->
+        <!-- Language Settings -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -69,7 +70,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="32dp">
+            android:layout_marginBottom="24dp">
 
             <RadioButton
                 android:id="@+id/language_korean"
@@ -90,48 +91,50 @@
         </RadioGroup>
 
         <!-- Solver Algorithm -->
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/solver_algorithm_title"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_color"
-            android:layout_marginBottom="4dp" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/solver_algorithm_desc"
-            android:textSize="14sp"
-            android:textColor="@color/text_color"
-            android:alpha="0.7"
-            android:layout_marginBottom="8dp" />
-
-        <RadioGroup
-            android:id="@+id/solver_radio_group"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="32dp">
-
-            <RadioButton
-                android:id="@+id/solver_bfs"
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/solver_bfs"
+                android:text="@string/solver_algorithm_title"
+                android:textSize="18sp"
+                android:textStyle="bold"
                 android:textColor="@color/text_color"
-                android:layout_marginBottom="4dp"
-                android:checked="true" />
+                android:layout_marginEnd="8dp" />
 
-            <RadioButton
-                android:id="@+id/solver_astar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/solver_astar"
-                android:textColor="@color/text_color" />
+            <ImageButton
+                android:id="@+id/solver_info_button"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@android:drawable/ic_menu_info_details"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/solver_algorithm_desc"
+                app:tint="@color/text_color"
+                android:alpha="0.7" />
 
-        </RadioGroup>
+        </LinearLayout>
+
+        <Spinner
+            android:id="@+id/solver_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:background="@android:drawable/btn_dropdown"
+            android:spinnerMode="dropdown" />
+
+        <!-- 구분선 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/text_color"
+            android:alpha="0.2"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="24dp" />
 
         <!-- Draw Rules -->
         <TextView

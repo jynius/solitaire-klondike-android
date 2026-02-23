@@ -21,6 +21,11 @@
     <string name="score">점수</string>
     <string name="moves">이동</string>
     <string name="time">시간</string>
+    <string name="victory_title">🎉 축하합니다!</string>
+    <string name="victory_message">Klondike Solitaire를 완료했습니다!\n\n새 게임을 시작하시겠습니까?</string>
+    <string name="victory_new_game">새 게임</string>
+    <string name="victory_restart">다시 시작</string>
+    <string name="victory_close">닫기</string>
     
     <!-- 토스트 메시지 -->
     <string name="deal_copied">Deal ID 복사됨</string>
@@ -152,14 +157,34 @@
 
     <!-- Game State Status -->
     <string name="state_inherently_unsolvable">❌</string>
-    <string name="state_dead_end">⚠️</string>
+    <string name="state_inherently_solvable">⭕</string>
+    <string name="state_dead_end">⛔</string>
     <string name="state_state_cycle">🔄</string>
     <string name="state_solvable">✅</string>
+    <string name="state_in_progress">🎮</string>
+    <string name="state_won">🏆</string>
+    
+    <!-- Game Code -->
+    <string name="game_code_label">코드:</string>
+    <string name="copy_game_code">Deal ID 복사</string>
+    <string name="game_code_copied">Deal ID가 복사되었습니다</string>
+    <string name="play_count">%d회</string>
 
     <!-- Units -->
     <string name="unit_moves">수</string>
     <string name="unit_game_singular">게임</string>
     <string name="unit_game_plural">게임</string>
+    
+    <!-- Solver Settings -->
+    <string name="settings_app_group_title">앱 설정</string>
+    <string name="settings_game_rules_group_title">게임 규칙</string>
+    <string name="solver_algorithm_title">솔버 알고리즘</string>
+    <string name="solver_algorithm_desc">힌트와 자동 플레이에 사용할 알고리즘을 선택하세요</string>
+    <string name="solver_bfs">BFS - 최적 경로 보장 (안정적, 메모리 사용)</string>
+    <string name="solver_backward">Backward - 역방향 탐색 (특정 문제에 효과적)</string>
+    <string name="solver_heuristic">Heuristic - 우선순위 기반 (빠른 해법)</string>
+    <string name="solver_astar">A* - 가장 추천 (휴리스틱, 복잡한 게임)</string>
+    <string name="solver_greedy">Greedy - 규칙 기반 (빠름, 간단한 게임)</string>
     
     <!-- Debug (MainActivity) -->
     <string name="debug_status">status</string>

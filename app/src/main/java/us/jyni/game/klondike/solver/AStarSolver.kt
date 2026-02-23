@@ -15,7 +15,7 @@ class AStarSolver(private val rules: Ruleset = Ruleset()) : Solver {
     
     companion object {
         private const val MAX_DEPTH = 150
-        private const val MAX_STATES = 100000
+        private const val MAX_STATES = 200000
         private const val TIMEOUT_MS = 5000L
     }
     
@@ -46,7 +46,13 @@ class AStarSolver(private val rules: Ruleset = Ruleset()) : Solver {
             }
             
             val node = openSet.poll()
+            
+            // 이미 방문한 상태면 스킵 (statesExplored 증가 전에 체크)
+            val hash = GameStateUtils.stateHash(node.state)
+            if (hash in closedSet) continue
+            
             statesExplored++
+            closedSet.add(hash)
             
             // 승리 조건 체크
             if (node.state.isGameOver) {
@@ -55,11 +61,6 @@ class AStarSolver(private val rules: Ruleset = Ruleset()) : Solver {
                     statesExplored = statesExplored
                 )
             }
-            
-            // 이미 방문한 상태면 스킵
-            val hash = GameStateUtils.stateHash(node.state)
-            if (hash in closedSet) continue
-            closedSet.add(hash)
             
             // 깊이 제한
             if (node.path.size >= MAX_DEPTH) continue
@@ -204,23 +205,19 @@ class AStarSolver(private val rules: Ruleset = Ruleset()) : Solver {
         val foundationMoves = getSafeFoundationMoves(state)
         moves.addAll(foundationMoves)
         
-        // 우선순위 2: 카드를 뒤집는 이동
-        val flipMoves = getFlipMoves(state)
-        moves.addAll(flipMoves)
+        // 우선순위 2: Tableau 이동 (맨 밑 카드만, 뒤집기 포함)
+        val tableauMoves = getTableauMoves(state)
+        moves.addAll(tableauMoves)
         
         // 우선순위 3: King을 빈 공간으로
         val kingMoves = getKingToEmptyMoves(state)
         moves.addAll(kingMoves)
         
-        // 우선순위 4: 유용한 Tableau 이동
-        val tableauMoves = getProductiveTableauMoves(state)
-        moves.addAll(tableauMoves)
-        
-        // 우선순위 5: Waste에서 이동
+        // 우선순위 4: Waste에서 이동
         val wasteMoves = getWasteMoves(state)
         moves.addAll(wasteMoves)
         
-        // 우선순위 6: Draw (Stock이 비었으면 Waste 재활용 포함)
+        // 우선순위 5: Draw (Stock이 비었으면 Waste 재활용 포함)
         if (state.stock.isNotEmpty() || state.waste.isNotEmpty()) {
             moves.add(Move.Draw)
         }
@@ -289,28 +286,45 @@ class AStarSolver(private val rules: Ruleset = Ruleset()) : Solver {
     }
     
     /**
-     * 뒤집기 이동 (뒷면 카드를 노출)
+     * Tableau 이동 (맨 밑 face-up 카드만)
      */
-    private fun getFlipMoves(state: GameState): List<Move> {
+    private fun getTableauMoves(state: GameState): List<Move> {
         val moves = mutableListOf<Move>()
         
         for (fromCol in 0..6) {
             val pile = state.tableau[fromCol]
             if (pile.isEmpty()) continue
             
-            // 뒷면 카드가 있고, 그 위에 앞면 카드가 있는 경우
-            val faceDownIndex = pile.indexOfFirst { !it.isFaceUp }
-            if (faceDownIndex != -1 && faceDownIndex < pile.lastIndex) {
-                // 위의 카드를 이동시키면 뒷면 카드 노출
-                val firstFaceUpIndex = pile.indexOfFirst { it.isFaceUp }
-                if (firstFaceUpIndex != -1) {
-                    for (toCol in 0..6) {
-                        if (fromCol != toCol) {
-                            val dst = state.tableau[toCol]
-                            val card = pile[firstFaceUpIndex]
-                            if (canPlaceOnTableau(card, dst)) {
-                                moves.add(Move.TableauToTableau(fromCol, firstFaceUpIndex, toCol))
-                            }
+            val firstFaceUpIndex = pile.indexOfFirst { it.isFaceUp }
+            if (firstFaceUpIndex == -1) continue
+            
+            // 의미있는 분할점만 시도:
+            // 1. 맨 아래 face-up (뒷면 노출용)
+            // 2. 맨 위 (다른 카드에 연결용)
+            // 3. King 위치 (빈 칸 활용용)
+            val significantIndices = mutableSetOf<Int>()
+            
+            // 1. 맨 아래 face-up
+            significantIndices.add(firstFaceUpIndex)
+            
+            // 2. 맨 위
+            significantIndices.add(pile.lastIndex)
+            
+            // 3. King이 있으면 King부터
+            for (i in firstFaceUpIndex until pile.size) {
+                if (pile[i].rank.value == 13) {
+                    significantIndices.add(i)
+                }
+            }
+            
+            // 의미있는 지점만 이동 시도
+            for (cardIndex in significantIndices) {
+                val card = pile[cardIndex]
+                for (toCol in 0..6) {
+                    if (fromCol != toCol) {
+                        val dst = state.tableau[toCol]
+                        if (canPlaceOnTableau(card, dst)) {
+                            moves.add(Move.TableauToTableau(fromCol, cardIndex, toCol))
                         }
                     }
                 }
@@ -340,39 +354,6 @@ class AStarSolver(private val rules: Ruleset = Ruleset()) : Solver {
                 if (card.rank == Rank.KING && firstFaceUpIndex > 0) {
                     // King이 첫 카드가 아니면 빈 공간으로 이동 (뒷면 카드 노출)
                     moves.add(Move.TableauToTableau(fromCol, firstFaceUpIndex, emptyCol))
-                }
-            }
-        }
-        
-        return moves
-    }
-    
-    /**
-     * 유용한 Tableau 이동
-     */
-    private fun getProductiveTableauMoves(state: GameState): List<Move> {
-        val moves = mutableListOf<Move>()
-        
-        for (fromCol in 0..6) {
-            val pile = state.tableau[fromCol]
-            
-            if (pile.isEmpty()) continue
-            
-            val firstFaceUpIndex = pile.indexOfFirst { it.isFaceUp }
-            if (firstFaceUpIndex == -1) {
-                continue
-            }
-            
-            for (cardIndex in firstFaceUpIndex until pile.size) {
-                val card = pile[cardIndex]
-                for (toCol in 0..6) {
-                    if (fromCol != toCol) {
-                        val dst = state.tableau[toCol]
-                        
-                        if (canPlaceOnTableau(card, dst)) {
-                            moves.add(Move.TableauToTableau(fromCol, cardIndex, toCol))
-                        }
-                    }
                 }
             }
         }

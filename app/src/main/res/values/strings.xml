@@ -177,10 +177,15 @@
     <string name="unit_game_plural">게임</string>
     
     <!-- Solver Settings -->
+    <string name="settings_app_group_title">앱 설정</string>
+    <string name="settings_game_rules_group_title">게임 규칙</string>
     <string name="solver_algorithm_title">솔버 알고리즘</string>
     <string name="solver_algorithm_desc">힌트와 자동 플레이에 사용할 알고리즘을 선택하세요</string>
     <string name="solver_bfs">BFS - 최적 경로 보장 (안정적, 메모리 사용)</string>
-    <string name="solver_astar">A* - 빠른 실행 (휴리스틱 기반)</string>
+    <string name="solver_backward">Backward - 역방향 탐색 (특정 문제에 효과적)</string>
+    <string name="solver_heuristic">Heuristic - 우선순위 기반 (빠른 해법)</string>
+    <string name="solver_astar">A* - 가장 추천 (휴리스틱, 복잡한 게임)</string>
+    <string name="solver_greedy">Greedy - 규칙 기반 (빠름, 간단한 게임)</string>
     
     <!-- Debug (MainActivity) -->
     <string name="debug_status">status</string>

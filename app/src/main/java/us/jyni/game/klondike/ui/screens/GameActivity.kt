@@ -40,7 +40,10 @@ import us.jyni.game.klondike.util.sync.Ruleset
 import us.jyni.game.klondike.solver.Solver
 import us.jyni.game.klondike.solver.SolverType
 import us.jyni.game.klondike.solver.BFSSolver
+import us.jyni.game.klondike.solver.BackwardSolver
+import us.jyni.game.klondike.solver.HeuristicSolver
 import us.jyni.game.klondike.solver.AStarSolver
+import us.jyni.game.klondike.solver.GreedySolver
 import us.jyni.game.klondike.solver.SolverResult
 import us.jyni.game.klondike.solver.Move
 import us.jyni.game.klondike.solver.UnsolvableDetector
@@ -1485,7 +1488,10 @@ class GameActivity : AppCompatActivity() {
         val rules = viewModel.getEngine().getRules()
         return when (solverType) {
             SolverType.BFS -> BFSSolver(rules)
+            SolverType.BACKWARD -> BackwardSolver(rules)
+            SolverType.HEURISTIC -> HeuristicSolver(rules)
             SolverType.ASTAR -> AStarSolver(rules)
+            SolverType.GREEDY -> GreedySolver(rules)
         }
     }
 

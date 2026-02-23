@@ -25,9 +25,9 @@ class BFSSolver(private val rules: Ruleset = Ruleset()) : Solver {
     )
     
     companion object {
-        private const val MAX_DEPTH = 50
-        private const val MAX_STATES = 10000
-        private const val TIMEOUT_MS = 5000L
+        private const val MAX_DEPTH = 200
+        private const val MAX_STATES = 200000
+        private const val TIMEOUT_MS = 30000L
     }
     
     /**
@@ -121,18 +121,32 @@ class BFSSolver(private val rules: Ruleset = Ruleset()) : Solver {
         // 우선순위: Foundation 이동 > Tableau 이동 > Draw
         
         // 1. Tableau → Foundation
+        // 각 카드는 suit에 맞는 foundation 하나로만 이동 가능
+        // 모든 foundation을 시도하면 중복 상태가 생김
         for (col in 0..6) {
+            val pile = state.tableau[col]
+            if (pile.isEmpty()) continue
+            
+            val topCard = pile.last()
+            if (!topCard.isFaceUp) continue
+            
+            // Find any foundation that accepts this card
             for (f in 0..3) {
-                if (rulesEngine.canMoveTableauToFoundation(state.tableau[col], state.foundation[f])) {
+                if (rulesEngine.canMoveTableauToFoundation(pile, state.foundation[f])) {
                     moves.add(Move.TableauToFoundation(col, f))
+                    break // Only add one foundation move per card
                 }
             }
         }
         
         // 2. Waste → Foundation
-        for (f in 0..3) {
-            if (rulesEngine.canMoveTableauToFoundation(state.waste, state.foundation[f])) {
-                moves.add(Move.WasteToFoundation(f))
+        if (state.waste.isNotEmpty()) {
+            // Find any foundation that accepts the waste card
+            for (f in 0..3) {
+                if (rulesEngine.canMoveTableauToFoundation(state.waste, state.foundation[f])) {
+                    moves.add(Move.WasteToFoundation(f))
+                    break // Only add one foundation move
+                }
             }
         }
         
@@ -143,7 +157,7 @@ class BFSSolver(private val rules: Ruleset = Ruleset()) : Solver {
             }
         }
         
-        // 4. Tableau → Tableau (모든 가능한 카드 인덱스)
+        // 4. Tableau → Tableau (의미있는 분할점만 시도)
         for (fromCol in 0..6) {
             val pile = state.tableau[fromCol]
             if (pile.isEmpty()) continue
@@ -152,10 +166,19 @@ class BFSSolver(private val rules: Ruleset = Ruleset()) : Solver {
             val firstFaceUpIndex = pile.indexOfFirst { it.isFaceUp }
             if (firstFaceUpIndex == -1) continue
             
-            for (cardIndex in firstFaceUpIndex until pile.size) {
+            // 의미있는 분할점: bottom + top + King
+            val significantIndices = mutableSetOf<Int>()
+            significantIndices.add(firstFaceUpIndex)  // 1. 맨 아래 (뒷면 노출용)
+            significantIndices.add(pile.lastIndex)     // 2. 맨 위 (연결용)
+            for (i in firstFaceUpIndex until pile.size) {  // 3. King (빈 칸용)
+                if (pile[i].rank.value == 13) {
+                    significantIndices.add(i)
+                }
+            }
+            
+            for (cardIndex in significantIndices) {
                 for (toCol in 0..6) {
                     if (fromCol != toCol) {
-                        // 실제로 이동 가능한지 체크 (GameEngine 활용)
                         if (canMoveTableauToTableauFromIndex(state, fromCol, cardIndex, toCol)) {
                             moves.add(Move.TableauToTableau(fromCol, cardIndex, toCol))
                         }

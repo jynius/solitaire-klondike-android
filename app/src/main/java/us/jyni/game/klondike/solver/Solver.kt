@@ -39,10 +39,32 @@ enum class SolverType {
     BFS,
     
     /**
+     * Backward Search
+     * - 역방향 탐색
+     * - 특정 문제에 효과적
+     */
+    BACKWARD,
+    
+    /**
+     * Heuristic-based Search
+     * - 우선순위 기반 탐색
+     * - 빠른 해법 발견
+     */
+    HEURISTIC,
+    
+    /**
      * A* with Heuristic
      * - 휴리스틱으로 빠른 탐색
-     * - 더 많은 상태 탐색 가능
-     * - 복잡한 게임에 유리
+     * - 복잡한 게임에 가장 유리
+     * - 추천
      */
-    ASTAR
+    ASTAR,
+    
+    /**
+     * Greedy Rule-based
+     * - 빠른 실행
+     * - 간단한 게임에 적합
+     * - 복잡한 게임은 실패 가능
+     */
+    GREEDY
 }
