@@ -215,4 +215,26 @@ class GameViewModelAutoCompleteTest {
         // autoComplete가 Waste 카드도 고려했는지 확인
         assertTrue("자동 완료가 실행되어야 함", moveCount >= 0)
     }
+
+    @Test
+    fun autoComplete_adds_move_and_time_compensation() {
+        viewModel.startGame(seed = 12345u, rules = Ruleset(draw = 1))
+
+        val beforeMoves = viewModel.getMoveCount()
+        val beforeElapsed = viewModel.getElapsedTimeMs()
+
+        val autoMoves = viewModel.autoComplete()
+
+        if (autoMoves > 0) {
+            val afterMoves = viewModel.getMoveCount()
+            val afterElapsed = viewModel.getElapsedTimeMs()
+
+            // 자동완성 실제 이동(autoMoves) + 자동완성 실행 자체 1회
+            assertEquals(beforeMoves + autoMoves + 1, afterMoves)
+            assertTrue("자동완성 보정으로 시간이 증가해야 함", afterElapsed > beforeElapsed)
+        } else {
+            // 이동이 전혀 없으면 보정도 없어야 함
+            assertEquals(beforeMoves, viewModel.getMoveCount())
+        }
+    }
 }

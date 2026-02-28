@@ -18,6 +18,7 @@ import us.jyni.game.klondike.solver.Move
  */
 class GameViewModel : ViewModel() {
     private val engine = GameEngine()
+    private val autoCompleteMinMsPerMove = 400L
 
     private val _state = MutableStateFlow(GameState())
     val state: StateFlow<GameState> = _state.asStateFlow()
@@ -147,6 +148,14 @@ class GameViewModel : ViewModel() {
                     if (moved) break
                 }
             }
+        }
+
+        if (moveCount > 0) {
+            engine.applyAutoCompleteCompensation(
+                autoMoves = moveCount,
+                minMsPerMove = autoCompleteMinMsPerMove
+            )
+            _state.value = engine.getGameState()
         }
         
         return moveCount

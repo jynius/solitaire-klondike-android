@@ -1148,13 +1148,19 @@ class GameActivity : AppCompatActivity() {
     private fun autoCompleteIfPossible(): Boolean {
         val state = viewModel.state.value
         
-        // 모든 Tableau 카드가 뒷면이 없고(face-up), Stock과 Waste가 비어있는지 확인
+        // 모든 Tableau 카드가 뒷면이 없는지(face-up) 확인
         val allCardsRevealed = state.tableau.all { pile -> 
             pile.all { card -> card.isFaceUp } 
         }
+        val isDrawOneMode = state.rules.draw == 1
         val stockAndWasteEmpty = state.stock.isEmpty() && state.waste.isEmpty()
+        val shouldAutoComplete = if (isDrawOneMode) {
+            allCardsRevealed
+        } else {
+            allCardsRevealed && stockAndWasteEmpty
+        }
         
-        if (allCardsRevealed && stockAndWasteEmpty) {
+        if (shouldAutoComplete) {
             // 빠른 정리 사용 (모든 카드를 Foundation으로 이동)
             val moveCount = viewModel.autoComplete()
             return moveCount > 0

@@ -642,6 +642,28 @@ class GameEngine {
     fun getStartedAt(): Long = startedAt
     
     fun getMoveCount(): Int = moveCount
+
+    /**
+     * 자동 완성 보정:
+     * - 자동 완성 버튼/트리거 자체를 1회 이동으로 간주
+     * - 자동 이동 1회당 최소 소요 시간을 경과 시간에 반영
+     */
+    fun applyAutoCompleteCompensation(autoMoves: Int, minMsPerMove: Long = 400L) {
+        if (autoMoves <= 0) return
+
+        // 자동 완성 실행 자체를 1회 이동으로 반영
+        incrementMoveCount()
+
+        // 사람 기준 최소 이동 시간 보정 (가상으로 시작 시각을 과거로 이동)
+        val clampedMinMs = maxOf(0L, minMsPerMove)
+        val compensationMs = clampedMinMs * autoMoves.toLong()
+        if (compensationMs <= 0L) return
+
+        if (startedAt == 0L) {
+            startedAt = System.currentTimeMillis()
+        }
+        startedAt -= compensationMs
+    }
     
     // 첫 무브일 때 타이머 시작하고 moveCount 증가
     private fun incrementMoveCount() {
