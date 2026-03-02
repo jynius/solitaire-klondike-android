@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.collectLatest
 import us.jyni.R
 import us.jyni.game.klondike.ui.GameViewModel
 import us.jyni.game.klondike.ui.components.CardView
+import us.jyni.game.klondike.ui.animation.AnimationHelper
 import us.jyni.game.klondike.util.sync.Ruleset
 import us.jyni.game.klondike.solver.Solver
 import us.jyni.game.klondike.solver.SolverType
@@ -64,6 +65,7 @@ class GameActivity : AppCompatActivity() {
     private var solverJob: Job? = null
     private lateinit var hintButton: ImageButton
     private lateinit var autoButton: ImageButton
+    private lateinit var animationHelper: AnimationHelper
     
     // 선택 상태 관리 변수들
     private var selectedTableau: Int? = null
@@ -83,6 +85,7 @@ class GameActivity : AppCompatActivity() {
     private var lastClickedCard: Pair<Int, Int>? = null // (column, cardIndex)
     private var victoryShown = false
     private var gameSaved = false  // 게임 결과 저장 여부
+    private var isAutoCompleting = false  // 자동 완성 진행 중 플래그
     
     // 게임 기록 관련 변수들
     private var gameStartTime: Long = 0
@@ -112,6 +115,10 @@ class GameActivity : AppCompatActivity() {
         }
         
         setContentView(R.layout.activity_game)
+
+        // Initialize AnimationHelper
+        val contentView = window.decorView.findViewById<ViewGroup>(android.R.id.content)
+        animationHelper = AnimationHelper(this, contentView)
 
         // Initialize UI components and observe ViewModel data
         setupUi()
@@ -208,10 +215,23 @@ class GameActivity : AppCompatActivity() {
                     updateScoreAndCounts()
                     
                     // Update button states
-                    findViewById<ImageButton>(R.id.undo_button).isEnabled = viewModel.canUndo()
+                    val undoButton = findViewById<ImageButton>(R.id.undo_button)
+                    val hintButton = findViewById<ImageButton>(R.id.hint_button)
+                    val autoButton = findViewById<ImageButton>(R.id.auto_button)
+                    
+                    if (s.isGameOver) {
+                        // 게임 완료 시 모든 조작 버튼 비활성화
+                        undoButton.isEnabled = false
+                        hintButton.isEnabled = false
+                        autoButton.isEnabled = false
+                    } else {
+                        // 게임 진행 중: undo는 히스토리 상태로, hint/auto는 유지
+                        undoButton.isEnabled = viewModel.canUndo()
+                    }
 
                     // Render board
                     board.removeAllViews()
+                    board.isEnabled = !s.isGameOver
                     board.rowCount = 2
                     board.columnCount = 7
 
@@ -229,9 +249,11 @@ class GameActivity : AppCompatActivity() {
                             
                             // 드롭 리스너 추가
                             setOnDragListener { view, event ->
-                                handleTableauDrop(view, event, col)
+                                if (!s.isGameOver) handleTableauDrop(view, event, col) else false
                             }
                             setOnClickListener { v ->
+                                if (s.isGameOver) return@setOnClickListener
+                                
                                 val prev = selectedTableau
                                 if (prev == null && !selectedFromWaste && selectedFoundation == null) {
                                     // 개별 카드가 이미 선택되지 않은 경우에만 전체 컬럼 선택
@@ -291,6 +313,8 @@ class GameActivity : AppCompatActivity() {
                             if (card.isFaceUp) {
                                 var startTime = 0L
                                 cv.setOnTouchListener { view, event ->
+                                    if (s.isGameOver) return@setOnTouchListener false
+                                    
                                     when (event.action) {
                                         MotionEvent.ACTION_DOWN -> {
                                             startTime = System.currentTimeMillis()
@@ -355,9 +379,11 @@ class GameActivity : AppCompatActivity() {
                             
                             // Foundation에 드롭 리스너 추가
                             setOnDragListener { view, event ->
-                                handleFoundationDrop(view, event, index)
+                                if (!s.isGameOver) handleFoundationDrop(view, event, index) else false
                             }
                             setOnClickListener { v ->
+                                if (s.isGameOver) return@setOnClickListener
+                                
                                 val from = selectedTableau
                                 if (from != null) {
                                     val moved = viewModel.moveTableauToFoundation(from, index)
@@ -395,6 +421,8 @@ class GameActivity : AppCompatActivity() {
                             // Foundation 카드에 드래그 기능 추가 (Foundation to Tableau 규칙이 활성화된 경우)
                             if (viewModel.getRules().allowFoundationToTableau) {
                                 cv.setOnTouchListener { view, event ->
+                                    if (s.isGameOver) return@setOnTouchListener false
+                                    
                                     when (event.action) {
                                         MotionEvent.ACTION_DOWN -> {
                                             val dragData = ClipData.newPlainText("card_drag", "foundation_$index")
@@ -426,8 +454,11 @@ class GameActivity : AppCompatActivity() {
                             setPadding(dp(2), dp(2), dp(2), dp(2))  // reduced from dp(6)
                             isClickable = true
                             contentDescription = "stock"
+                            isEnabled = !s.isGameOver
                             setOnClickListener {
-                                viewModel.draw()
+                                if (!s.isGameOver) {
+                                    viewModel.draw()
+                                }
                             }
                         }
                         val top = s.stock.lastOrNull()
@@ -452,12 +483,15 @@ class GameActivity : AppCompatActivity() {
                             setPadding(dp(2), dp(2), dp(2), dp(2))  // reduced from dp(6)
                             contentDescription = "waste"
                             isClickable = true
+                            isEnabled = !s.isGameOver
                             setOnClickListener { v ->
-                                // 이전 선택 해제
-                                clearAllSelections()
-                                
-                                selectedFromWaste = true
-                                v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                                if (!s.isGameOver) {
+                                    // 이전 선택 해제
+                                    clearAllSelections()
+                                    
+                                    selectedFromWaste = true
+                                    v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                                }
                             }
                         }
                         val top = s.waste.lastOrNull()
@@ -473,6 +507,8 @@ class GameActivity : AppCompatActivity() {
                             // Waste 카드에 드래그 기능 추가
                             var startTime = 0L
                             cv.setOnTouchListener { view, event ->
+                                if (s.isGameOver) return@setOnTouchListener false
+                                
                                 when (event.action) {
                                     MotionEvent.ACTION_DOWN -> {
                                         startTime = System.currentTimeMillis()
@@ -1040,84 +1076,46 @@ class GameActivity : AppCompatActivity() {
         }
     }
     
-    private fun animateCardToFoundation(sourceIndex: Int, foundationIndex: Int, sourceType: DragSourceType) {
-        // 소스와 목적지 뷰의 위치 계산
-        val rootView = findViewById<ViewGroup>(android.R.id.content)
-        val boardView = findViewById<GridLayout>(R.id.game_board)
-        val state = viewModel.state.value
-        
-        // 소스 카드와 뷰 찾기
-        var sourceViewLocal: View? = null
-        var sourceCard: us.jyni.game.klondike.model.Card? = null
-        
-        when (sourceType) {
-            DragSourceType.TABLEAU -> {
-                tableauViews[sourceIndex]?.let { pileView ->
-                    if (pileView is LinearLayout && pileView.childCount > 0) {
-                        sourceViewLocal = pileView.getChildAt(pileView.childCount - 1)
-                        sourceCard = state.tableau[sourceIndex].lastOrNull()
-                    }
+private fun animateCardToFoundation(sourceIndex: Int, foundationIndex: Int, sourceType: DragSourceType) {
+    val boardView = findViewById<GridLayout>(R.id.game_board)
+    val state = viewModel.state.value
+
+    // 소스 및 목적지 뷰 찾기
+    var sourceView: View? = null
+    var sourceCard: us.jyni.game.klondike.model.Card? = null
+
+    when (sourceType) {
+        DragSourceType.TABLEAU -> {
+            tableauViews[sourceIndex]?.let { pileView ->
+                if (pileView is LinearLayout && pileView.childCount > 0) {
+                    sourceView = pileView.getChildAt(pileView.childCount - 1)
+                    sourceCard = state.tableau[sourceIndex].lastOrNull()
                 }
             }
-            DragSourceType.WASTE -> {
-                // Waste 영역은 game_board의 5번째 자식 (stock 다음)
-                if (boardView != null && boardView.childCount > 4) {
-                    val wasteContainer = boardView.getChildAt(4)
-                    if (wasteContainer is LinearLayout && wasteContainer.childCount > 0) {
-                        sourceViewLocal = wasteContainer.getChildAt(wasteContainer.childCount - 1)
-                        sourceCard = state.waste.lastOrNull()
-                    }
+        }
+        DragSourceType.WASTE -> {
+            if (boardView != null && boardView.childCount > 4) {
+                val wasteContainer = boardView.getChildAt(4)
+                if (wasteContainer is LinearLayout && wasteContainer.childCount > 0) {
+                    sourceView = wasteContainer.getChildAt(wasteContainer.childCount - 1)
+                    sourceCard = state.waste.lastOrNull()
                 }
             }
-            else -> {}
         }
-        
-        // Foundation 뷰 찾기 (boardView의 첫 4개 자식)
-        val foundationView = if (boardView != null && foundationIndex < 4) {
-            boardView.getChildAt(foundationIndex)
-        } else null
-        
-        val sourceView = sourceViewLocal ?: return
-        val card = sourceCard ?: return
-        if (foundationView == null) {
-            return
-        }
-        
-        // 소스와 목적지의 화면 좌표 얻기
-        val sourceLocation = IntArray(2)
-        val destLocation = IntArray(2)
-        val sourceWidth = sourceView.width
-        val sourceHeight = sourceView.height
-        sourceView.getLocationOnScreen(sourceLocation)
-        foundationView.getLocationOnScreen(destLocation)
-        
-        // 트레일 효과를 위한 임시 카드 뷰 생성
-        val trailView = CardView(this).apply {
-            setCard(card)
-            layoutParams = ViewGroup.LayoutParams(sourceWidth, sourceHeight)
-        }
-        
-        // 루트 뷰에 추가
-        (rootView as? android.widget.FrameLayout)?.addView(trailView)
-        
-        // 시작 위치로 이동
-        trailView.x = sourceLocation[0].toFloat()
-        trailView.y = sourceLocation[1].toFloat()
-        
-        // 목적지로 애니메이션
-        trailView.animate()
-            .x(destLocation[0].toFloat())
-            .y(destLocation[1].toFloat())
-            .alpha(0.7f)
-            .setDuration(600)
-            .setInterpolator(AccelerateDecelerateInterpolator())
-            .withEndAction {
-                // 애니메이션 종료 후 트레일 뷰 제거
-                (rootView as? android.widget.FrameLayout)?.removeView(trailView)
-            }
-            .start()
+        else -> {}
     }
-    
+
+    val foundationView = if (boardView != null && foundationIndex < 4) {
+        boardView.getChildAt(foundationIndex)
+    } else null
+
+    val startView = sourceView ?: return
+    val card = sourceCard ?: return
+    val endView = foundationView ?: return
+
+    // AnimationHelper를 사용한 애니메이션
+    animationHelper.animateCard(card, startView, endView)
+}    
     private fun handleDoubleClick(column: Int, cardIndex: Int) {
         val currentTime = System.currentTimeMillis()
         val wasRecentClick = (currentTime - lastClickTime < 500) &&
@@ -1146,6 +1144,12 @@ class GameActivity : AppCompatActivity() {
     }
     
     private fun autoCompleteIfPossible(): Boolean {
+        // 이미 자동 완성이 진행 중이면 중복 실행 방지
+        if (isAutoCompleting) {
+            Log.d("GameActivity", "autoCompleteIfPossible: Already auto-completing, skipping")
+            return false
+        }
+        
         val state = viewModel.state.value
         
         // 모든 Tableau 카드가 뒷면이 없는지(face-up) 확인
@@ -1160,12 +1164,77 @@ class GameActivity : AppCompatActivity() {
             allCardsRevealed && stockAndWasteEmpty
         }
         
+        Log.d("GameActivity", "autoCompleteIfPossible: isDrawOneMode=$isDrawOneMode, allCardsRevealed=$allCardsRevealed, stockAndWasteEmpty=$stockAndWasteEmpty, shouldAutoComplete=$shouldAutoComplete")
+        
         if (shouldAutoComplete) {
-            // 빠른 정리 사용 (모든 카드를 Foundation으로 이동)
-            val moveCount = viewModel.autoComplete()
-            return moveCount > 0
+            isAutoCompleting = true
+            // 애니메이션과 함께 빠른 정리 시작
+            lifecycleScope.launch {
+                try {
+                    animateAutoComplete()
+                } finally {
+                    isAutoCompleting = false
+                    Log.d("GameActivity", "autoCompleteIfPossible: Auto-complete finished")
+                }
+            }
+            return true
         }
         return false
+    }
+    
+    private suspend fun animateAutoComplete() {
+        var moved = true
+        val animationMs = 600L // 각 이동의 애니메이션 시간 (0.6초)
+        
+        while (moved) {
+            moved = false
+            
+            // Waste에서 Foundation으로 이동 시도
+            if (viewModel.state.value.waste.isNotEmpty()) {
+                for (foundationIndex in 0..3) {
+                    if (viewModel.canMoveWasteToFoundation(foundationIndex)) {
+                        // Waste → Foundation 애니메이션 (실제 이동 전에 trail 표시)
+                        animateCardToFoundation(-1, foundationIndex, DragSourceType.WASTE)
+                        // 애니메이션 완료 대기 후 실제 이동
+                        kotlinx.coroutines.delay(animationMs)
+                        if (viewModel.moveWasteToFoundation(foundationIndex)) {
+                            moved = true
+                            break
+                        }
+                    }
+                }
+            }
+            
+            // Tableau에서 Foundation으로 이동 시도
+            if (!moved) {
+                for (col in 0..6) {
+                    for (foundationIndex in 0..3) {
+                        if (viewModel.canMoveTableauToFoundation(col, foundationIndex)) {
+                            // Tableau → Foundation 애니메이션 (실제 이동 전에 trail 표시)
+                            animateCardToFoundation(col, foundationIndex, DragSourceType.TABLEAU)
+                            // 애니메이션 완료 대기 후 실제 이동
+                            kotlinx.coroutines.delay(animationMs)
+                            if (viewModel.moveTableauToFoundation(col, foundationIndex)) {
+                                moved = true
+                                break
+                            }
+                        }
+                    }
+                    if (moved) break
+                }
+            }
+            
+            // Waste와 Tableau 모두에서 이동 불가능하면 Stock에서 draw 시도
+            // stock이 비어있어도 waste에 카드가 있으면 draw()가 자동으로 recycle 처리함
+            if (!moved && (viewModel.state.value.stock.isNotEmpty() || viewModel.state.value.waste.isNotEmpty())) {
+                val drawnCount = viewModel.draw()
+                if (drawnCount > 0) {
+                    // Draw 후 대기
+                    kotlinx.coroutines.delay(animationMs / 2)
+                    moved = true
+                }
+            }
+        }
     }
     
     private fun updateTimer() {
