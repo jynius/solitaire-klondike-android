@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace = "us.jyni"
-    compileSdk = 33
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "us.jyni"
         minSdk = 21
-        targetSdk = 33
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -46,6 +46,11 @@ android {
 
     kotlinOptions {
         jvmTarget = "17"
+    }
+
+    buildFeatures {
+        // AGP 8+ defaults this to false; GameActivity still imports BuildConfig
+        buildConfig = true
     }
 
     testOptions {

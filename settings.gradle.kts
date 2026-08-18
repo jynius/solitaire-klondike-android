@@ -1,8 +1,3 @@
-rootProject.name = "solitaire-klondike-android"
-
-include(":app")
-include(":core")
-
 pluginManagement {
 	repositories {
 		google()
@@ -18,3 +13,8 @@ dependencyResolutionManagement {
 		mavenCentral()
 	}
 }
+
+rootProject.name = "solitaire-klondike-android"
+
+include(":app")
+include(":core")
