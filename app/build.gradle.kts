@@ -15,8 +15,10 @@ android {
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
-        // 기본 언어를 한국어로 설정
-        resourceConfigurations += listOf("ko", "en")
+    }
+
+    androidResources {
+        localeFilters += listOf("ko", "en")
     }
 
     signingConfigs {
@@ -44,10 +46,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     buildFeatures {
         // AGP 8+ defaults this to false; GameActivity still imports BuildConfig
         buildConfig = true
@@ -55,6 +53,12 @@ android {
 
     testOptions {
         unitTests.isReturnDefaultValues = true
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
 }
 
